@@ -54,32 +54,54 @@ function LoginForm() {
   ]
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedRole) return
+  e.preventDefault()
+  if (!selectedRole) return
 
-    setIsLoading(true)
-    setError("")
+  setIsLoading(true)
+  setError("")
 
-    // Simulate API call - in real app, verify credentials with backend
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+  try {
+    const response = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    })
 
-    // Demo validation - in production, this would be server-side
-    if (formData.email && formData.password) {
-      // Store role in localStorage for auth context
-      localStorage.setItem("userRole", selectedRole)
-      localStorage.setItem("isAuthenticated", "true")
-
-      // Find the role and redirect
-      const role = roles.find((r) => r.id === selectedRole)
-      if (role) {
-        router.push(role.redirect)
-      }
-    } else {
-      setError("Please enter valid credentials")
+    if (!response.ok) {
+      const msg = await response.text()
+      setError(msg || "Invalid credentials")
+      setIsLoading(false)
+      return
     }
 
-    setIsLoading(false)
+    const data = await response.json() // { token, email, role }
+
+    // Save token and data
+    localStorage.setItem("token", data.token)
+    localStorage.setItem("email", data.email)
+    localStorage.setItem("role", data.role)
+    localStorage.setItem("isAuthenticated", "true")
+
+    // Redirect based on backend role
+    const role = roles.find((r) => r.id === data.role)
+    if (role) {
+      router.push(role.redirect)
+    } else {
+      setError("Invalid role returned from server")
+    }
+
+  } catch (err) {
+    setError("Something went wrong. Try again.")
   }
+
+  setIsLoading(false)
+}
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 relative overflow-hidden">

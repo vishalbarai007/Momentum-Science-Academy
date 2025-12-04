@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AdminSidebar } from "@/components/shared/admin-sidebar"
@@ -96,15 +96,48 @@ export default function AdminUsersPage() {
     },
   ])
 
+  const fetchUsers = async () => {
+  try {
+    const endpoint =
+      activeTab === "students"
+        ? "http://localhost:8080/api/auth/students"
+        : "http://localhost:8080/api/auth/teachers";
+
+    const res = await fetch(endpoint);
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch users");
+    }
+
+    const data = await res.json();
+
+    if (activeTab === "students") {
+      setStudents(data);
+    } else {
+      setTeachers(data);
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+};
+
+
+useEffect(() => {
+  fetchUsers();
+}, [activeTab]);
+
+
+
   const [newUser, setNewUser] = useState({
-    name: "",
+  fullName: "",
     email: "",
     phone: "",
     password: "",
     class: "",
     program: "",
-    subject: "",
+    studentClass: "",
     experience: "",
+    expertise: ""
   })
 
   const currentList = activeTab === "students" ? students : teachers
@@ -114,37 +147,71 @@ export default function AdminUsersPage() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
+  try {
+    let payload;
+
     if (activeTab === "students") {
-      const newStudent = {
-        id: students.length + 1,
-        name: newUser.name,
+      payload = {
+        fullName: newUser.fullName,
         email: newUser.email,
+        password: newUser.password,
         phone: newUser.phone,
-        class: newUser.class,
-        program: newUser.program,
-        status: "Active",
-        joinDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      }
-      setStudents([...students, newStudent])
+        role: "student",
+        studentClass: newUser.studentClass,
+        program: newUser.program
+      };
     } else {
-      const newTeacher = {
-        id: teachers.length + 1,
-        name: newUser.name,
+      payload = {
+        fullName: newUser.fullName,
         email: newUser.email,
+        password: newUser.password,
         phone: newUser.phone,
-        subject: newUser.subject,
-        experience: newUser.experience,
-        status: "Active",
-        joinDate: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      }
-      setTeachers([...teachers, newTeacher])
+        role: "teacher",
+        expertise: newUser.expertise ? [newUser.expertise] : [],
+        experience: newUser.experience ? Number(newUser.experience) : 0
+      };
     }
-    setAddModal(false)
-    setNewUser({ name: "", email: "", phone: "", password: "", class: "", program: "", subject: "", experience: "" })
-    setSuccessMessage(`${activeTab === "students" ? "Student" : "Teacher"} added successfully!`)
-    setTimeout(() => setSuccessMessage(""), 3000)
+
+    const res = await fetch("http://localhost:8080/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.text();
+
+    if (!res.ok) {
+      alert(data || "Failed to create user");
+      return;
+    }
+
+    // UI success message
+    setSuccessMessage(`${activeTab === "students" ? "Student" : "Teacher"} added successfully!`);
+    setTimeout(() => setSuccessMessage(""), 3000);
+
+    await fetchUsers();
+
+    // Reset modal + form
+    setAddModal(false);
+    setNewUser({
+      fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    class: "",
+    program: "",
+    studentClass: "",
+    experience: "",
+    expertise: ""
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong!");
   }
+};
 
   const handleDelete = (id: number) => {
     if (activeTab === "students") {
@@ -300,107 +367,132 @@ Portal: https://momentum.edu/login
       </Card>
 
       {/* Add User Modal */}
-      <Dialog open={addModal} onOpenChange={setAddModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add New {activeTab === "students" ? "Student" : "Teacher"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
+<Dialog open={addModal} onOpenChange={setAddModal}>
+  <DialogContent className="max-w-md">
+    <DialogHeader>
+      <DialogTitle>Add New {activeTab === "students" ? "Student" : "Teacher"}</DialogTitle>
+    </DialogHeader>
+
+    <div className="space-y-4">
+      {/* Full Name */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Full Name *</label>
+        <Input
+          value={newUser.fullName}
+          onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
+        />
+      </div>
+
+      {/* Email */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Email *</label>
+        <Input
+          type="email"
+          value={newUser.email}
+          onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+        />
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Phone *</label>
+        <Input
+          value={newUser.phone}
+          onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+        />
+      </div>
+
+      {/* Temporary Password */}
+      <div>
+        <label className="text-sm font-medium mb-2 block">Temporary Password *</label>
+        <Input
+          type="password"
+          value={newUser.password}
+          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+          placeholder="Set initial password"
+        />
+      </div>
+
+      {/* Student Section */}
+      {activeTab === "students" ? (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Student Class */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Full Name *</label>
-              <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} />
+              <label className="text-sm font-medium mb-2 block">Class *</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg"
+                value={newUser.studentClass}
+                onChange={(e) => setNewUser({ ...newUser, studentClass: e.target.value })}
+              >
+                <option value="">Select</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+              </select>
             </div>
+
+            {/* Program */}
             <div>
-              <label className="text-sm font-medium mb-2 block">Email *</label>
-              <Input
-                type="email"
-                value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Phone *</label>
-              <Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Temporary Password *</label>
-              <Input
-                type="password"
-                value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                placeholder="Set initial password"
-              />
-            </div>
-            {activeTab === "students" ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Class *</label>
-                    <select
-                      className="w-full px-3 py-2 border border-border rounded-lg"
-                      value={newUser.class}
-                      onChange={(e) => setNewUser({ ...newUser, class: e.target.value })}
-                    >
-                      <option value="">Select</option>
-                      <option value="9">Class 9</option>
-                      <option value="10">Class 10</option>
-                      <option value="11">Class 11</option>
-                      <option value="12">Class 12</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Program *</label>
-                    <select
-                      className="w-full px-3 py-2 border border-border rounded-lg"
-                      value={newUser.program}
-                      onChange={(e) => setNewUser({ ...newUser, program: e.target.value })}
-                    >
-                      <option value="">Select</option>
-                      <option value="JEE">JEE</option>
-                      <option value="NEET">NEET</option>
-                      <option value="MHT-CET">MHT-CET</option>
-                      <option value="Foundation">Foundation</option>
-                    </select>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Subject *</label>
-                  <select
-                    className="w-full px-3 py-2 border border-border rounded-lg"
-                    value={newUser.subject}
-                    onChange={(e) => setNewUser({ ...newUser, subject: e.target.value })}
-                  >
-                    <option value="">Select</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
-                    <option value="Biology">Biology</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Experience</label>
-                  <Input
-                    value={newUser.experience}
-                    onChange={(e) => setNewUser({ ...newUser, experience: e.target.value })}
-                    placeholder="e.g., 10 years"
-                  />
-                </div>
-              </>
-            )}
-            <div className="flex gap-2 pt-4">
-              <Button variant="outline" onClick={() => setAddModal(false)} className="flex-1">
-                Cancel
-              </Button>
-              <Button onClick={handleAddUser} className="flex-1">
-                Add User
-              </Button>
+              <label className="text-sm font-medium mb-2 block">Program *</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg"
+                value={newUser.program}
+                onChange={(e) => setNewUser({ ...newUser, program: e.target.value })}
+              >
+                <option value="">Select</option>
+                <option value="JEE">JEE</option>
+                <option value="NEET">NEET</option>
+                <option value="MHT-CET">MHT-CET</option>
+                <option value="Foundation">Foundation</option>
+              </select>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </>
+      ) : (
+        <>
+          {/* Teacher expertise */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Subject *</label>
+            <select
+              className="w-full px-3 py-2 border border-border rounded-lg"
+              value={newUser.expertise}
+              // onChange={(e) => setNewUser({ ...newUser, expertise: [e.target.value] })}
+            >
+              <option value="">Select</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
+            </select>
+          </div>
+
+          {/* Experience */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Experience (years)</label>
+            <Input
+              value={newUser.experience}
+              onChange={(e) => setNewUser({ ...newUser, experience: e.target.value })}
+              placeholder="e.g., 5"
+            />
+          </div>
+        </>
+      )}
+
+      {/* Footer Buttons */}
+      <div className="flex gap-2 pt-4">
+        <Button variant="outline" onClick={() => setAddModal(false)} className="flex-1">
+          Cancel
+        </Button>
+        <Button onClick={handleAddUser} className="flex-1">
+          Add User
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
 
       {/* View User Modal */}
       <Dialog open={viewModal.open} onOpenChange={(open) => setViewModal({ open, user: null })}>
