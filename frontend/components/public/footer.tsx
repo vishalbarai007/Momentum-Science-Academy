@@ -18,14 +18,14 @@ import { Button } from "@/components/ui/button"
 
 export function Footer() {
   return (
-    <footer className="relative bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
+    <footer className="relative bg-linear-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 pt-16 pb-8">
         {/* Newsletter Section */}
-        <div className="glass rounded-2xl p-8 mb-12 bg-white/10">
+        <div className="rounded-2xl p-8 mb-12 bg-primary/10 border border-white/10">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
