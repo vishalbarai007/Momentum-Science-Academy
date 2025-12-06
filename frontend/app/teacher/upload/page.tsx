@@ -9,35 +9,117 @@ import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
 import { Upload, CheckCircle, X } from "lucide-react"
 
+// Define the shape of our form data
+interface FormData {
+  title: string
+  description: string
+  resourceType: string
+  subject: string
+  classLevel: string
+  examType: string
+  fileLink: string
+  visibility: 'publish' | 'draft'
+}
+
+const initialFormData: FormData = {
+  title: "",
+  description: "",
+  resourceType: "",
+  subject: "",
+  classLevel: "",
+  examType: "Not Applicable",
+  fileLink: "",
+  visibility: "publish", // Default to 'publish'
+}
+
 export default function TeacherUploadPage() {
   const router = useRouter()
-  const [fileSelected, setFileSelected] = useState(false)
-  const [fileName, setFileName] = useState("")
+  
+  // State for all form inputs
+  const [formData, setFormData] = useState<FormData>(initialFormData)
+  
+  // State for process tracking
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFileSelected(true)
-      setFileName(e.target.files[0].name)
-    }
+  /**
+   * Universal handler for all text and select inputs.
+   */
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsUploading(true)
+  e.preventDefault();
+  setIsUploading(true);
 
-    // Simulate upload
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  // 1. Get Authentication Token
+  const token = localStorage.getItem("token");
+  if (!token) {
+    // Handle case where token is missing (user should be logged out or redirected)
+    console.error("Authentication token not found. Please log in again.");
+    setIsUploading(false);
+    // You might want to router.push("/login") here
+    return;
+  }
 
-    setIsUploading(false)
-    setUploadSuccess(true)
+  // 2. Prepare the Request Body (maps directly to the ResourceUploadRequest DTO)
+  const payload = {
+    title: formData.title,
+    description: formData.description,
+    resourceType: formData.resourceType,
+    subject: formData.subject,
+    classLevel: formData.classLevel,
+    // Set to null if 'Not Applicable' to match backend DTO expectation
+    examType: formData.examType === "Not Applicable" ? null : formData.examType,
+    fileLink: formData.fileLink,
+    visibility: formData.visibility, // "publish" or "draft"
+  };
+
+  try {
+    // 3. Make the API Call
+    const response = await fetch("http://localhost:8080/api/v1/resources/upload", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // AUTHENTICATION: Pass the JWT token
+        "Authorization": `Bearer ${token}`, 
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // 4. Handle Errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      // In a real app, you would use a toast/notification here to show the user the errorText
+      console.error("Resource Upload Failed:", errorText);
+      throw new Error(errorText || "Upload failed with status " + response.status);
+    }
+
+    // 5. Handle Success
+    // const data = await response.json(); // Uncomment if you need the response data
+    
+    setIsUploading(false);
+    setUploadSuccess(true);
+    setFormData(initialFormData); // Clear form state
 
     // Redirect after success
     setTimeout(() => {
-      router.push("/teacher/resources")
-    }, 2000)
+      router.push("/teacher/resources");
+    }, 2000);
+
+  } catch (err) {
+    // 6. Handle Network/Catch Errors
+    console.error("API Call Error:", err);
+    // If you had an setError state, you would use it here: setError("An unexpected error occurred.");
+    setIsUploading(false);
+    // You may want to show a temporary error message to the user here.
   }
+};
 
   if (uploadSuccess) {
     return (
@@ -70,44 +152,60 @@ export default function TeacherUploadPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium mb-2">Resource Title *</label>
+              <label className="block text-sm font-medium mb-2" htmlFor="title">Resource Title *</label>
               <input
+                id="title"
+                name="title"
                 type="text"
                 placeholder="e.g., Calculus - Complete Solutions"
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={formData.title}
+                onChange={handleInputChange}
                 required
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2" htmlFor="description">Description</label>
               <textarea
+                id="description"
+                name="description"
                 rows={3}
                 placeholder="Describe what this resource covers..."
                 className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={formData.description}
+                onChange={handleInputChange}
               />
             </div>
 
             {/* Resource Details */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Resource Type *</label>
+                <label className="block text-sm font-medium mb-2" htmlFor="resourceType">Resource Type *</label>
                 <select
+                  id="resourceType"
+                  name="resourceType"
                   className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.resourceType}
+                  onChange={handleInputChange}
                   required
                 >
                   <option value="">Select type</option>
-                  <option>Previous Year Questions (PYQ)</option>
-                  <option>Study Notes</option>
-                  <option>Assignment</option>
-                  <option>Important Topics</option>
+                  <option value="pq">Previous Year Questions (PYQ)</option>
+                  <option value="notes">Study Notes</option>
+                  <option value="assignment">Assignment</option>
+                  <option value="imp">Important Topics</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Subject *</label>
+                <label className="block text-sm font-medium mb-2" htmlFor="subject">Subject *</label>
                 <select
+                  id="subject"
+                  name="subject"
                   className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.subject}
+                  onChange={handleInputChange}
                   required
                 >
                   <option value="">Select subject</option>
@@ -118,9 +216,13 @@ export default function TeacherUploadPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Class/Level *</label>
+                <label className="block text-sm font-medium mb-2" htmlFor="classLevel">Class/Level *</label>
                 <select
+                  id="classLevel"
+                  name="classLevel"
                   className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.classLevel}
+                  onChange={handleInputChange}
                   required
                 >
                   <option value="">Select class</option>
@@ -131,8 +233,14 @@ export default function TeacherUploadPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Exam Type</label>
-                <select className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <label className="block text-sm font-medium mb-2" htmlFor="examType">Exam Type</label>
+                <select 
+                  id="examType"
+                  name="examType"
+                  className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.examType}
+                  onChange={handleInputChange}
+                >
                   <option>Not Applicable</option>
                   <option>JEE Main</option>
                   <option>JEE Advanced</option>
@@ -143,48 +251,21 @@ export default function TeacherUploadPage() {
               </div>
             </div>
 
-            {/* File Upload */}
+            {/* File Link */}
             <div>
-              <label className="block text-sm font-medium mb-2">Upload File *</label>
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
-                  fileSelected ? "border-emerald-500 bg-emerald-50" : "border-border hover:border-emerald-500"
-                }`}
-                onClick={() => document.getElementById("file-input")?.click()}
-              >
-                <Upload
-                  className={`w-10 h-10 mx-auto mb-3 ${fileSelected ? "text-emerald-500" : "text-muted-foreground"}`}
-                />
-                <p className="font-medium mb-1">{fileSelected ? fileName : "Drag and drop your file here"}</p>
-                <p className="text-sm text-muted-foreground mb-3">or click to browse</p>
-                <p className="text-xs text-muted-foreground">Supported: PDF, DOC, DOCX, XLS, PPT (Max 50MB)</p>
-                <input
-                  id="file-input"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.xls,.ppt"
-                  onChange={handleFileSelect}
-                />
-              </div>
-              {fileSelected && (
-                <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
-                  <p className="text-sm text-emerald-700 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    {fileName}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFileSelected(false)
-                      setFileName("")
-                    }}
-                  >
-                    <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                  </button>
-                </div>
-              )}
+              <label className="block text-sm font-medium mb-2" htmlFor="fileLink">File Link *</label>
+              <input
+                id="fileLink"
+                name="fileLink"
+                type="text"
+                placeholder="Enter link to the file here"
+                className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={formData.fileLink}
+                onChange={handleInputChange}
+                required
+              />
             </div>
-
+            
             {/* Visibility */}
             <div className="space-y-3">
               <label className="flex items-center gap-3 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
@@ -192,7 +273,8 @@ export default function TeacherUploadPage() {
                   type="radio"
                   name="visibility"
                   value="publish"
-                  defaultChecked
+                  checked={formData.visibility === 'publish'}
+                  onChange={handleInputChange}
                   className="w-4 h-4 text-emerald-500"
                 />
                 <div>
@@ -201,7 +283,14 @@ export default function TeacherUploadPage() {
                 </div>
               </label>
               <label className="flex items-center gap-3 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
-                <input type="radio" name="visibility" value="draft" className="w-4 h-4 text-emerald-500" />
+                <input 
+                  type="radio" 
+                  name="visibility" 
+                  value="draft" 
+                  checked={formData.visibility === 'draft'}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-emerald-500" 
+                />
                 <div>
                   <p className="font-medium">Save as Draft</p>
                   <p className="text-xs text-muted-foreground">Review later before publishing</p>
@@ -214,7 +303,7 @@ export default function TeacherUploadPage() {
               <Button
                 type="submit"
                 className="flex-1 bg-emerald-500 text-white hover:bg-emerald-600 py-6"
-                disabled={isUploading || !fileSelected}
+                disabled={isUploading || !formData.fileLink || !formData.title || !formData.resourceType || !formData.subject || !formData.classLevel}
               >
                 {isUploading ? (
                   <span className="flex items-center gap-2">
