@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
   const [students, setStudents] = useState([
     {
       id: 1,
-      name: "Aditya Kumar",
+      fullName: "Aditya Kumar",
       email: "aditya@email.com",
       phone: "+91 98765 43210",
       class: "12",
@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
     },
     {
       id: 2,
-      name: "Priya Singh",
+      fullName: "Priya Singh",
       email: "priya@email.com",
       phone: "+91 87654 32109",
       class: "11",
@@ -43,7 +43,7 @@ export default function AdminUsersPage() {
     },
     {
       id: 3,
-      name: "Rahul Sharma",
+      fullName: "Rahul Sharma",
       email: "rahul@email.com",
       phone: "+91 76543 21098",
       class: "12",
@@ -53,7 +53,7 @@ export default function AdminUsersPage() {
     },
     {
       id: 4,
-      name: "Neha Patel",
+      fullName: "Neha Patel",
       email: "neha@email.com",
       phone: "+91 65432 10987",
       class: "10",
@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
   const [teachers, setTeachers] = useState([
     {
       id: 1,
-      name: "Prof. R.P. Singh",
+      fullName: "Prof. R.P. Singh",
       email: "rp.singh@momentum.edu",
       phone: "+91 98765 11111",
       subject: "Mathematics",
@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
     },
     {
       id: 2,
-      name: "Dr. P.V. Shukla",
+      fullName: "Dr. P.V. Shukla",
       email: "pv.shukla@momentum.edu",
       phone: "+91 98765 22222",
       subject: "Physics",
@@ -86,7 +86,7 @@ export default function AdminUsersPage() {
     },
     {
       id: 3,
-      name: "Dr. Seema Verma",
+      fullName: "Dr. Seema Verma",
       email: "seema@momentum.edu",
       phone: "+91 98765 33333",
       subject: "Chemistry",
@@ -110,6 +110,7 @@ export default function AdminUsersPage() {
     }
 
     const data = await res.json();
+    console.log(data);
 
     if (activeTab === "students") {
       setStudents(data);
@@ -143,7 +144,7 @@ useEffect(() => {
   const currentList = activeTab === "students" ? students : teachers
   const filteredList = currentList.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
@@ -228,7 +229,7 @@ useEffect(() => {
     const credentials = `
 Momentum Science Academy - Login Credentials
 =============================================
-Name: ${user.name}
+Name: ${user.fullName}
 Email: ${user.email}
 Temporary Password: Momentum@123
 
@@ -239,7 +240,7 @@ Portal: https://momentum.edu/login
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${user.name.replace(/\s+/g, "_")}_credentials.txt`
+    a.download = `${user.fullName.replace(/\s+/g, "_")}_credentials.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -290,7 +291,7 @@ Portal: https://momentum.edu/login
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
-          placeholder="Search by name or email..."
+          placeholder="Search by fullName or email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -319,9 +320,9 @@ Portal: https://momentum.edu/login
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center font-bold text-primary">
-                        {user.name.charAt(0)}
+                        {user.fullName.charAt(0)}
                       </div>
-                      <span className="font-medium">{user.name}</span>
+                      <span className="font-medium">{user.fullName}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm">{user.email}</td>
@@ -504,10 +505,10 @@ Portal: https://momentum.edu/login
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white">
-                  {viewModal.user.name.charAt(0)}
+                  {viewModal.user.fullName.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">{viewModal.user.name}</h3>
+                  <h3 className="text-xl font-bold">{viewModal.user.fullName}</h3>
                   <p className="text-muted-foreground">{viewModal.user.email}</p>
                 </div>
               </div>

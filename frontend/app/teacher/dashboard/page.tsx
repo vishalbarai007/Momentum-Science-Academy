@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
 import { Upload, Download, Users, Star, ChevronRight, TrendingUp, FileText, MessageSquare } from "lucide-react"
+import { useEffect, useState } from "react"
+import { jwtDecode } from "jwt-decode"
 
 export default function TeacherDashboard() {
   const stats = [
@@ -60,12 +62,36 @@ export default function TeacherDashboard() {
     },
   ]
 
+  const [teacherName, setTeacherName] = useState("");
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const decoded: any = jwtDecode(token);
+    const email = decoded.sub; // your JWT stores email in 'subject'
+
+    fetch(`http://localhost:8080/api/auth/name?email=${email}`)
+      .then(res => res.text())
+      .then(name => setTeacherName(name))
+      .catch(err => console.error("Error fetching teacher name:", err));
+
+  } catch (err) {
+    console.error("Token decode error:", err);
+  }
+}, []);
+
+
   return (
     <TeacherSidebar>
       {/* Welcome */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back, Prof. Singh!</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+  Welcome back, {teacherName || "Teacher"}!
+</h1>
+
           <p className="text-muted-foreground">Mathematics - 15 years experience</p>
         </div>
         <Link href="/teacher/upload">

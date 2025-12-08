@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
+import { jwtDecode } from "jwt-decode";
 import {
   BookOpen,
   Download,
@@ -20,6 +21,27 @@ import {
 
 export default function StudentDashboard() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
+
+  const [studentName, setStudentName] = useState("");
+
+   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const email = decoded.sub; // because subject = email
+
+      fetch(`http://localhost:8080/api/auth/name?email=${email}`)
+        .then(res => res.text())
+        .then(name => setStudentName(name))
+        .catch(err => console.error(err));
+
+    } catch (error) {
+      console.error("Invalid token", error);
+    }
+
+  }, []);
 
   const stats = [
     {
@@ -108,7 +130,10 @@ export default function StudentDashboard() {
     <StudentSidebar>
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back, Aditya!</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+  Welcome back, {studentName}!
+</h1>
+
         <p className="text-muted-foreground text-lg">
           You're enrolled in <span className="text-primary font-medium">JEE Advanced Preparation</span> - Class 12
         </p>

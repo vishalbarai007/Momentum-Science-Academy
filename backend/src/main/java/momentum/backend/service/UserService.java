@@ -80,6 +80,10 @@ public class UserService {
         return repo.findByRole(role);
     }
 
+    public String getNameByEmail(String email) {
+        User user = repo.findByEmail(email);
+        return user != null ? user.getFullName() : null;
+    }
 
 
 }

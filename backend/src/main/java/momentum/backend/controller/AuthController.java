@@ -2,9 +2,14 @@ package momentum.backend.controller;
 
 import momentum.backend.config.JwtUtil;
 import momentum.backend.model.User;
+import momentum.backend.repository.UsersRepository;
 import momentum.backend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -13,6 +18,9 @@ public class AuthController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+
+    @Autowired
+    UsersRepository repo;
 
     public AuthController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
@@ -74,16 +82,28 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/teachers")
-    public ResponseEntity<?> getAllTeachers() {
-        return ResponseEntity.ok(userService.getUsersByRole(User.Role.teacher));
-    }
-
     @GetMapping("/students")
-    public ResponseEntity<?> getAllStudents() {
-        return ResponseEntity.ok(userService.getUsersByRole(User.Role.student));
+    public ResponseEntity<List<User>> getStudents() {
+        List<User> students = repo.findByRole(User.Role.student);
+        return ResponseEntity.ok(students);
     }
 
+    // ⬇️ Fetch Teachers
+    @GetMapping("/teachers")
+    public ResponseEntity<List<User>> getTeachers() {
+        List<User> teachers = repo.findByRole(User.Role.teacher);
+        return ResponseEntity.ok(teachers);
+    }
+
+    @GetMapping("/name")
+    public ResponseEntity<?> getName(@RequestParam String email) {
+        String name = userService.getNameByEmail(email);
+        if (name == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found");
+        }
+        return ResponseEntity.ok(name);
+    }
 
 
     // You can extend with Google OAuth endpoints here in the future!
