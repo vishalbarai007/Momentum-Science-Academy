@@ -26,6 +26,8 @@ import {
   Clock,
   Zap,
 } from "lucide-react"
+import { AnimatedTestimonialsDemo } from "../AnimatedTestimonialsDemo"
+// import CircleCursor from "../ui/CircleCursor"
 
 export function LandingPage() {
   const [showInquiry, setShowInquiry] = useState(false)
@@ -191,16 +193,17 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* <CircleCursor /> */}
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
         {/* Animated background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-linear-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-20">
@@ -213,8 +216,8 @@ export function LandingPage() {
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
                 Empowering Future{" "}
-                <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
-                  Scientists
+                <span className="bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+                  Engineers
                 </span>
                 <br />& Doctors
               </h1>
@@ -227,7 +230,7 @@ export function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6"
+                  className="bg-linear-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-8 py-6"
                   onClick={() => setShowInquiry(true)}
                 >
                   Start Your Journey
@@ -263,7 +266,7 @@ export function LandingPage() {
             <div className="relative hidden lg:block">
               <div className="relative">
                 <Card className="p-8 shadow-2xl border-0 bg-card/80 backdrop-blur-xl">
-                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-accent to-accent/50 rounded-2xl flex items-center justify-center shadow-lg animate-float">
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-linear-to-br from-accent to-accent/50 rounded-2xl flex items-center justify-center shadow-lg animate-float">
                     <div className="text-center text-accent-foreground">
                       <div className="text-2xl font-bold">15+</div>
                       <div className="text-xs">Years</div>
@@ -305,7 +308,7 @@ export function LandingPage() {
       {/* Stats Section */}
       <section
         ref={statsRef}
-        className="py-16 bg-gradient-to-r from-primary to-secondary text-primary-foreground relative overflow-hidden"
+        className="py-16 bg-linear-to-r from-primary to-secondary text-primary-foreground relative overflow-hidden"
       >
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-20" />
@@ -354,25 +357,27 @@ export function LandingPage() {
                   className="group p-6 hover-lift border-0 shadow-lg cursor-pointer overflow-hidden relative"
                 >
                   <div
-                    className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${program.color} opacity-10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 group-hover:opacity-20 transition-opacity`}
+                    className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${program.color} opacity-10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 group-hover:opacity-20 transition-opacity`}
                   />
 
                   <div
-                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${program.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                    className={`w-14 h-14 rounded-2xl bg-linear-to-br ${program.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}
                   >
                     <Icon className="w-7 h-7 text-white" />
                   </div>
 
                   <h3 className="text-xl font-bold mb-2">{program.title}</h3>
                   <p className="text-muted-foreground mb-4">{program.desc}</p>
+                  <Link href="/programs">
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
 
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {program.students} students
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                  </div>
+                        <Users className="w-4 h-4" />
+                        {program.students} students
+                      </span>
+                      <ChevronRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </Link>
                 </Card>
               )
             })}
@@ -390,7 +395,7 @@ export function LandingPage() {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-20 bg-gradient-to-br from-muted/30 to-muted/10">
+      <section className="py-20 bg-linear-to-br from-muted/30 to-muted/10">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -414,7 +419,7 @@ export function LandingPage() {
                   { title: "Comprehensive Resources", desc: "Notes, PYQs, mock tests, and 24/7 doubt support" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-card transition-colors">
-                    <CheckCircle className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-6 h-6 text-emerald-500 shrink-0 mt-0.5" />
                     <div>
                       <h4 className="font-semibold mb-1">{item.title}</h4>
                       <p className="text-muted-foreground text-sm">{item.desc}</p>
@@ -432,7 +437,7 @@ export function LandingPage() {
               />
               <Card className="absolute -bottom-8 -left-8 p-6 shadow-xl border-0 bg-card/95 backdrop-blur">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center">
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
                   <div>
@@ -469,7 +474,7 @@ export function LandingPage() {
                     alt={prof.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
                     <h3 className="text-xl font-bold">{prof.name}</h3>
                     <p className="text-white/80 text-sm">{prof.qual}</p>
@@ -502,7 +507,7 @@ export function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
+      <section className="py-20 bg-linear-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl" />
@@ -517,48 +522,10 @@ export function LandingPage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="relative">
-              {testimonials.map((testimonial, i) => (
-                <div
-                  key={i}
-                  className={`transition-all duration-500 ${
-                    activeTestimonial === i
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 absolute inset-0 translate-y-4 pointer-events-none"
-                  }`}
-                >
-                  <Card className="p-8 md:p-12 border-0 shadow-2xl bg-white/10 backdrop-blur-xl text-primary-foreground">
-                    <Quote className="w-12 h-12 text-accent mb-6 opacity-50" />
-                    <p className="text-xl md:text-2xl leading-relaxed mb-8 italic">"{testimonial.quote}"</p>
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={testimonial.image || "/placeholder.svg"}
-                        alt={testimonial.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-                      />
-                      <div>
-                        <h4 className="font-bold text-lg">{testimonial.name}</h4>
-                        <p className="text-accent font-medium">{testimonial.achievement}</p>
-                        <p className="text-primary-foreground/70 text-sm">{testimonial.college}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              ))}
-            </div>
 
-            {/* Testimonial indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    activeTestimonial === i ? "w-8 bg-accent" : "w-2 bg-white/30 hover:bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
+                <AnimatedTestimonialsDemo/>
+
+          
           </div>
         </div>
       </section>
@@ -566,8 +533,8 @@ export function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <Card className="p-8 md:p-16 border-0 shadow-2xl bg-gradient-to-br from-muted/50 to-muted/30 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+          <Card className="p-8 md:p-16 border-0 shadow-2xl bg-linear-to-br from-muted/50 to-muted/30 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-linear-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
 
             <div className="relative grid lg:grid-cols-2 gap-12 items-center">
               <div>
@@ -581,7 +548,7 @@ export function LandingPage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-xl"
+                    className="bg-linear-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-xl"
                     onClick={() => setShowInquiry(true)}
                   >
                     Book Free Counseling
@@ -635,7 +602,7 @@ export function LandingPage() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center">
                 <GraduationCap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold">Get in Touch</h3>
@@ -678,7 +645,7 @@ export function LandingPage() {
                   <option>Foundation (7-8)</option>
                 </select>
               </div>
-              <Button className="w-full py-6 bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-lg">
+              <Button className="w-full py-6 bg-linear-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 shadow-lg">
                 Submit Inquiry
               </Button>
             </form>

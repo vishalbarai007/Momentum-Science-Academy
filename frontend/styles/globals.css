@@ -25,7 +25,7 @@
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-3: #104e64;
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
@@ -122,4 +122,17 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+/* In your globals.css or main style file */
+html, body {
+  cursor: none !important; /* Hides the default cursor */
+  min-height: 100vh;
+  /* Adds some content to scroll for testing */
+}
+
+/* Optional: Re-enable pointer for interactive elements */
+a, button, [role="button"], input {
+  cursor: pointer !important;
 }
