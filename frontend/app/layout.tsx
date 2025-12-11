@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Poppins, Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import CircleCursor from "@/components/ui/CircleCursor"
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -59,6 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
+      <CircleCursor />
       <body className="font-sans antialiased">
         {children}
         <Analytics />
