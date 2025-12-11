@@ -108,7 +108,7 @@ export default function CircleCursor() {
     >
       <div ref={textRef} className="flex items-center justify-center">
         <div className="innercircle h-1 w-1 rounded-full bg-blue-500">
-
+          
         </div>
       </div>
     </div>

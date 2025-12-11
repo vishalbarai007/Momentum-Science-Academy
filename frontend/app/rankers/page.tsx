@@ -433,7 +433,7 @@ export default function RankersPage() {
         </div>
       )}
 
-     <Footer/>
+     <Footer  />
     </div>
   )
 }
