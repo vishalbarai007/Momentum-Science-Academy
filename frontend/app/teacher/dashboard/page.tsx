@@ -4,11 +4,16 @@ import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Upload, Download, Users, Star, ChevronRight, TrendingUp, FileText, MessageSquare } from "lucide-react"
+import { Upload, Download, Users, Star, ChevronRight, TrendingUp, FileText, MessageSquare, Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { jwtDecode } from "jwt-decode"
 
 export default function TeacherDashboard() {
+  const [teacherName, setTeacherName] = useState("");
+  // NEW: State for dynamic recent resources
+  const [recentResources, setRecentResources] = useState<any[]>([]); 
+  const [loadingResources, setLoadingResources] = useState(true);
+
   const stats = [
     { label: "Total Uploads", value: "47", icon: Upload, color: "from-blue-500 to-cyan-500", change: "+3 this week" },
     {
@@ -20,25 +25,6 @@ export default function TeacherDashboard() {
     },
     { label: "Active Students", value: "156", icon: Users, color: "from-orange-500 to-red-500", change: "+12 new" },
     { label: "Avg Rating", value: "4.8", icon: Star, color: "from-purple-500 to-pink-500", change: "Out of 5" },
-  ]
-
-  const recentResources = [
-    {
-      title: "Algebra Equations - Comprehensive Notes",
-      type: "Notes",
-      class: "Class 11-12",
-      downloads: 156,
-      date: "Today",
-    },
-    { title: "JEE Main 2024 - Full Paper", type: "PYQ", class: "Class 12", downloads: 342, date: "Yesterday" },
-    {
-      title: "Trigonometry Assignment Set 2",
-      type: "Assignment",
-      class: "Class 11",
-      downloads: 89,
-      date: "2 days ago",
-    },
-    { title: "Calculus - Important Formulas", type: "IMP", class: "Class 12", downloads: 203, date: "3 days ago" },
   ]
 
   const recentFeedback = [
@@ -62,25 +48,58 @@ export default function TeacherDashboard() {
     },
   ]
 
-  const [teacherName, setTeacherName] = useState("");
-
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (!token) return;
-
-  try {
-    const decoded: any = jwtDecode(token);
-    const email = decoded.sub; // your JWT stores email in 'subject'
-
-    fetch(`http://localhost:8080/api/auth/name?email=${email}`)
-      .then(res => res.text())
-      .then(name => setTeacherName(name))
-      .catch(err => console.error("Error fetching teacher name:", err));
-
-  } catch (err) {
-    console.error("Token decode error:", err);
+  // Helper to format Enum values
+  const formatResourceType = (type: string) => {
+    const map: Record<string, string> = {
+      'pq': 'PYQ',
+      'notes': 'Notes',
+      'assignment': 'Assignment',
+      'imp': 'IMP'
+    }
+    return map[type.toLowerCase()] || type
   }
-}, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const email = decoded.sub; 
+
+      // 1. Fetch Teacher Name
+      fetch(`http://localhost:8080/api/auth/name?email=${email}`)
+        .then(res => res.text())
+        .then(name => setTeacherName(name))
+        .catch(err => console.error("Error fetching teacher name:", err));
+
+      // 2. Fetch Recent Resources
+      fetch("http://localhost:8080/api/v1/resources/my-uploads", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          // Sort by date (newest first) and take the top 4
+          const sorted = data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          const recent = sorted.slice(0, 4).map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            type: formatResourceType(item.type),
+            class: item.targetClass,
+            downloads: item.downloads || 0,
+            date: new Date(item.createdAt).toLocaleDateString() // Format date
+          }));
+          setRecentResources(recent);
+        }
+      })
+      .catch(err => console.error("Error fetching resources:", err))
+      .finally(() => setLoadingResources(false));
+
+    } catch (err) {
+      console.error("Token decode error:", err);
+    }
+  }, []);
 
 
   return (
@@ -89,9 +108,8 @@ useEffect(() => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-  Welcome back, {teacherName || "Teacher"}!
-</h1>
-
+            Welcome back, {teacherName || "Teacher"}!
+          </h1>
           <p className="text-muted-foreground">Mathematics - 15 years experience</p>
         </div>
         <Link href="/teacher/upload">
@@ -136,34 +154,47 @@ useEffect(() => {
           </div>
 
           <div className="space-y-3">
-            {recentResources.map((resource, i) => (
-              <Card key={i} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-emerald-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{resource.title}</h3>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded">
-                          {resource.type}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{resource.class}</span>
-                        <span className="text-xs text-muted-foreground">
-                          - {resource.downloads} downloads - {resource.date}
-                        </span>
+            {loadingResources ? (
+              <div className="flex justify-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+              </div>
+            ) : recentResources.length === 0 ? (
+              <div className="text-center p-8 border rounded-xl bg-muted/20">
+                <p className="text-muted-foreground">No resources uploaded yet.</p>
+                <Link href="/teacher/upload" className="text-emerald-500 hover:underline text-sm mt-2 block">
+                  Upload your first resource
+                </Link>
+              </div>
+            ) : (
+              recentResources.map((resource, i) => (
+                <Card key={i} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{resource.title}</h3>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded">
+                            {resource.type}
+                          </span>
+                          <span className="text-xs text-muted-foreground">Class {resource.class}</span>
+                          <span className="text-xs text-muted-foreground">
+                            - {resource.downloads} downloads - {resource.date}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <Link href="/teacher/resources">
+                      <Button size="sm" variant="outline">
+                        Edit
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/teacher/resources">
-                    <Button size="sm" variant="outline">
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
 
           {/* Quick Stats */}

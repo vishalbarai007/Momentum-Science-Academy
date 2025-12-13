@@ -1,47 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Plus, Edit, Trash2, CheckCircle, Search } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
+// Updated interface to include fileUrl
+interface Resource {
+  id: number
+  title: string
+  type: string
+  class: string
+  downloads: number
+  status: string
+  date: string
+  description?: string
+  fileUrl?: string
+}
+
 export default function TeacherResourcesPage() {
-  const [resources, setResources] = useState([
-    {
-      id: 1,
-      title: "Algebra Equations",
-      type: "Notes",
-      class: "11-12",
-      downloads: 156,
-      status: "Published",
-      date: "Today",
-    },
-    {
-      id: 2,
-      title: "JEE Main 2024 Paper",
-      type: "PYQ",
-      class: "12",
-      downloads: 342,
-      status: "Published",
-      date: "Yesterday",
-    },
-    {
-      id: 3,
-      title: "Trigonometry Set 2",
-      type: "Assignment",
-      class: "11",
-      downloads: 89,
-      status: "Published",
-      date: "2 days",
-    },
-    { id: 4, title: "Calculus Formulas", type: "IMP", class: "12", downloads: 203, status: "Draft", date: "3 days" },
-  ])
-  const [editModal, setEditModal] = useState<{ open: boolean; resource: (typeof resources)[0] | null }>({
+  const [resources, setResources] = useState<Resource[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // Modal & Form States
+  const [editModal, setEditModal] = useState<{ open: boolean; resource: Resource | null }>({
     open: false,
     resource: null,
   })
@@ -49,29 +36,125 @@ export default function TeacherResourcesPage() {
     open: false,
     resourceId: null,
   })
+  
+  // NEW: State for the Open Link Confirmation Modal
+  const [openLinkModal, setOpenLinkModal] = useState<{ open: boolean; link: string | null; title: string | null }>({
+    open: false,
+    link: null,
+    title: null
+  })
+
   const [editForm, setEditForm] = useState({ title: "", description: "" })
   const [successMessage, setSuccessMessage] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
 
-  const handleEdit = (resource: (typeof resources)[0]) => {
-    setEditForm({ title: resource.title, description: "" })
+  // 1. Fetch Resources on Component Mount
+  useEffect(() => {
+    fetchResources()
+  }, [])
+
+  const fetchResources = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return 
+
+      const response = await fetch("http://localhost:8080/api/v1/resources/my-uploads", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Map backend entities to frontend state
+        const mappedData = data.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          type: formatResourceType(item.type),
+          class: item.targetClass,
+          downloads: item.downloads || 0,
+          status: item.isPublished ? "Published" : "Draft",
+          date: new Date(item.createdAt).toLocaleDateString(),
+          description: item.description,
+          fileUrl: item.fileUrl // Ensure this is mapped from backend
+        }))
+        
+        setResources(mappedData)
+      }
+    } catch (error) {
+      console.error("Failed to fetch resources:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatResourceType = (type: string) => {
+    const map: Record<string, string> = {
+      'pq': 'PYQ',
+      'notes': 'Notes',
+      'assignment': 'Assignment',
+      'imp': 'IMP'
+    }
+    return map[type.toLowerCase()] || type
+  }
+
+  // Handle Delete
+  const handleDelete = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch(`http://localhost:8080/api/v1/resources/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        setResources(resources.filter((r) => r.id !== id))
+        setSuccessMessage("Resource deleted successfully!")
+        setTimeout(() => setSuccessMessage(""), 3000)
+      } else {
+        console.error("Failed to delete resource")
+      }
+    } catch (error) {
+      console.error("Error deleting resource:", error)
+    } finally {
+      setDeleteModal({ open: false, resourceId: null })
+    }
+  }
+
+  const handleEdit = (resource: Resource) => {
+    setEditForm({ title: resource.title, description: resource.description || "" })
     setEditModal({ open: true, resource })
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editModal.resource) {
-      setResources(resources.map((r) => (r.id === editModal.resource!.id ? { ...r, title: editForm.title } : r)))
+      // Optimistic update
+      setResources(resources.map((r) => (r.id === editModal.resource!.id ? { ...r, title: editForm.title, description: editForm.description } : r)))
       setEditModal({ open: false, resource: null })
       setSuccessMessage("Resource updated successfully!")
       setTimeout(() => setSuccessMessage(""), 3000)
     }
   }
 
-  const handleDelete = (id: number) => {
-    setResources(resources.filter((r) => r.id !== id))
-    setDeleteModal({ open: false, resourceId: null })
-    setSuccessMessage("Resource deleted successfully!")
-    setTimeout(() => setSuccessMessage(""), 3000)
+  // NEW: Handle Open Link Click
+  const handleOpenLinkClick = (resource: Resource) => {
+    if (resource.fileUrl) {
+      setOpenLinkModal({ open: true, link: resource.fileUrl, title: resource.title })
+    } else {
+      // Fallback if no link exists
+      alert("No file link available for this resource.")
+    }
+  }
+
+  // NEW: Confirm Redirect Logic
+  const confirmRedirect = () => {
+    if (openLinkModal.link) {
+      window.open(openLinkModal.link, "_blank")
+      setOpenLinkModal({ open: false, link: null, title: null })
+    }
   }
 
   const filteredResources = resources.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -110,61 +193,82 @@ export default function TeacherResourcesPage() {
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden border-0 shadow-lg">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Title</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Class</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Downloads</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredResources.map((resource) => (
-                <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 font-medium">{resource.title}</td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded font-medium">
-                      {resource.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm">{resource.class}</td>
-                  <td className="px-6 py-4 text-sm font-medium">{resource.downloads}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`text-xs px-2 py-1 rounded font-medium ${
-                        resource.status === "Published"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {resource.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-destructive hover:bg-destructive/10 bg-transparent"
-                        onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
+      <Card className="overflow-hidden border-0 shadow-lg min-h-[300px]">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+            <Loader2 className="w-10 h-10 animate-spin mb-2 text-emerald-500" />
+            <p>Loading your resources...</p>
+          </div>
+        ) : filteredResources.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+            <p>No resources found.</p>
+            <Link href="/teacher/upload" className="text-emerald-500 hover:underline mt-2">Upload your first resource</Link>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Title</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Class</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Downloads</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredResources.map((resource) => (
+                  <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4">
+                      {/* NEW: Clickable Title triggering the Modal */}
+                      <button 
+                        onClick={() => handleOpenLinkClick(resource)}
+                        className="font-medium text-emerald-600 hover:underline flex items-center gap-2 text-left"
+                      >
+                        {resource.title}
+                        <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                      </button>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded font-medium">
+                        {resource.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">{resource.class}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{resource.downloads}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`text-xs px-2 py-1 rounded font-medium ${
+                          resource.status === "Published"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {resource.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive hover:bg-destructive/10 bg-transparent"
+                          onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Edit Modal */}
@@ -229,6 +333,43 @@ export default function TeacherResourcesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* NEW: Open Link Confirmation Modal */}
+      <Dialog open={openLinkModal.open} onOpenChange={(open) => setOpenLinkModal({ ...openLinkModal, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Open Resource</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground mb-2">
+              You are about to be redirected to the following resource:
+            </p>
+            <div className="bg-muted p-3 rounded-md border border-border">
+              <p className="font-medium text-emerald-600 break-all text-sm">
+                {openLinkModal.link}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              Do you want to continue?
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setOpenLinkModal({ open: false, link: null, title: null })}
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              onClick={confirmRedirect}
+            >
+              Open Link <ExternalLink className="w-4 h-4 ml-2" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </TeacherSidebar>
   )
 }

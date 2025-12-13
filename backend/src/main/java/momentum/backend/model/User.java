@@ -1,22 +1,18 @@
 package momentum.backend.model;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // Mongo _id equivalent for SQL DB.
-    // If using Mongo, replace with @Id private String id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -28,7 +24,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;   // student, teacher, admin
+    private Role role;
 
     private String phone;
 
@@ -39,24 +35,29 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date();
 
+    // ---------- Access Control ----------
+    // This allows admins to define specific tags (e.g., "11", "JEE", "Physics")
+    // that this user is allowed to access.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_access_tags", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "access_tag")
+    private Set<String> accessTags = new HashSet<>();
 
     // ---------- Student Specific Fields ----------
-    private String studentClass;      // "11", "12"
-    private String program;           // "JEE", "NEET"
+    private String studentClass;
+    private String program;
 
     @Temporal(TemporalType.DATE)
     private Date enrollmentDate;
 
-
     // ---------- Teacher Specific Fields ----------
     @ElementCollection
-    private List<String> qualifications;    // degrees or certificates
+    private List<String> qualifications;
 
-    private Integer experience;  // years
+    private Integer experience;
 
     @ElementCollection
-    private List<String> expertise;         // subjects taught
-
+    private List<String> expertise;
 
     // ---------- Role Enum ----------
     public enum Role {
@@ -64,6 +65,33 @@ public class User {
         teacher,
         admin
     }
+
+    // ---------- Constructors ----------
+
+    public User() {
+    }
+
+    // Constructor with all fields
+    public User(Long id, String email, String passwordHash, String fullName, Role role, String phone, String profileImageUrl, Boolean isActive, Date createdAt, Set<String> accessTags, String studentClass, String program, Date enrollmentDate, List<String> qualifications, Integer experience, List<String> expertise) {
+        this.id = id;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.fullName = fullName;
+        this.role = role;
+        this.phone = phone;
+        this.profileImageUrl = profileImageUrl;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+        this.accessTags = accessTags;
+        this.studentClass = studentClass;
+        this.program = program;
+        this.enrollmentDate = enrollmentDate;
+        this.qualifications = qualifications;
+        this.experience = experience;
+        this.expertise = expertise;
+    }
+
+    // ---------- Getters and Setters ----------
 
     public Long getId() {
         return id;
@@ -137,6 +165,14 @@ public class User {
         this.createdAt = createdAt;
     }
 
+    public Set<String> getAccessTags() {
+        return accessTags;
+    }
+
+    public void setAccessTags(Set<String> accessTags) {
+        this.accessTags = accessTags;
+    }
+
     public String getStudentClass() {
         return studentClass;
     }
@@ -185,4 +221,3 @@ public class User {
         this.expertise = expertise;
     }
 }
-

@@ -1,13 +1,17 @@
 package momentum.backend.controller;
 
 import momentum.backend.model.Resource;
+import momentum.backend.model.User;
 import momentum.backend.service.ResourceService;
+import momentum.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/resources")
@@ -15,15 +19,16 @@ import java.util.List;
 public class ResourceController {
 
     private final ResourceService resourceService;
+    private final UserService userService; // 1. Added UserService field
 
-    public ResourceController(ResourceService resourceService) {
+    // 2. Updated Constructor to inject UserService
+    public ResourceController(ResourceService resourceService, UserService userService) {
         this.resourceService = resourceService;
+        this.userService = userService;
     }
 
     /**
      * Handles resource upload via JSON body from the frontend.
-     * Note: This assumes the ResourceService.uploadResource method has been updated
-     * to accept the ResourceUploadRequest DTO instead of individual parameters and MultipartFile.
      */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadResource(@RequestBody ResourceUploadRequest request) {
@@ -48,9 +53,44 @@ public class ResourceController {
         }
     }
 
+    /**
+     * Smart Endpoint: Returns resources based on User Role.
+     * - Teachers/Admins: Get ALL resources.
+     * - Students: Get ONLY resources matching their Access Tags.
+     */
     @GetMapping
     public ResponseEntity<List<Resource>> getAllResources() {
-        return ResponseEntity.ok(resourceService.getAllResources());
+        // 1. Identify the User
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userService.findByEmail(email);
+
+        // 2. Fetch all resources from DB
+        List<Resource> allResources = resourceService.getAllResources();
+
+        // 3. Filter based on Role
+        if (user != null && user.getRole() == User.Role.student) {
+            Set<String> accessTags = user.getAccessTags();
+
+            // If student has no tags, return empty list (Strict security)
+            if (accessTags == null || accessTags.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            // Filter: Keep resource if its Class OR Exam OR Subject matches user's tags
+            List<Resource> filteredResources = allResources.stream()
+                    .filter(resource ->
+                            accessTags.contains(resource.getTargetClass()) ||
+                                    accessTags.contains(resource.getExam()) ||
+                                    accessTags.contains(resource.getSubject())
+                    )
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(filteredResources);
+        }
+
+        // 4. Return all for Teachers/Admins
+        return ResponseEntity.ok(allResources);
     }
 
     @GetMapping("/my-uploads")
@@ -79,7 +119,7 @@ public class ResourceController {
         private String fileLink;     // Maps to fileUrl in the backend model
         private String visibility;   // "publish" or "draft"
 
-        // Standard Getters and Setters (IntelliJ or Lombok can generate these)
+        // Standard Getters and Setters
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
         public String getDescription() { return description; }

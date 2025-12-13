@@ -16,9 +16,24 @@ import {
   BarChart3,
   Download,
   Eye,
+  Loader2,
 } from "lucide-react"
+import { useEffect, useState } from "react"
+
+// Define interface for Student data for the dashboard
+interface Student {
+  id: string
+  name: string
+  email: string
+  class: string
+  program: string
+  date: string
+}
 
 export default function AdminDashboard() {
+  const [recentStudents, setRecentStudents] = useState<Student[]>([])
+  const [isLoadingStudents, setIsLoadingStudents] = useState(true)
+
   const metrics = [
     { label: "Total Students", value: "2,847", change: "+12%", icon: Users, color: "from-blue-500 to-cyan-500" },
     {
@@ -32,17 +47,68 @@ export default function AdminDashboard() {
     { label: "Resources", value: "1,203", change: "+43", icon: BookOpen, color: "from-purple-500 to-pink-500" },
   ]
 
-  const recentStudents = [
-    { name: "Arjun Dubey", email: "arjun@email.com", class: "12", program: "JEE", date: "Today" },
-    { name: "Priya Singh", email: "priya@email.com", class: "11", program: "NEET", date: "Yesterday" },
-    { name: "Rohan Patel", email: "rohan@email.com", class: "12", program: "JEE", date: "2 days ago" },
-  ]
-
   const recentLeads = [
     { name: "Aditya Kumar", status: "new", program: "JEE", phone: "+91 98765 43210" },
     { name: "Neha Sharma", status: "contacted", program: "NEET", phone: "+91 87654 32109" },
     { name: "Vikram Singh", status: "interested", program: "JEE", phone: "+91 76543 21098" },
   ]
+
+  // Fetch Recent Students
+  useEffect(() => {
+    const fetchRecentStudents = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+            setIsLoadingStudents(false)
+            return
+        }
+
+        // 1. Use the same endpoint as AdminUsersPage
+        const response = await fetch("http://localhost:8080/api/auth/students", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json() // Expecting array of User objects
+          
+          if (Array.isArray(data)) {
+            // 2. Client-side Sort: Newest 'createdAt' first
+            const sortedData = data.sort((a: any, b: any) => {
+              const dateA = new Date(a.createdAt || 0).getTime()
+              const dateB = new Date(b.createdAt || 0).getTime()
+              return dateB - dateA
+            })
+
+            // 3. Slice the top 3
+            const top3 = sortedData.slice(0, 3)
+
+            // 4. Map with Defaults (handling mapping between backend 'studentClass' and frontend 'class')
+            const mappedStudents = top3.map((user: any) => ({
+              id: user.id,
+              name: user.fullName || "Unknown Name",
+              email: user.email || "No Email",
+              class: user.studentClass || user.class || "N/A", // Try both field names
+              program: user.program || "N/A",
+              date: new Date(user.createdAt || Date.now()).toLocaleDateString("en-US", { 
+                month: 'short', 
+                day: 'numeric' 
+              })
+            }))
+            
+            setRecentStudents(mappedStudents)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch recent students:", error)
+      } finally {
+        setIsLoadingStudents(false)
+      }
+    }
+
+    fetchRecentStudents()
+  }, [])
 
   return (
     <AdminSidebar>
@@ -181,27 +247,38 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div className="space-y-3">
-            {recentStudents.map((student, i) => (
-              <div key={i} className="p-3 bg-muted/50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center font-bold text-primary">
-                    {student.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{student.name}</p>
-                    <p className="text-xs text-muted-foreground">{student.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                    Class {student.class}
-                  </span>
-                  <span className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
-                    {student.program}
-                  </span>
-                </div>
+            {isLoadingStudents ? (
+              <div className="flex justify-center p-4">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ))}
+            ) : recentStudents.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No recent students found.</p>
+            ) : (
+              recentStudents.map((student) => (
+                <div key={student.id} className="p-3 bg-muted/50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center font-bold text-primary">
+                      {student.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{student.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{student.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                      Class {student.class}
+                    </span>
+                    <span className="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded-full">
+                      {student.program}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {student.date}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </Card>
 

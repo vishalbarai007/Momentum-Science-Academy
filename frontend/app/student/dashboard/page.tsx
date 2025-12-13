@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
-import { jwtDecode } from "jwt-decode";
 import {
   BookOpen,
   Download,
@@ -17,31 +16,76 @@ import {
   Award,
   FileText,
   TrendingUp,
+  Loader2,
 } from "lucide-react"
+
+// Types
+interface Student {
+  fullName: string
+  email: string
+  studentClass: string
+  program: string
+}
+
+interface Resource {
+  id: number
+  title: string
+  type: string
+  subject: string
+  createdAt: string
+  fileUrl: string
+}
 
 export default function StudentDashboard() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
+  
+  // Dynamic State
+  const [student, setStudent] = useState<Student | null>(null)
+  const [recentResources, setRecentResources] = useState<Resource[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [studentName, setStudentName] = useState("");
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        setLoading(false)
+        return
+      }
 
-   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+      try {
+        // 1. Fetch Student Profile using the new /me endpoint
+        const profileRes = await fetch("http://localhost:8080/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        
+        if (profileRes.ok) {
+          const profileData = await profileRes.json()
+          setStudent(profileData)
+        }
 
-    try {
-      const decoded: any = jwtDecode(token);
-      const email = decoded.sub; // because subject = email
+        // 2. Fetch Resources
+        const resourcesRes = await fetch("http://localhost:8080/api/v1/resources", {
+           headers: { "Authorization": `Bearer ${token}` }
+        })
 
-      fetch(`http://localhost:8080/api/auth/name?email=${email}`)
-        .then(res => res.text())
-        .then(name => setStudentName(name))
-        .catch(err => console.error(err));
+        if (resourcesRes.ok) {
+          const data = await resourcesRes.json()
+          // Sort by newest first and take top 4
+          const sorted = data.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          ).slice(0, 4)
+          setRecentResources(sorted)
+        }
 
-    } catch (error) {
-      console.error("Invalid token", error);
+      } catch (err) {
+        console.error("Dashboard fetch error:", err)
+      } finally {
+        setLoading(false)
+      }
     }
 
-  }, []);
+    fetchData()
+  }, [])
 
   const stats = [
     {
@@ -62,80 +106,55 @@ export default function StudentDashboard() {
     { label: "Study Hours", value: "128", icon: Clock, color: "from-purple-500 to-pink-500", change: "hrs this month" },
   ]
 
-  const recentResources = [
-    {
-      id: 1,
-      title: "JEE Main 2024 - Full Paper Analysis",
-      type: "PYQ",
-      subject: "Mathematics",
-      date: "Today",
-      new: true,
-      fileUrl: "#",
-    },
-    {
-      id: 2,
-      title: "Quadratic Equations - Complete Notes",
-      type: "Notes",
-      subject: "Mathematics",
-      date: "Yesterday",
-      new: false,
-      fileUrl: "#",
-    },
-    {
-      id: 3,
-      title: "Organic Chemistry - Reaction Mechanisms",
-      type: "Notes",
-      subject: "Chemistry",
-      date: "2 days ago",
-      new: false,
-      fileUrl: "#",
-    },
-    {
-      id: 4,
-      title: "Physics - Thermodynamics Assignment",
-      type: "Assignment",
-      subject: "Physics",
-      date: "3 days ago",
-      new: false,
-      fileUrl: "#",
-    },
-  ]
-
   const upcomingEvents = [
     { title: "Algebra Test", date: "Tomorrow, 2 PM", type: "Test", urgent: true },
     { title: "Physics Doubt Session", date: "Dec 20, 5 PM", type: "Session", urgent: false },
     { title: "Chemistry Assignment Due", date: "Dec 22", type: "Assignment", urgent: false },
   ]
 
-  const handleDownload = async (id: number, title: string) => {
+  const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
-    // Simulate download
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    
+    // If it's a real URL, redirect to it
+    if (fileUrl && fileUrl.startsWith("http")) {
+        setTimeout(() => {
+            window.open(fileUrl, "_blank")
+            setDownloadingId(null)
+        }, 800)
+    } else {
+        // Fallback simulation if no real URL
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        setDownloadingId(null)
+        alert("File download started (Simulated)")
+    }
+  }
 
-    // Create a fake download
-    const blob = new Blob([`Content of ${title}`], { type: "application/pdf" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${title.replace(/\s+/g, "_")}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
+  // Helper to format Date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Recent"
+    return new Date(dateString).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })
+  }
 
-    setDownloadingId(null)
+  // Helper to format Type
+  const formatType = (type: string) => {
+    const map: any = { 'pq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }
+    return map[type?.toLowerCase()] || type
   }
 
   return (
     <StudentSidebar>
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-  Welcome back, {studentName}!
-</h1>
+        {loading ? (
+            <div className="h-8 w-64 bg-muted animate-pulse rounded mb-2"></div>
+        ) : (
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Welcome back, {student?.fullName || "Student"}!
+            </h1>
+        )}
 
         <p className="text-muted-foreground text-lg">
-          You're enrolled in <span className="text-primary font-medium">JEE Advanced Preparation</span> - Class 12
+          You're enrolled in <span className="text-primary font-medium">{student?.program || "General"} Preparation</span> - Class {student?.studentClass || "..."}
         </p>
       </div>
 
@@ -174,46 +193,55 @@ export default function StudentDashboard() {
           </div>
 
           <div className="space-y-3">
-            {recentResources.map((resource) => (
-              <Card key={resource.id} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold hover:text-primary cursor-pointer">{resource.title}</h3>
-                      {resource.new && (
-                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                          New
+            {loading ? (
+               <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+            ) : recentResources.length === 0 ? (
+               <p className="text-muted-foreground">No resources found.</p>
+            ) : (
+                recentResources.map((resource) => (
+                <Card key={resource.id} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold hover:text-primary cursor-pointer truncate max-w-[200px] md:max-w-md">
+                            {resource.title}
+                        </h3>
+                        {/* Logic for 'New' badge: uploaded within last 24 hours */}
+                        {(new Date().getTime() - new Date(resource.createdAt).getTime()) < 86400000 && (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+                            New
+                            </span>
+                        )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium uppercase">
+                            {formatType(resource.type)}
                         </span>
-                      )}
+                        <span className="text-xs text-muted-foreground">{resource.subject}</span>
+                        <span className="text-xs text-muted-foreground">- {formatDate(resource.createdAt)}</span>
+                        </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
-                        {resource.type}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{resource.subject}</span>
-                      <span className="text-xs text-muted-foreground">- {resource.date}</span>
+                    <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
+                        onClick={() => handleDownload(resource.id, resource.fileUrl)}
+                        disabled={downloadingId === resource.id}
+                    >
+                        {downloadingId === resource.id ? (
+                        <span className="flex items-center gap-1">
+                            <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        </span>
+                        ) : (
+                        <>
+                            <Download className="w-4 h-4 mr-1" />
+                            Download
+                        </>
+                        )}
+                    </Button>
                     </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => handleDownload(resource.id, resource.title)}
-                    disabled={downloadingId === resource.id}
-                  >
-                    {downloadingId === resource.id ? (
-                      <span className="flex items-center gap-1">
-                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      </span>
-                    ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-1" />
-                        Download
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                </Card>
+                ))
+            )}
           </div>
 
           {/* Quick Links */}

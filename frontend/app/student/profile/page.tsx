@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
@@ -18,24 +18,63 @@ import {
   TrendingUp,
   Star,
   Edit,
+  Loader2,
 } from "lucide-react"
 
 const Trophy = Award
 
+interface StudentData {
+  id: number
+  fullName: string
+  email: string
+  phone: string
+  studentClass: string
+  program: string
+  enrollmentDate: string
+  status: string
+  avatar: string
+}
+
 export default function StudentProfilePage() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [studentData, setStudentData] = useState<StudentData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const studentData = {
-    name: "Aditya Kumar",
-    email: "aditya.kumar@email.com",
-    phone: "+91 98765 43210",
-    class: "12",
-    program: "JEE Advanced",
-    enrolledDate: "September 15, 2024",
-    studentId: "MSA2024-1234",
-    status: "Active",
-    avatar: "A",
-  }
+  // 1. Fetch Student Profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      try {
+        const response = await fetch("http://localhost:8080/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const user = await response.json()
+          
+          setStudentData({
+            id: user.id,
+            fullName: user.fullName || "Student",
+            email: user.email,
+            phone: user.phone || "Not provided",
+            studentClass: user.studentClass || "N/A",
+            program: user.program || "General",
+            enrollmentDate: new Date(user.createdAt || Date.now()).toLocaleDateString(),
+            status: user.active ? "Active" : "Inactive",
+            avatar: user.fullName ? user.fullName.charAt(0).toUpperCase() : "S"
+          })
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
 
   const stats = [
     { label: "Study Hours", value: "128 hrs", icon: Clock, color: "from-blue-500 to-cyan-500" },
@@ -50,6 +89,18 @@ export default function StudentProfilePage() {
     { title: "Quick Learner", description: "Completed 50+ resources", icon: Award, date: "Nov 2024" },
   ]
 
+  if (loading) {
+    return (
+        <StudentSidebar>
+            <div className="flex justify-center items-center h-[50vh]">
+                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            </div>
+        </StudentSidebar>
+    )
+  }
+
+  if (!studentData) return null
+
   return (
     <StudentSidebar>
       {/* Profile Header */}
@@ -63,21 +114,22 @@ export default function StudentProfilePage() {
             <div className="flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold">{studentData.name}</h1>
+                  <h1 className="text-2xl font-bold">{studentData.fullName}</h1>
                   <p className="text-muted-foreground">
-                    Class {studentData.class} - {studentData.program}
+                    Class {studentData.studentClass} - {studentData.program}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
                       {studentData.status}
                     </span>
-                    <span className="text-xs text-muted-foreground">ID: {studentData.studentId}</span>
+                    <span className="text-xs text-muted-foreground">ID: MSA-{studentData.id}</span>
                   </div>
                 </div>
-                <Button variant="outline" className="gap-2 bg-transparent">
+                {/* <Button variant="outline" className="gap-2 bg-transparent">
                   <Edit className="w-4 h-4" />
                   Edit Profile
-                </Button>
+                </Button> 
+                */}
               </div>
             </div>
           </div>
@@ -110,9 +162,9 @@ export default function StudentProfilePage() {
               {[
                 { icon: Mail, label: "Email", value: studentData.email },
                 { icon: Phone, label: "Phone", value: studentData.phone },
-                { icon: GraduationCap, label: "Class", value: `Class ${studentData.class}` },
+                { icon: GraduationCap, label: "Class", value: `Class ${studentData.studentClass}` },
                 { icon: BookOpen, label: "Program", value: studentData.program },
-                { icon: Calendar, label: "Enrolled", value: studentData.enrolledDate },
+                { icon: Calendar, label: "Enrolled", value: studentData.enrollmentDate },
               ].map((item, i) => {
                 const Icon = item.icon
                 return (
@@ -122,7 +174,7 @@ export default function StudentProfilePage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">{item.label}</p>
-                      <p className="font-medium">{item.value}</p>
+                      <p className="font-medium text-sm break-all">{item.value}</p>
                     </div>
                   </div>
                 )

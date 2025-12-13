@@ -1,12 +1,29 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
-import { Download, Search, Filter, X, FileText, BookOpen, ClipboardList, Star } from "lucide-react"
+import { Download, Search, Filter, X, FileText, BookOpen, ClipboardList, Star, Loader2 } from "lucide-react"
+
+// Types
+interface Resource {
+  id: number
+  title: string
+  type: string
+  subject: string
+  targetClass: string // Backend field name
+  exam: string
+  downloads: number
+  fileUrl: string
+  createdAt: string
+}
 
 export default function StudentResourcesPage() {
+  const [loading, setLoading] = useState(true)
+  const [resources, setResources] = useState<Resource[]>([])
+  const [accessTags, setAccessTags] = useState<string[]>([])
+  
   const [filters, setFilters] = useState({
     class: "all",
     subject: "all",
@@ -17,120 +34,46 @@ export default function StudentResourcesPage() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
 
-  const allResources = [
-    {
-      id: 1,
-      title: "JEE Main 2024 Paper 1",
-      type: "PYQ",
-      subject: "Mathematics",
-      class: "12",
-      exam: "JEE",
-      downloads: 342,
-    },
-    {
-      id: 2,
-      title: "Calculus Complete Notes",
-      type: "Notes",
-      subject: "Mathematics",
-      class: "12",
-      exam: "JEE",
-      downloads: 198,
-    },
-    {
-      id: 3,
-      title: "Physics Numericals Practice",
-      type: "Assignment",
-      subject: "Physics",
-      class: "12",
-      exam: "JEE",
-      downloads: 156,
-    },
-    {
-      id: 4,
-      title: "Organic Chemistry Reactions",
-      type: "Notes",
-      subject: "Chemistry",
-      class: "12",
-      exam: "NEET",
-      downloads: 287,
-    },
-    {
-      id: 5,
-      title: "NEET 2024 Question Bank",
-      type: "PYQ",
-      subject: "Biology",
-      class: "12",
-      exam: "NEET",
-      downloads: 412,
-    },
-    {
-      id: 6,
-      title: "Circuit Analysis IMP Topics",
-      type: "IMP",
-      subject: "Physics",
-      class: "12",
-      exam: "JEE",
-      downloads: 203,
-    },
-    {
-      id: 7,
-      title: "Trigonometry Formulas",
-      type: "IMP",
-      subject: "Mathematics",
-      class: "11",
-      exam: "JEE",
-      downloads: 178,
-    },
-    {
-      id: 8,
-      title: "Class 10 Science Notes",
-      type: "Notes",
-      subject: "Science",
-      class: "10",
-      exam: "Board",
-      downloads: 245,
-    },
-    {
-      id: 9,
-      title: "MHT-CET 2024 Practice Paper",
-      type: "PYQ",
-      subject: "Physics",
-      class: "12",
-      exam: "MHT-CET",
-      downloads: 189,
-    },
-    {
-      id: 10,
-      title: "Biology Chapter 1-5 Assignment",
-      type: "Assignment",
-      subject: "Biology",
-      class: "11",
-      exam: "NEET",
-      downloads: 134,
-    },
-    {
-      id: 11,
-      title: "Class 9 Math Basics",
-      type: "Notes",
-      subject: "Mathematics",
-      class: "9",
-      exam: "Board",
-      downloads: 267,
-    },
-    {
-      id: 12,
-      title: "Inorganic Chemistry Quick Notes",
-      type: "IMP",
-      subject: "Chemistry",
-      class: "12",
-      exam: "JEE",
-      downloads: 321,
-    },
-  ]
+  // 1. Fetch Profile (Access Tags) & Resources
+useEffect(() => {
+    const fetchResources = async () => {
+        const token = localStorage.getItem("token")
+        if (!token) {
+            setLoading(false)
+            return
+        }
 
+        try {
+            // Backend now handles filtering automatically based on the token
+            const response = await fetch("http://localhost:8080/api/v1/resources", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            
+            if (response.ok) {
+                const data = await response.json()
+                // Optional: Sort by newest first
+                const sortedData = data.sort((a: any, b: any) => 
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                )
+                setResources(sortedData)
+            } else {
+                console.error("Failed to fetch resources")
+            }
+
+        } catch (error) {
+            console.error("Error loading resources:", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    fetchResources()
+  }, [])
+
+  // 2. Apply UI Filters (Dropdowns/Search) on the Allowed Resources
   const filteredResources = useMemo(() => {
-    return allResources.filter((resource) => {
-      const matchesClass = filters.class === "all" || resource.class === filters.class
+    return resources.filter((resource) => {
+      const matchesClass = filters.class === "all" || resource.targetClass === filters.class
       const matchesSubject =
         filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
       const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
@@ -142,23 +85,23 @@ export default function StudentResourcesPage() {
 
       return matchesClass && matchesSubject && matchesType && matchesExam && matchesSearch
     })
-  }, [filters])
+  }, [filters, resources])
 
-  const handleDownload = async (id: number, title: string) => {
+  const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    const blob = new Blob([`Content of ${title}`], { type: "application/pdf" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${title.replace(/\s+/g, "_")}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-
-    setDownloadingId(null)
+    
+    if (fileUrl && fileUrl.startsWith("http")) {
+        // Real Download
+        setTimeout(() => {
+            window.open(fileUrl, "_blank")
+            setDownloadingId(null)
+        }, 1000)
+    } else {
+        // Simulation
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        alert("Downloading file... (Simulated)")
+        setDownloadingId(null)
+    }
   }
 
   const resetFilters = () => {
@@ -167,17 +110,17 @@ export default function StudentResourcesPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "pyq":
-        return FileText
-      case "notes":
-        return BookOpen
-      case "assignment":
-        return ClipboardList
-      case "imp":
-        return Star
-      default:
-        return FileText
+      case "pyq": return FileText
+      case "notes": return BookOpen
+      case "assignment": return ClipboardList
+      case "imp": return Star
+      default: return FileText
     }
+  }
+
+  const formatResourceType = (type: string) => {
+    const map: any = { 'pq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }
+    return map[type?.toLowerCase()] || type
   }
 
   const activeFiltersCount = Object.values(filters).filter((v) => v !== "all" && v !== "").length
@@ -186,7 +129,7 @@ export default function StudentResourcesPage() {
     <StudentSidebar>
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Study Resources</h1>
-        <p className="text-muted-foreground">Access all study materials, PYQs, notes, and assignments</p>
+        <p className="text-muted-foreground">Access your personalized study materials</p>
       </div>
 
       {/* Search and Filter Bar */}
@@ -234,10 +177,10 @@ export default function StudentResourcesPage() {
                 onChange={(e) => setFilters({ ...filters, class: e.target.value })}
               >
                 <option value="all">All Classes</option>
-                <option value="9">Class 9</option>
-                <option value="10">Class 10</option>
-                <option value="11">Class 11</option>
-                <option value="12">Class 12</option>
+                <option value="Class 9">Class 9</option>
+                <option value="Class 10">Class 10</option>
+                <option value="Class 11">Class 11</option>
+                <option value="Class 12">Class 12</option>
               </select>
             </div>
 
@@ -249,11 +192,10 @@ export default function StudentResourcesPage() {
                 onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
               >
                 <option value="all">All Subjects</option>
-                <option value="mathematics">Mathematics</option>
-                <option value="physics">Physics</option>
-                <option value="chemistry">Chemistry</option>
-                <option value="biology">Biology</option>
-                <option value="science">Science</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Biology">Biology</option>
               </select>
             </div>
 
@@ -265,10 +207,10 @@ export default function StudentResourcesPage() {
                 onChange={(e) => setFilters({ ...filters, type: e.target.value })}
               >
                 <option value="all">All Types</option>
-                <option value="pyq">Previous Year Questions</option>
+                <option value="pq">PYQ</option>
                 <option value="notes">Notes</option>
                 <option value="assignment">Assignments</option>
-                <option value="imp">Important Topics</option>
+                <option value="imp">IMP Topics</option>
               </select>
             </div>
 
@@ -280,10 +222,11 @@ export default function StudentResourcesPage() {
                 onChange={(e) => setFilters({ ...filters, exam: e.target.value })}
               >
                 <option value="all">All Exams</option>
-                <option value="JEE">JEE</option>
+                <option value="JEE Main">JEE Main</option>
+                <option value="JEE Advanced">JEE Advanced</option>
                 <option value="NEET">NEET</option>
                 <option value="MHT-CET">MHT-CET</option>
-                <option value="Board">Board Exams</option>
+                <option value="Board Exam">Board Exam</option>
               </select>
             </div>
           </div>
@@ -291,46 +234,47 @@ export default function StudentResourcesPage() {
       )}
 
       {/* Results Count */}
-      <div className="mb-4 text-sm text-muted-foreground">
-        Showing {filteredResources.length} of {allResources.length} resources
+      <div className="mb-4 text-sm text-muted-foreground flex justify-between items-center">
+        <span>Showing {filteredResources.length} resources</span>
+        {accessTags.length > 0 && (
+            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
+                Access enabled for: {accessTags.slice(0,3).join(", ")}{accessTags.length > 3 ? "..." : ""}
+            </span>
+        )}
       </div>
 
-      {/* Resources Grid */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        </div>
+      ) : (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredResources.map((resource) => {
           const TypeIcon = getTypeIcon(resource.type)
+          const displayType = formatResourceType(resource.type)
+          
           return (
             <Card key={resource.id} className="p-5 border-0 shadow-lg hover:shadow-xl transition-all flex flex-col">
               <div className="flex items-start justify-between mb-3">
                 <div
                   className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    resource.type === "PYQ"
+                    displayType === "PYQ"
                       ? "bg-blue-500/10 text-blue-500"
-                      : resource.type === "Notes"
+                      : displayType === "Notes"
                         ? "bg-emerald-500/10 text-emerald-500"
-                        : resource.type === "Assignment"
+                        : displayType === "Assignment"
                           ? "bg-orange-500/10 text-orange-500"
                           : "bg-purple-500/10 text-purple-500"
                   }`}
                 >
                   <TypeIcon className="w-6 h-6" />
                 </div>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    resource.type === "PYQ"
-                      ? "bg-blue-100 text-blue-700"
-                      : resource.type === "Notes"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : resource.type === "Assignment"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-purple-100 text-purple-700"
-                  }`}
-                >
-                  {resource.type}
+                <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-muted-foreground uppercase">
+                  {displayType}
                 </span>
               </div>
 
-              <h3 className="font-bold text-lg mb-2 hover:text-primary cursor-pointer line-clamp-2">
+              <h3 className="font-bold text-lg mb-2 hover:text-primary cursor-pointer line-clamp-2" title={resource.title}>
                 {resource.title}
               </h3>
 
@@ -339,16 +283,18 @@ export default function StudentResourcesPage() {
                   {resource.subject}
                 </span>
                 <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
-                  Class {resource.class}
+                  {resource.targetClass}
                 </span>
-                <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{resource.exam}</span>
+                {resource.exam && (
+                    <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{resource.exam}</span>
+                )}
               </div>
 
-              <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads} downloads</p>
+              <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads || 0} downloads</p>
 
               <Button
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => handleDownload(resource.id, resource.title)}
+                onClick={() => handleDownload(resource.id, resource.fileUrl)}
                 disabled={downloadingId === resource.id}
               >
                 {downloadingId === resource.id ? (
@@ -367,15 +313,20 @@ export default function StudentResourcesPage() {
           )
         })}
       </div>
+      )}
 
       {/* No Results */}
-      {filteredResources.length === 0 && (
+      {!loading && filteredResources.length === 0 && (
         <div className="text-center py-12">
           <div className="w-20 h-20 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
             <Search className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold mb-2">No resources found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your filters or search query</p>
+          <p className="text-muted-foreground mb-4">
+            {accessTags.length === 0 
+                ? "You currently have no access permissions. Contact your admin." 
+                : "Try adjusting your filters or search query."}
+          </p>
           <Button onClick={resetFilters}>Clear Filters</Button>
         </div>
       )}

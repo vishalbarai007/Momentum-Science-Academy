@@ -5,11 +5,13 @@ import momentum.backend.model.User;
 import momentum.backend.repository.UsersRepository;
 import momentum.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,15 +31,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest req) {
-
-        // Validate request
-        if (req == null ||
-                req.getEmail() == null ||
-                req.getPassword() == null ||
-                req.getFullName() == null ||
-                req.getRole() == null)
-        {
-            return ResponseEntity.badRequest().body("All fields are required: email, password, fullName, role");
+        if (req.getEmail() == null || req.getPassword() == null || req.getFullName() == null || req.getRole() == null) {
+            return ResponseEntity.badRequest().body("Required fields: email, password, fullName, role");
         }
 
         try {
@@ -45,38 +40,25 @@ public class AuthController {
                     req.getEmail(),
                     req.getPassword(),
                     req.getFullName(),
-                    User.Role.valueOf(req.getRole().toLowerCase())
+                    User.Role.valueOf(req.getRole().toLowerCase()),
+                    req.getStudentClass(),
+                    req.getProgram(),
+                    req.getAccessTags(),
+                    req.getExpertise(),
+                    req.getExperience()
             );
             return ResponseEntity.ok("Registration successful");
-        }
-        catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid role value. Allowed: student, teacher, admin");
-        }
-        catch (RuntimeException e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest req) {
-
-        if (req == null || req.getEmail() == null || req.getPassword() == null)
-            return ResponseEntity.badRequest().body("Email & password are required");
-
         try {
             User user = userService.login(req.getEmail(), req.getPassword());
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
-
-            AuthResponse response = new AuthResponse(
-                    token,
-                    user.getEmail(),
-                    user.getRole()
-            );
-
-            return ResponseEntity.ok(response);
-
+            return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), user.getRole()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(401).body(e.getMessage());
         }
@@ -84,54 +66,71 @@ public class AuthController {
 
     @GetMapping("/students")
     public ResponseEntity<List<User>> getStudents() {
-        List<User> students = repo.findByRole(User.Role.student);
-        return ResponseEntity.ok(students);
+        return ResponseEntity.ok(repo.findByRole(User.Role.student));
     }
 
-    // ⬇️ Fetch Teachers
     @GetMapping("/teachers")
     public ResponseEntity<List<User>> getTeachers() {
-        List<User> teachers = repo.findByRole(User.Role.teacher);
-        return ResponseEntity.ok(teachers);
+        return ResponseEntity.ok(repo.findByRole(User.Role.teacher));
     }
 
-    @GetMapping("/name")
-    public ResponseEntity<?> getName(@RequestParam String email) {
-        String name = userService.getNameByEmail(email);
-        if (name == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User not found");
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            // 1. Get the email from the Security Context (set by JwtAuthenticationFilter)
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+
+            // 2. Fetch the full user object
+            User user = userService.findByEmail(email);
+
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 3. Return the user (Password hash is hidden by @JsonIgnore if using DTOs,
+            // but for now, we return the entity. In production, use a UserDTO).
+            user.setPasswordHash(null); // Safety: Don't send the hash to frontend
+            return ResponseEntity.ok(user);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error fetching profile");
         }
-        return ResponseEntity.ok(name);
     }
 
-
-    // You can extend with Google OAuth endpoints here in the future!
-
+    // DTOs
     public static class AuthRequest {
         private String email;
         private String password;
         private String fullName;
         private String role;
+        // New Fields
+        private String studentClass;
+        private String program;
+        private Set<String> accessTags;
+        private List<String> expertise;
+        private Integer experience;
 
+        // Getters and Setters
         public String getEmail() { return email; }
         public void setEmail(String email) { this.email = email; }
-
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
-
         public String getFullName() { return fullName; }
-        public void setFullName(String name) { this.fullName = name; }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
+        public void setFullName(String fullName) { this.fullName = fullName; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        public String getStudentClass() { return studentClass; }
+        public void setStudentClass(String studentClass) { this.studentClass = studentClass; }
+        public String getProgram() { return program; }
+        public void setProgram(String program) { this.program = program; }
+        public Set<String> getAccessTags() { return accessTags; }
+        public void setAccessTags(Set<String> accessTags) { this.accessTags = accessTags; }
+        public List<String> getExpertise() { return expertise; }
+        public void setExpertise(List<String> expertise) { this.expertise = expertise; }
+        public Integer getExperience() { return experience; }
+        public void setExperience(Integer experience) { this.experience = experience; }
     }
-
 
     public static class AuthResponse {
         private String token;
@@ -143,18 +142,9 @@ public class AuthController {
             this.email = email;
             this.role = role;
         }
-
-        public User.Role getRole() {
-            return role;
-        }
-
-        public void setRole(User.Role role) {
-            this.role = role;
-        }
-
+        // Getters/Setters...
         public String getToken() { return token; }
-        public void setToken(String token) { this.token = token; }
         public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
+        public User.Role getRole() { return role; }
     }
 }
