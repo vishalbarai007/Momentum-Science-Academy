@@ -18,6 +18,7 @@ import {
   Globe,
   Heart,
 } from "lucide-react"
+import { TimelineDemo } from "@/components/TimelineDemo"
 
 export default function AboutPage() {
   const [activeYear, setActiveYear] = useState(0)
@@ -266,6 +267,8 @@ export default function AboutPage() {
               )
             })}
           </div>
+          
+
 
           {/* Progress Indicators */}
           <div className="flex justify-center gap-2 mt-8">
@@ -308,6 +311,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      <TimelineDemo/>
 
       <Footer />
     </div>

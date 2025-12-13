@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Hero from "../../public/Hero.png"
+import whychooseus from "../../public/whychooseus.png"
+
 import Link from "next/link"
 import { Navbar } from "./navbar"
 import { Footer } from "./footer"
@@ -27,6 +30,7 @@ import {
   Zap,
 } from "lucide-react"
 import { AnimatedTestimonialsDemo } from "../AnimatedTestimonialsDemo"
+import Image from "next/image"
 // import CircleCursor from "../ui/CircleCursor"
 
 export function LandingPage() {
@@ -273,8 +277,8 @@ export function LandingPage() {
                     </div>
                   </div>
 
-                  <img
-                    src="/placeholder.svg?height=400&width=500"
+                  <Image
+                    src={Hero}
                     alt="Students at Momentum Academy"
                     className="w-full rounded-xl mb-6"
                   />
@@ -430,8 +434,8 @@ export function LandingPage() {
             </div>
 
             <div className="relative">
-              <img
-                src="/placeholder.svg?height=600&width=500"
+              <Image
+                src={whychooseus}
                 alt="Momentum Academy Classroom"
                 className="rounded-2xl shadow-2xl"
               />
