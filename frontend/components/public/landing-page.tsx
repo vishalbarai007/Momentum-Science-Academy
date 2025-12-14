@@ -115,23 +115,23 @@ export function LandingPage() {
   const faculty = [
     {
       name: "Prof. R.P. Singh",
-      subject: "Mathematics",
-      exp: "18 years",
-      qual: "B.Tech IIT Delhi, GATE Qualified",
+      subject: "Mathematics & Physics",
+      exp: "18+ years",
+      qual: "M.Sc, Ph.D in Physics (Mumbai Univ)",
       image: "/indian-male-professor-mathematics-professional.jpg",
     },
     {
       name: "Dr. P.V. Shukla",
-      subject: "Physics",
-      exp: "20 years",
-      qual: "Ph.D Physics, IISc Bangalore",
+      subject: "Chemistry",
+      exp: "12+ years",
+      qual: "BDS (Mumbai Univ)",
       image: "/indian-male-professor-physics-senior.jpg",
     },
     {
-      name: "Dr. Seema Verma",
-      subject: "Chemistry",
-      exp: "16 years",
-      qual: "M.Tech Biochemistry, AIIMS",
+      name: "Dr. Rishi Singh",
+      subject: "Biology",
+      exp: "12+ years",
+      qual: "MBBS from K.E.M. Medical College, Mumbai",
       image: "/indian-female-professor-chemistry-professional.jpg",
     },
   ]
@@ -220,7 +220,7 @@ export function LandingPage() {
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
                 Empowering Future{" "}
-                <span className="bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+                <span className="bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-size-[200%_auto]">
                   Engineers
                 </span>
                 <br />& Doctors

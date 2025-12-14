@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,10 +12,61 @@ interface StudentSidebarProps {
   children: React.ReactNode
 }
 
+
+interface StudentData {
+  id: number
+  fullName: string
+  email: string
+  phone: string
+  studentClass: string
+  program: string
+  enrollmentDate: string
+  status: string
+  avatar: string
+}
+
 export function StudentSidebar({ children }: StudentSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [studentData, setStudentData] = useState<StudentData | null>(null)
   const pathname = usePathname()
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      try {
+        const response = await fetch("http://localhost:8080/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+
+        if (response.ok) {
+          const user = await response.json()
+
+          setStudentData({
+            id: user.id,
+            fullName: user.fullName || "Student",
+            email: user.email,
+            phone: user.phone || "Not provided",
+            studentClass: user.studentClass || "N/A",
+            program: user.program || "General",
+            enrollmentDate: new Date(user.createdAt || Date.now()).toLocaleDateString(),
+            status: user.active ? "Active" : "Inactive",
+            avatar: user.fullName ? user.fullName.charAt(0).toUpperCase() : "S"
+          })
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/student/dashboard" },
@@ -42,7 +93,7 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -62,11 +113,10 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
@@ -78,12 +128,12 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
           {/* User section */}
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
                 A
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">Aditya Kumar</p>
-                <p className="text-xs text-muted-foreground">Class 12 - JEE</p>
+                <p className="font-medium truncate">{studentData?.fullName || "Aditya Kumar"  }</p>
+                <p className="text-xs text-muted-foreground">{studentData?.studentClass || "Class 12 - JEE"}</p>
               </div>
             </div>
             <Button
@@ -118,7 +168,7 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               </button>
               <Link href="/student/profile">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
                   A
                 </div>
               </Link>
@@ -132,3 +182,5 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
     </div>
   )
 }
+
+
