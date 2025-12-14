@@ -39,7 +39,7 @@ interface User {
 // Configuration for Access Tags
 const ACCESS_CATEGORIES = {
   "Classes": ["9", "10", "11", "12"],
-  "Exams": ["JEE", "NEET", "MHT-CET", "Foundation"],
+  "Exams": ["JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation"],
   "Subjects": ["Mathematics", "Physics", "Chemistry", "Biology"]
 }
 

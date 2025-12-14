@@ -50,7 +50,7 @@ public class ResourceService {
         }
 
         resource.setSubject(request.getSubject());
-        resource.setTargetClass(request.getClassLevel());
+        resource.setTargetClass(request.getTargetClass());
         resource.setExam(request.getExamType());
         resource.setFileUrl(request.getFileLink());
         resource.setUploadedBy(teacher);
@@ -84,7 +84,7 @@ public class ResourceService {
         if (request.getTitle() != null) resource.setTitle(request.getTitle());
         if (request.getDescription() != null) resource.setDescription(request.getDescription());
         if (request.getSubject() != null) resource.setSubject(request.getSubject());
-        if (request.getClassLevel() != null) resource.setTargetClass(request.getClassLevel());
+        if (request.getTargetClass() != null) resource.setTargetClass(request.getTargetClass());
         if (request.getExamType() != null) resource.setExam(request.getExamType());
         if (request.getFileLink() != null) resource.setFileUrl(request.getFileLink());
 
@@ -108,7 +108,11 @@ public class ResourceService {
     }
 
     public List<Resource> getAllResources() {
-        return resourceRepository.findAll();
+        List<Resource> list = resourceRepository.findAll();
+        System.out.println(list.get(0).getExam());
+        System.out.println(list.get(0).getTargetClass());
+        System.out.println(list.get(0).getSubject());
+        return list;
     }
 
     public List<Resource> getMyUploads(String email) {

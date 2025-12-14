@@ -86,12 +86,6 @@ export default function TeacherResourcesPage() {
     return map[type.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1)
   }
 
-  // --- HELPER: Map Backend Class ("Class 11") to Frontend ("11") ---
-  const formatClassFromBackend = (cls: string) => {
-    if (!cls) return ""
-    return cls.replace("Class ", "")
-  }
-
   const fetchResources = async () => {
     try {
       const token = localStorage.getItem("token")
@@ -108,7 +102,7 @@ export default function TeacherResourcesPage() {
           title: item.title,
           type: formatResourceTypeFromBackend(item.type), // Convert 'notes' -> 'Notes'
           subject: item.subject,
-          targetClass: formatClassFromBackend(item.targetClass), // Convert 'Class 11' -> '11'
+          targetClass: item.targetClass, // Convert 'Class 11' -> '11'
           exam: item.exam,
           downloads: item.downloads || 0,
           status: item.isPublished ? "Published" : "Draft",

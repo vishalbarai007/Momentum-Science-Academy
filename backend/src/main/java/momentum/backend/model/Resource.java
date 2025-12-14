@@ -26,7 +26,7 @@ public class Resource {
     private String subject;
 
     @Column(name = "target_class") // "class" is a reserved keyword in Java
-    private String targetClass; // e.g., "11", "12"
+    private int targetClass; // e.g., "11", "12"
 
     private String exam; // e.g., "JEE", "NEET"
 
@@ -59,7 +59,7 @@ public class Resource {
     }
 
     // All-Argument Constructor (for completeness, though often not used)
-    public Resource(Long id, String title, String description, ResourceType type, String subject, String targetClass, String exam, String fileUrl, User uploadedBy, Long downloads, Long views, Double rating, Boolean isPublished, Date createdAt, Date updatedAt) {
+    public Resource(Long id, String title, String description, ResourceType type, String subject, int targetClass, String exam, String fileUrl, User uploadedBy, Long downloads, Long views, Double rating, Boolean isPublished, Date createdAt, Date updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -121,11 +121,11 @@ public class Resource {
         this.subject = subject;
     }
 
-    public String getTargetClass() {
+    public int getTargetClass() {
         return targetClass;
     }
 
-    public void setTargetClass(String targetClass) {
+    public void setTargetClass(int targetClass) {
         this.targetClass = targetClass;
     }
 

@@ -15,7 +15,7 @@ interface FormData {
   description: string
   resourceType: string
   subject: string
-  classLevel: string
+  classLevel: number
   examType: string
   fileLink: string
   visibility: 'publish' | 'draft'
@@ -26,7 +26,7 @@ const initialFormData: FormData = {
   description: "",
   resourceType: "",
   subject: "",
-  classLevel: "",
+  classLevel: 0,
   examType: "Not Applicable",
   fileLink: "",
   visibility: "publish", // Default to 'publish'
@@ -73,7 +73,7 @@ export default function TeacherUploadPage() {
     description: formData.description,
     resourceType: formData.resourceType,
     subject: formData.subject,
-    classLevel: formData.classLevel,
+    targetClass: formData.classLevel,
     // Set to null if 'Not Applicable' to match backend DTO expectation
     examType: formData.examType === "Not Applicable" ? null : formData.examType,
     fileLink: formData.fileLink,
@@ -226,10 +226,10 @@ export default function TeacherUploadPage() {
                   required
                 >
                   <option value="">Select class</option>
-                  <option>Class 9</option>
-                  <option>Class 10</option>
-                  <option>Class 11</option>
-                  <option>Class 12</option>
+                  <option value="9">Class 9</option>
+                  <option value="10">Class 10</option>
+                  <option value="11">Class 11</option>
+                  <option value="12">Class 12</option>
                 </select>
               </div>
               <div>

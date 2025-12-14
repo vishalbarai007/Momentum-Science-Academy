@@ -19,9 +19,8 @@ import java.util.stream.Collectors;
 public class ResourceController {
 
     private final ResourceService resourceService;
-    private final UserService userService; // 1. Added UserService field
+    private final UserService userService;
 
-    // 2. Updated Constructor to inject UserService
     public ResourceController(ResourceService resourceService, UserService userService) {
         this.resourceService = resourceService;
         this.userService = userService;
@@ -34,8 +33,9 @@ public class ResourceController {
     public ResponseEntity<?> uploadResource(@RequestBody ResourceUploadRequest request) {
 
         // Validate basic required fields
-        if (request.getTitle() == null || request.getFileLink() == null || request.getResourceType() == null || request.getSubject() == null || request.getClassLevel() == null) {
-            return ResponseEntity.badRequest().body("Missing required fields: title, fileLink, resourceType, subject, classLevel.");
+        // 💡 UPDATED: Check for null on the new Integer field targetClass
+        if (request.getTitle() == null || request.getFileLink() == null || request.getResourceType() == null || request.getSubject() == null || request.getTargetClass() == null) {
+            return ResponseEntity.badRequest().body("Missing required fields: title, fileLink, resourceType, subject, targetClass.");
         }
 
         try {
@@ -96,11 +96,12 @@ public class ResourceController {
             // Filter: Keep resource if its Class OR Exam OR Subject matches user's tags
             List<Resource> filteredResources = allResources.stream()
                     .filter(resource ->
-                            accessTags.contains(resource.getTargetClass()) ||
-                                    accessTags.contains(resource.getExam()) ||
+                            accessTags.contains(String.valueOf(resource.getTargetClass())) && // 💡 Conversion to String for comparison with accessTags
+                                    accessTags.contains(resource.getExam()) &&
                                     accessTags.contains(resource.getSubject())
                     )
                     .collect(Collectors.toList());
+            System.out.println(accessTags);
 
             return ResponseEntity.ok(filteredResources);
         }
@@ -130,7 +131,8 @@ public class ResourceController {
         private String description;
         private String resourceType; // pq, notes, assignment, imp
         private String subject;
-        private String classLevel;   // Maps to targetClass in the backend model
+        // 💡 MODIFIED: Changed the field name and type to Integer
+        private Integer targetClass;   // Maps to targetClass in the backend model
         private String examType;     // Maps to exam in the backend model
         private String fileLink;     // Maps to fileUrl in the backend model
         private String visibility;   // "publish" or "draft"
@@ -144,8 +146,11 @@ public class ResourceController {
         public void setResourceType(String resourceType) { this.resourceType = resourceType; }
         public String getSubject() { return subject; }
         public void setSubject(String subject) { this.subject = subject; }
-        public String getClassLevel() { return classLevel; }
-        public void setClassLevel(String classLevel) { this.classLevel = classLevel; }
+
+        // 💡 NEW Getter/Setter for Integer targetClass
+        public Integer getTargetClass() { return targetClass; }
+        public void setTargetClass(Integer targetClass) { this.targetClass = targetClass; }
+
         public String getExamType() { return examType; }
         public void setExamType(String examType) { this.examType = examType; }
         public String getFileLink() { return fileLink; }
