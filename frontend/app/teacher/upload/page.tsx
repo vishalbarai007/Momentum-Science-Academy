@@ -82,7 +82,7 @@ export default function TeacherUploadPage() {
 
   try {
     // 3. Make the API Call
-    const response = await fetch("http://localhost:8080/api/resources/upload", {
+    const response = await fetch("http://localhost:8080/api/v1/resources/upload", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
