@@ -53,6 +53,22 @@ public class ResourceController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateResource(@PathVariable Long id, @RequestBody ResourceUploadRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+
+            // Call the service to update
+            Resource updatedResource = resourceService.updateResource(id, request, email);
+
+            return ResponseEntity.ok(updatedResource);
+        } catch (RuntimeException e) {
+            // Returns 403 or 404 based on the service exception
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     /**
      * Smart Endpoint: Returns resources based on User Role.
      * - Teachers/Admins: Get ALL resources.

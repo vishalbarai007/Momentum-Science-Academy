@@ -10,7 +10,7 @@ import { jwtDecode } from "jwt-decode"
 
 export default function TeacherDashboard() {
   const [teacherName, setTeacherName] = useState("");
-  // NEW: State for dynamic recent resources
+  // State for dynamic recent resources
   const [recentResources, setRecentResources] = useState<any[]>([]); 
   const [loadingResources, setLoadingResources] = useState(true);
 
@@ -56,7 +56,7 @@ export default function TeacherDashboard() {
       'assignment': 'Assignment',
       'imp': 'IMP'
     }
-    return map[type.toLowerCase()] || type
+    return map[type?.toLowerCase()] || type
   }
 
   useEffect(() => {
@@ -64,14 +64,16 @@ export default function TeacherDashboard() {
     if (!token) return;
 
     try {
-      const decoded: any = jwtDecode(token);
-      const email = decoded.sub; 
-
-      // 1. Fetch Teacher Name
-      fetch(`http://localhost:8080/api/auth/name?email=${email}`)
-        .then(res => res.text())
-        .then(name => setTeacherName(name))
-        .catch(err => console.error("Error fetching teacher name:", err));
+      // 1. Fetch Teacher Profile (using /me endpoint)
+      fetch(`http://localhost:8080/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => {
+            if (res.ok) return res.json();
+            throw new Error("Failed to fetch profile");
+        })
+        .then(user => setTeacherName(user.fullName)) // Extract fullName from User object
+        .catch(err => console.error("Error fetching teacher profile:", err));
 
       // 2. Fetch Recent Resources
       fetch("http://localhost:8080/api/v1/resources/my-uploads", {
@@ -97,7 +99,7 @@ export default function TeacherDashboard() {
       .finally(() => setLoadingResources(false));
 
     } catch (err) {
-      console.error("Token decode error:", err);
+      console.error("Error in dashboard initialization:", err);
     }
   }, []);
 

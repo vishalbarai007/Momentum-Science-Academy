@@ -74,6 +74,7 @@ public class AuthController {
         return ResponseEntity.ok(repo.findByRole(User.Role.teacher));
     }
 
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         try {

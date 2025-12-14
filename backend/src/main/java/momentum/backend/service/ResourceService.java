@@ -1,5 +1,6 @@
 package momentum.backend.service;
 
+import momentum.backend.controller.ResourceController.ResourceUploadRequest; // Import the DTO
 import momentum.backend.model.Resource;
 import momentum.backend.model.User;
 import momentum.backend.repository.ResourceRepository;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import momentum.backend.controller.ResourceController.ResourceUploadRequest; // Import the DTO
 
 @Service
 public class ResourceService {
@@ -22,14 +22,12 @@ public class ResourceService {
     }
 
     /**
-     * Handles resource upload using data from the ResourceUploadRequest DTO.
-     * The file link is passed directly, replacing MultipartFile logic.
+     * Handles resource upload.
      */
-    public Resource uploadResource(ResourceUploadRequest request, String userEmail) { // Updated signature
+    public Resource uploadResource(ResourceUploadRequest request, String userEmail) {
 
-        // 1. User Lookup (Direct null check as per your requirement)
+        // 1. User Lookup
         User teacher = usersRepository.findByEmail(userEmail);
-
         if (teacher == null) {
             throw new RuntimeException("User not found");
         }
@@ -39,27 +37,73 @@ public class ResourceService {
             throw new RuntimeException("Unauthorized: Only teachers or admins can upload resources");
         }
 
-        // 3. Data Mapping and Creation
-        // Maps 'publish'/'draft' string to boolean
+        // 3. Map DTO to Entity
         boolean isPublished = "publish".equalsIgnoreCase(request.getVisibility());
 
         Resource resource = new Resource();
         resource.setTitle(request.getTitle());
         resource.setDescription(request.getDescription());
-        resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
+
+        // Handle Enum conversion safely (assuming frontend sends valid lowercase matching enum)
+        if (request.getResourceType() != null) {
+            resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
+        }
+
         resource.setSubject(request.getSubject());
-        resource.setTargetClass(request.getClassLevel()); // Maps frontend 'classLevel'
-        resource.setExam(request.getExamType());         // Maps frontend 'examType'
+        resource.setTargetClass(request.getClassLevel());
+        resource.setExam(request.getExamType());
         resource.setFileUrl(request.getFileLink());
         resource.setUploadedBy(teacher);
         resource.setIsPublished(isPublished);
 
-        // Use default/explicit values for other fields
+        // Defaults
         resource.setDownloads(0L);
         resource.setViews(0L);
         resource.setRating(0.0);
         resource.setCreatedAt(new Date());
 
+        return resourceRepository.save(resource);
+    }
+
+    /**
+     * NEW: Updates an existing resource.
+     * Includes security check to ensure only the owner (uploader) can edit.
+     */
+    public Resource updateResource(Long id, ResourceUploadRequest request, String userEmail) {
+        // 1. Find existing resource
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found with ID: " + id));
+
+        // 2. Security Check: Ensure the logged-in user is the owner
+        // (You can also allow ADMIN role here if needed)
+        if (!resource.getUploadedBy().getEmail().equals(userEmail)) {
+            throw new RuntimeException("Unauthorized: You can only edit your own resources.");
+        }
+
+        // 3. Update Fields (Only if provided in request)
+        if (request.getTitle() != null) resource.setTitle(request.getTitle());
+        if (request.getDescription() != null) resource.setDescription(request.getDescription());
+        if (request.getSubject() != null) resource.setSubject(request.getSubject());
+        if (request.getClassLevel() != null) resource.setTargetClass(request.getClassLevel());
+        if (request.getExamType() != null) resource.setExam(request.getExamType());
+        if (request.getFileLink() != null) resource.setFileUrl(request.getFileLink());
+
+        // Update Type (Enum conversion)
+        if (request.getResourceType() != null) {
+            try {
+                resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
+            } catch (IllegalArgumentException e) {
+                // Keep old type or throw specific error if enum is invalid
+                System.err.println("Invalid resource type: " + request.getResourceType());
+            }
+        }
+
+        // Update Visibility status
+        if (request.getVisibility() != null) {
+            resource.setIsPublished("publish".equalsIgnoreCase(request.getVisibility()));
+        }
+
+        // 4. Save Updates
         return resourceRepository.save(resource);
     }
 
@@ -69,15 +113,16 @@ public class ResourceService {
 
     public List<Resource> getMyUploads(String email) {
         User teacher = usersRepository.findByEmail(email);
-
         if (teacher == null) {
             throw new RuntimeException("User not found");
         }
-
         return resourceRepository.findByUploadedBy(teacher);
     }
 
     public void deleteResource(Long id) {
+        if (!resourceRepository.existsById(id)) {
+            throw new RuntimeException("Resource not found");
+        }
         resourceRepository.deleteById(id);
     }
 }
