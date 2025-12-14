@@ -60,7 +60,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
-      <CircleCursor />
       <body className="font-sans antialiased">
         <CircleCursor />
 

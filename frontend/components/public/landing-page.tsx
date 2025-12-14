@@ -29,7 +29,6 @@ import {
   Clock,
   Zap,
 } from "lucide-react"
-import { AnimatedTestimonialsDemo } from "../AnimatedTestimonialsDemo"
 import Image from "next/image"
 // import CircleCursor from "../ui/CircleCursor"
 
@@ -526,7 +525,7 @@ export function LandingPage() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            {/* <div className="relative">
+            <div className="relative">
               {testimonials.map((testimonial, i) => (
                 <div
                   key={i}
@@ -553,20 +552,20 @@ export function LandingPage() {
                   </Card>
                 </div>
               ))}
-            </div> */}
+            </div>
 
             {/* Testimonial indicators */}
             <div className="flex justify-center gap-2 mt-8">
-              {/* {testimonials.map((_, i) => (
+              {testimonials.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveTestimonial(i)}
                   className={`h-2 rounded-full transition-all duration-300 ${activeTestimonial === i ? "w-8 bg-accent" : "w-2 bg-white/30 hover:bg-white/50"
                     }`}
                 />
-              ))} */}
+              ))}
 
-                <AnimatedTestimonialsDemo/>
+              {/* <AnimatedTestimonialsDemo/> */}
 
             </div>
           </div>
