@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react"
+import { submitEnrollment } from "@/lib/api"
 
 type Program = {
   id: number
@@ -172,11 +173,22 @@ export default function ProgramsPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    try {
+      await submitEnrollment({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        studentClass: formData.class,
+        program: selectedProgram?.name, // Pass the selected program name
+        message: formData.message,
+      })
+      setIsSubmitted(true)
+    } catch (error) {
+      console.error(error)
+      alert("Failed to submit enrollment.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Instagram, Linkedin, MessageCircle, Sparkles } from "lucide-react"
 import { Navbar } from "@/components/public/navbar"
+import { submitContactForm } from "@/lib/api" // Import the function
+import { toast } from "sonner" // Assuming you have sonner or use-toast
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -23,9 +25,24 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsSubmitting(false)
-    setSubmitted(true)
+    
+    try {
+      await submitContactForm({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        program: formData.program,
+        message: formData.message
+      })
+      setSubmitted(true)
+    } catch (error) {
+      console.error(error)
+      // If using toast
+      // toast.error("Failed to send message. Please try again.") 
+      alert("Failed to send message.") 
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Updated to match globals.css theme: Primary (Indigo), Secondary (Royal Blue), Accent (Orange)
