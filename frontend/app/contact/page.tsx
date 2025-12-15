@@ -10,6 +10,7 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Instagram, Linkedin, Mes
 import { Navbar } from "@/components/public/navbar"
 import { submitContactForm } from "@/lib/api" // Import the function
 import { toast } from "sonner" // Assuming you have sonner or use-toast
+import { Footer } from "@/components/public/footer"
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -25,7 +26,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     try {
       await submitContactForm({
         name: formData.name,
@@ -39,7 +40,7 @@ export default function ContactPage() {
       console.error(error)
       // If using toast
       // toast.error("Failed to send message. Please try again.") 
-      alert("Failed to send message.") 
+      alert("Failed to send message.")
     } finally {
       setIsSubmitting(false)
     }
@@ -59,9 +60,9 @@ export default function ContactPage() {
       borderClass: "border-secondary/20",
       gradient: "from-secondary/5 to-secondary/10"
     },
-    { 
-      icon: Phone, 
-      title: "Call Us", 
+    {
+      icon: Phone,
+      title: "Call Us",
       content: "+91 9823788328",
       subtext: "Mon-Sat: 9AM-9PM",
       link: "tel:+919823788328",
@@ -71,9 +72,9 @@ export default function ContactPage() {
       borderClass: "border-accent/20",
       gradient: "from-accent/5 to-accent/10"
     },
-    { 
-      icon: Mail, 
-      title: "Email Us", 
+    {
+      icon: Mail,
+      title: "Email Us",
       content: "momentum@gmail.com",
       subtext: "We reply within 24 hours",
       link: "mailto:momentumscienceacademy@gmail.com",
@@ -97,8 +98,8 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar/>
-      
+      <Navbar />
+
       {/* Hero Section */}
       <section className="relative py-24 overflow-hidden">
         {/* Animated Background matching Landing Page */}
@@ -116,11 +117,11 @@ export default function ContactPage() {
                 We're Here to Help
               </span>
             </div>
-            
+
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
               Get in <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">Touch</span>
             </h1>
-            
+
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Have questions about our programs? Our team is ready to guide you towards academic excellence.
             </p>
@@ -151,21 +152,21 @@ export default function ContactPage() {
             {contactInfo.map((info, i) => {
               const Icon = info.icon
               return (
-                <a 
-                  key={i} 
-                  href={info.link} 
-                  target="_blank" 
+                <a
+                  key={i}
+                  href={info.link}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="group"
                 >
                   <Card className={`p-8 h-full border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br ${info.gradient} relative overflow-hidden backdrop-blur-sm`}>
                     <div className="relative">
-                      <div 
+                      <div
                         className={`w-16 h-16 mb-6 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 ${info.bgClass}`}
                       >
                         <Icon className={`w-8 h-8 ${info.colorClass}`} />
                       </div>
-                      
+
                       <h3 className="font-bold text-xl mb-3 text-foreground">{info.title}</h3>
                       <p className="text-foreground/80 font-medium mb-1 break-words">{info.content}</p>
                       <p className="text-sm text-muted-foreground">{info.subtext}</p>
@@ -187,7 +188,7 @@ export default function ContactPage() {
               <Card className="p-8 md:p-10 border-0 shadow-2xl bg-card relative overflow-hidden">
                 {/* Decorative gradient */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-transparent rounded-bl-full pointer-events-none" />
-                
+
                 {submitted ? (
                   <div className="text-center py-16 relative animate-scale-in">
                     <div className="w-24 h-24 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center shadow-lg">
@@ -199,7 +200,7 @@ export default function ContactPage() {
                     <p className="text-muted-foreground mb-8 text-lg">
                       Thank you for reaching out. We'll get back to you within 24 hours.
                     </p>
-                    <Button 
+                    <Button
                       onClick={() => setSubmitted(false)}
                       className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 rounded-xl font-semibold shadow-lg"
                     >
@@ -214,46 +215,46 @@ export default function ContactPage() {
                       </h2>
                       <p className="text-muted-foreground">Fill out the form below and we'll respond as soon as possible.</p>
                     </div>
-                    
+
                     <div className="space-y-6">
                       <div className="grid sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <label className="block text-sm font-semibold text-foreground">Full Name *</label>
-                          <Input 
-                            placeholder="John Doe" 
+                          <Input
+                            placeholder="John Doe"
                             value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="h-12 bg-background border-input focus:ring-primary/20 focus:border-primary"
                           />
                         </div>
                         <div className="space-y-2">
                           <label className="block text-sm font-semibold text-foreground">Email Address *</label>
-                          <Input 
-                            type="email" 
+                          <Input
+                            type="email"
                             placeholder="john@example.com"
                             value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="h-12 bg-background border-input focus:ring-primary/20 focus:border-primary"
                           />
                         </div>
                       </div>
-                      
+
                       <div className="grid sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <label className="block text-sm font-semibold text-foreground">Phone Number</label>
-                          <Input 
-                            type="tel" 
+                          <Input
+                            type="tel"
                             placeholder="+91 98237 88328"
                             value={formData.phone}
-                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             className="h-12 bg-background border-input focus:ring-primary/20 focus:border-primary"
                           />
                         </div>
                         <div className="space-y-2">
                           <label className="block text-sm font-semibold text-foreground">Program of Interest</label>
-                          <select 
+                          <select
                             value={formData.program}
-                            onChange={(e) => setFormData({...formData, program: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, program: e.target.value })}
                             className="w-full h-12 px-4 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background text-foreground"
                           >
                             <option value="">Select a program</option>
@@ -264,21 +265,21 @@ export default function ContactPage() {
                           </select>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-foreground">Your Message *</label>
-                        <Textarea 
-                          rows={6} 
+                        <Textarea
+                          rows={6}
                           placeholder="Tell us about your goals and how we can help you achieve them..."
                           value={formData.message}
-                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                           className="bg-background border-input focus:ring-primary/20 focus:border-primary resize-none"
                         />
                       </div>
-                      
-                      <Button 
+
+                      <Button
                         onClick={handleSubmit}
-                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300" 
+                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? (
@@ -333,7 +334,7 @@ export default function ContactPage() {
                         rel="noopener noreferrer"
                         className="group flex-1"
                       >
-                        <div 
+                        <div
                           className={`h-14 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1 ${social.colorClass}`}
                         >
                           <Icon className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
@@ -351,7 +352,7 @@ export default function ContactPage() {
               <Card className="p-6 border-0 shadow-xl bg-gradient-to-br from-[#fd4327] to-[#ff8c00] text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-tr-full" />
-                
+
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="w-5 h-5" />
@@ -403,6 +404,8 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   )
 }
