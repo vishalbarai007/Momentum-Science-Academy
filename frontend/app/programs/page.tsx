@@ -30,7 +30,7 @@ type Program = {
   duration: string
   subjects: string[]
   highlights: string[]
-  fee: string
+  // fee: string
   icon: string
   color: string
   badge?: string
@@ -42,9 +42,9 @@ const programs: Program[] = [
     name: "Standard 9-10",
     tagline: "Build Strong Foundations",
     duration: "Ongoing Batches",
-    subjects: ["Mathematics", "Physics", "Chemistry", "Biology"],
+    subjects: ["All Subjects", "Mathematics", "Physics"],
     highlights: ["Board Exam Focus", "Concept Building", "Regular Assessments", "Doubt Clearing"],
-    fee: "Starting ₹3,500/month",
+    // fee: "Starting ₹3,500/month",
     icon: "📚",
     color: "from-blue-500 to-cyan-500",
   },
@@ -54,8 +54,8 @@ const programs: Program[] = [
     tagline: "Your IIT Dream Starts Here",
     duration: "2 Year Program",
     subjects: ["Mathematics", "Physics", "Chemistry"],
-    highlights: ["Expert IIT Faculty", "Daily Practice Problems", "AIR 329 Track Record", "Mock Tests"],
-    fee: "Starting ₹8,000/month",
+    highlights: ["Expert Faculty", "Daily Practice Problems", "AIR 329 Track Record", "Mock Tests"],
+    // fee: "Starting ₹8,000/month",
     icon: "🎯",
     color: "from-orange-500 to-red-500",
     badge: "Most Popular",
@@ -66,8 +66,8 @@ const programs: Program[] = [
     tagline: "Become a Doctor",
     duration: "2 Year Program",
     subjects: ["Physics", "Chemistry", "Biology"],
-    highlights: ["635/720 Achievers", "NCERT+ Advanced", "Medical College Tours", "Weekly Tests"],
-    fee: "Starting ₹7,500/month",
+    highlights: ["624/720 Achievers", "NCERT+ Advanced", "Weekly Tests", "Personalized Mentoring"],
+    // fee: "Starting ₹7,500/month",
     icon: "🏥",
     color: "from-emerald-500 to-teal-500",
     badge: "High Success Rate",
@@ -78,8 +78,8 @@ const programs: Program[] = [
     tagline: "Maharashtra's Top Colleges",
     duration: "1 Year Intensive",
     subjects: ["Mathematics", "Physics", "Chemistry", "Biology"],
-    highlights: ["190/200 Score", "State Board Focus", "CET Pattern Practice", "Live Classes"],
-    fee: "Starting ₹6,000/month",
+    highlights: ["190/200 Score", "State Board Focus", "CET Pattern Practice", "Time Management"],
+    // fee: "Starting ₹6,000/month",
     icon: "📊",
     color: "from-purple-500 to-pink-500",
   },
@@ -88,9 +88,9 @@ const programs: Program[] = [
     name: "Foundation (7-8)",
     tagline: "Early Start Advantage",
     duration: "Ongoing Program",
-    subjects: ["Mathematics", "Science", "Olympiad Prep"],
+    subjects: ["All Subjects", "Mathematics", "Science", "Olympiad Prep"],
     highlights: ["Olympiad Training", "Strong Base Building", "Interactive Learning", "Fun Science"],
-    fee: "Starting ₹2,500/month",
+    // fee: "Starting ₹2,500/month",
     icon: "⭐",
     color: "from-amber-500 to-orange-500",
   },
@@ -99,9 +99,9 @@ const programs: Program[] = [
     name: "ICSE/CBSE Board",
     tagline: "Board Exam Excellence",
     duration: "Ongoing Batches",
-    subjects: ["All Sciences", "Mathematics", "English"],
-    highlights: ["99.6% Pass Rate", "Topper Strategy", "Board Pattern Focus", "Previous Year Solving"],
-    fee: "Starting ₹4,000/month",
+    subjects: ["All Subjects", "Sciences", "Mathematics", "English"],
+    highlights: ["100% Pass Rate", "Topper Strategy", "Board Pattern Focus", "Previous Year Solving"],
+    // fee: "Starting ₹4,000/month",
     icon: "🏆",
     color: "from-indigo-500 to-purple-500",
   },
@@ -288,12 +288,12 @@ export default function ProgramsPage() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-border">
                     <div>
-                      <p className="text-xs text-muted-foreground">Starting from</p>
-                      <p className="text-lg font-bold text-primary">{program.fee.replace("Starting ", "")}</p>
+                      <p className="text-xs text-muted-foreground">Book your</p>
+                      <p className="text-lg font-bold text-primary"> Demo lecture </p>
                     </div>
                     <Button
                       onClick={() => handleEnroll(program)}
-                      className={`bg-gradient-to-r ${program.color} text-white hover:opacity-90 shadow-lg`}
+                      className={`bg-linear-to-r ${program.color} text-white hover:opacity-90 shadow-lg`}
                     >
                       Enroll Now
                       <ArrowRight className="w-4 h-4 ml-2" />

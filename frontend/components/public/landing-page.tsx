@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import Hero from "../../public/Hero.png"
+// import Hero from "../../public/Hero.png"
+import Hero from "../../public/Infrastructure/Classroom.jpeg"
+
 import whychooseus from "../../public/whychooseus.png"
 
 import Link from "next/link"
@@ -68,47 +70,48 @@ export function LandingPage() {
 
   const programs = [
     {
-      title: "Std 9-10 Foundation",
-      desc: "Strong fundamentals for board excellence",
-      icon: BookOpen,
-      color: "from-blue-500 to-cyan-500",
-      students: "500+",
-    },
-    {
-      title: "JEE Main & Advanced",
-      desc: "Your gateway to IITs and top NITs",
-      icon: Target,
-      color: "from-orange-500 to-red-500",
-      students: "800+",
-    },
-    {
-      title: "NEET Preparation",
-      desc: "Medical dreams start here",
-      icon: Award,
-      color: "from-emerald-500 to-teal-500",
-      students: "700+",
-    },
-    {
-      title: "MHT-CET Prep",
-      desc: "Maharashtra entrance mastery",
-      icon: TrendingUp,
-      color: "from-purple-500 to-pink-500",
-      students: "600+",
-    },
-    {
       title: "Foundation Wing",
       desc: "Std 7-8 early preparation",
       icon: Sparkles,
       color: "from-amber-500 to-orange-500",
-      students: "400+",
+      students: "50+",
+    },
+    {
+      title: "Std 9-10 Foundation",
+      desc: "Strong fundamentals for board excellence",
+      icon: BookOpen,
+      color: "from-blue-500 to-cyan-500",
+      students: "50+",
     },
     {
       title: "ICSE/CBSE Board",
       desc: "Board exam excellence",
       icon: GraduationCap,
       color: "from-indigo-500 to-purple-500",
-      students: "450+",
+      students: "100+",
     },
+    {
+      title: "JEE Main & Advanced",
+      desc: "Your gateway to IITs and top NITs",
+      icon: Target,
+      color: "from-orange-500 to-red-500",
+      students: "1200+",
+    },
+    {
+      title: "NEET Preparation",
+      desc: "Medical dreams start here",
+      icon: Award,
+      color: "from-emerald-500 to-teal-500",
+      students: "1500+",
+    },
+    {
+      title: "MHT-CET Prep",
+      desc: "Maharashtra entrance mastery",
+      icon: TrendingUp,
+      color: "from-purple-500 to-pink-500",
+      students: "2000+",
+    },
+
   ]
 
   const faculty = [
@@ -117,28 +120,28 @@ export function LandingPage() {
       subject: "Mathematics & Physics",
       exp: "18+ years",
       qual: "M.Sc, Ph.D in Physics (Mumbai Univ)",
-      image: "/indian-male-professor-mathematics-professional.jpg",
+      image: "/Faculty/RP-Singh.jpeg",
     },
     {
-      name: "Dr. P.V. Shukla",
+      name: "Prof. P.V. Shukla",
       subject: "Chemistry",
       exp: "12+ years",
       qual: "BDS (Mumbai Univ)",
-      image: "/indian-male-professor-physics-senior.jpg",
+      image: "/Faculty/PV-Shukla.jpeg",
     },
     {
-      name: "Dr. Rishi Singh",
+      name: "Prof. Rishi Singh",
       subject: "Biology",
       exp: "12+ years",
       qual: "MBBS from K.E.M. Medical College, Mumbai",
-      image: "/indian-female-professor-chemistry-professional.jpg",
+      image: "/Faculty/Rishi-Singh.jpeg",
     },
   ]
 
   const stats = [
     { target: 3000, label: "Students Mentored", suffix: "+" },
-    { target: 15, label: "Years of Excellence", suffix: "+" },
-    { target: 99, label: "Success Rate", suffix: "%" },
+    { target: 9, label: "Years of Excellence", suffix: "+" },
+    { target: 95, label: "Success Rate", suffix: "%" },
     { target: 329, label: "Best JEE AIR", suffix: "" },
   ]
 
@@ -226,7 +229,7 @@ export function LandingPage() {
               </h1>
 
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
-                Master JEE, NEET, MHT-CET & Board Exams with India's most trusted coaching academy. 15+ years of
+                Master JEE, NEET, MHT-CET & Board Exams with India's most trusted coaching academy. 9+ years of
                 excellence, proven results, personalized learning.
               </p>
 
@@ -254,8 +257,8 @@ export function LandingPage() {
               <div className="flex flex-wrap gap-6">
                 {[
                   { icon: Trophy, label: "AIR 329 JEE" },
-                  { icon: Star, label: "635/720 NEET" },
-                  { icon: Award, label: "99.6% Pass Rate" },
+                  { icon: Star, label: "624/720 NEET" },
+                  { icon: Award, label: "95% Pass Rate" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <item.icon className="w-5 h-5 text-accent" />
@@ -271,7 +274,7 @@ export function LandingPage() {
                 <Card className="p-8 shadow-2xl border-0 bg-card/80 backdrop-blur-xl">
                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-linear-to-br from-accent to-accent/50 rounded-2xl flex items-center justify-center shadow-lg animate-float">
                     <div className="text-center text-accent-foreground">
-                      <div className="text-2xl font-bold">15+</div>
+                      <div className="text-2xl font-bold">9+</div>
                       <div className="text-xs">Years</div>
                     </div>
                   </div>
@@ -282,11 +285,13 @@ export function LandingPage() {
                     className="w-full rounded-xl mb-6"
                   />
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     {[
                       { label: "JEE Toppers", value: "50+" },
-                      { label: "NEET Selections", value: "100+" },
+                      { label: "NEET Selections", value: "50+" },
                       { label: "Board Toppers", value: "200+" },
+                      { label: "Board Toppers", value: "100+" },
+
                     ].map((stat, i) => (
                       <div key={i} className="text-center p-3 bg-muted/50 rounded-xl">
                         <div className="text-xl font-bold text-primary">{stat.value}</div>
@@ -416,9 +421,9 @@ export function LandingPage() {
 
               <div className="space-y-4">
                 {[
-                  { title: "Expert Faculty", desc: "IITians, PhDs, and industry experts with 15+ years experience" },
+                  { title: "Expert Faculty", desc: "Engineers, PhDs, and industry experts with 15+ years experience" },
                   { title: "Small Batches", desc: "Maximum 25 students ensuring personalized attention" },
-                  { title: "Proven Results", desc: "AIR 329 JEE, 635/720 NEET, 99.6% pass rate" },
+                  { title: "Proven Results", desc: "AIR 329 JEE, 624/720 NEET, 95% pass rate" },
                   { title: "Comprehensive Resources", desc: "Notes, PYQs, mock tests, and 24/7 doubt support" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-card transition-colors">
@@ -445,7 +450,7 @@ export function LandingPage() {
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-primary">500+</div>
-                    <div className="text-sm text-muted-foreground">Students Cleared IIT/AIIMS</div>
+                    <div className="text-sm text-muted-foreground">Students Ranked JEE/NEET/MHT-CET</div>
                   </div>
                 </div>
               </Card>
@@ -464,7 +469,7 @@ export function LandingPage() {
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Learn from the Best</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our faculty comprises IITians, doctors, and PhD holders with decades of teaching experience
+              Our faculty comprises Engineers, doctors, and PhD holders with decades of teaching experience
             </p>
           </div>
 
@@ -607,17 +612,19 @@ export function LandingPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: MapPin, title: "Visit Us", desc: "Vasai East, Mumbai" },
-                  { icon: Phone, title: "Call Us", desc: "+91 98765 43210" },
-                  { icon: Mail, title: "Email Us", desc: "contact@momentum.edu" },
-                  { icon: Clock, title: "Timings", desc: "Mon-Sat: 8AM - 8PM" },
+                  { icon: MapPin, title: "Visit Us", desc: "Rashmi Divya Complex 6, Vasai East" , link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
+                  { icon: Phone, title: "Call Us", desc: "+91 98237 88328", link: "tel:+919823788328" },
+                  { icon: Mail, title: "Email Us", desc: "momentumscienceacademy@gmail.com", link: "mailto:momentumscienceacademy@gmail.com" },
+                  { icon: Clock, title: "Timings", desc: "Mon-Sat: 9AM - 9PM", link: "#" },
                 ].map((item, i) => {
                   const Icon = item.icon
                   return (
                     <Card key={i} className="p-4 border-0 shadow-lg hover-lift">
-                      <Icon className="w-6 h-6 text-primary mb-2" />
-                      <h4 className="font-semibold text-sm">{item.title}</h4>
-                      <p className="text-muted-foreground text-xs">{item.desc}</p>
+                      <Link href={item.link}>
+                        <Icon className="w-6 h-6 text-primary mb-2" />
+                        <h4 className="font-semibold text-sm">{item.title}</h4>
+                        <p className="text-muted-foreground text-xs">{item.desc}</p>
+                      </Link>
                     </Card>
                   )
                 })}

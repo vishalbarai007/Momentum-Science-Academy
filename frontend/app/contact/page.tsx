@@ -51,7 +51,7 @@ export default function ContactPage() {
     {
       icon: MapPin,
       title: "Visit Us",
-      content: "Rashmi Divya Complex, Vasai East",
+      content: "Rashmi Divya Complex 6, Vasai East",
       subtext: "Near Agarwal Circle, next to Galaxy Hotel",
       link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA",
       // Using Secondary (Royal Blue)
