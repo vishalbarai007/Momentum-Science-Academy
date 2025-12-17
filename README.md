@@ -1,6 +1,3 @@
-Based on the comprehensive documentation and code configuration files provided, here is a detailed `README.md` for the **Momentum Science Academy** repository.
-
------
 
 # Momentum Science Academy Platform
 
