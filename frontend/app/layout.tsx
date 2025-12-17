@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://momentum-academy.com'), // Replace with actual domain
+  metadataBase: new URL('https://momentum-science-academy.vercel.app'), // Replace with actual domain
   title: {
     default: "Momentum Science Academy - JEE, NEET & ICSE Coaching",
     template: "%s | Momentum Science Academy"
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Momentum Science Academy - Engineering & Medical Entrance Coaching",
     description: "Join the league of toppers. Expert faculty and personalized coaching for JEE, NEET, and Boards.",
-    url: 'https://momentum-academy.com',
+    url: 'https://momentum-science-academy.vercel.app/',
     siteName: 'Momentum Science Academy',
     locale: 'en_IN',
     type: 'website',
