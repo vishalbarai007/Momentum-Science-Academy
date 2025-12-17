@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 const StatsSection = () => {
-      const [counters, setCounters] = useState({ students: 0, years: 0, rate: 0, rank: 0 })
-    
-      const [statsVisible, setStatsVisible] = useState(false)
-    
+    const statsRef = useRef<HTMLDivElement>(null)
+
+    const [counters, setCounters] = useState({ students: 0, years: 0, rate: 0, rank: 0 })
+
+    const [statsVisible, setStatsVisible] = useState(false)
+
     const stats = [
         { target: 3000, label: "Students Mentored", suffix: "+" },
         { target: 9, label: "Years of Excellence", suffix: "+" },
@@ -59,6 +61,7 @@ const StatsSection = () => {
 
     return (
         <div>
+            
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-20" />
             </div>
