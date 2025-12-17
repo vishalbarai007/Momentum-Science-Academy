@@ -63,7 +63,7 @@ export function Footer() {
               and board exam success.
             </p>
             <div className="flex gap-3">
-              {[Facebook, Twitter, Instagram, Linkedin, Youtube].map((Icon, i) => (
+              {[Instagram, Linkedin, ].map((Icon, i) => (
                 <a
                   key={i}
                   href="#"
@@ -130,11 +130,11 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 mt-0.5 text-accent" />
                 <span className="text-primary-foreground/80 text-sm">
-                  Rashmi Divya Complex 6, Vasai East
+                  Rashmi Divya Complex 6
                   <br />
                   Near Agarwal Circle, next to Galaxy Hotel
                   <br />
-                  Mumbai - 401208
+                  Vasai East, Mumbai - 401208
                 </span>
               </li>
               <li className="flex items-center gap-3">

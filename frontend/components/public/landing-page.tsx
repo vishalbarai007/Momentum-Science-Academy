@@ -32,42 +32,15 @@ import {
   Zap,
 } from "lucide-react"
 import Image from "next/image"
+import Testimonials from "./Testimonials"
+import StatsSection from "../StatsSection"
 // import CircleCursor from "../ui/CircleCursor"
 
 export function LandingPage() {
   const [showInquiry, setShowInquiry] = useState(false)
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
-  const [counters, setCounters] = useState({ students: 0, years: 0, rate: 0, rank: 0 })
   const statsRef = useRef<HTMLDivElement>(null)
-  const [statsVisible, setStatsVisible] = useState(false)
 
-  const testimonials = [
-    {
-      name: "Aditi Sharma",
-      achievement: "NEET 2024 - 635/720",
-      image: "/indian-female-student-portrait-smiling.jpg",
-      quote:
-        "Momentum's systematic approach and dedicated faculty helped me achieve my dream of becoming a doctor. The personalized attention made all the difference.",
-      college: "AIIMS Delhi",
-    },
-    {
-      name: "Rohan Patel",
-      achievement: "JEE Advanced - AIR 329",
-      image: "/indian-male-student-portrait-professional.jpg",
-      quote:
-        "The problem-solving techniques and regular mock tests at Momentum prepared me perfectly for JEE. Forever grateful to my mentors here.",
-      college: "IIT Bombay",
-    },
-    {
-      name: "Priya Singh",
-      achievement: "ICSE 2024 - 99.60% (AIR-2)",
-      image: "/indian-teenage-girl-student.png",
-      quote:
-        "From struggling with concepts to becoming a topper - Momentum transformed my academic journey. The teachers here truly care about every student.",
-      college: "St. Xavier's College",
-    },
-  ]
-
+  
   const programs = [
     {
       title: "Foundation Wing",
@@ -138,64 +111,11 @@ export function LandingPage() {
     },
   ]
 
-  const stats = [
-    { target: 3000, label: "Students Mentored", suffix: "+" },
-    { target: 9, label: "Years of Excellence", suffix: "+" },
-    { target: 95, label: "Success Rate", suffix: "%" },
-    { target: 329, label: "Best JEE AIR", suffix: "" },
-  ]
+ 
 
   // Animate counters when visible
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !statsVisible) {
-          setStatsVisible(true)
-        }
-      },
-      { threshold: 0.3 },
-    )
-
-    if (statsRef.current) {
-      observer.observe(statsRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [statsVisible])
-
-  useEffect(() => {
-    if (statsVisible) {
-      const duration = 2000
-      const steps = 60
-      const interval = duration / steps
-
-      let step = 0
-      const timer = setInterval(() => {
-        step++
-        const progress = step / steps
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-
-        setCounters({
-          students: Math.floor(stats[0].target * easeOutQuart),
-          years: Math.floor(stats[1].target * easeOutQuart),
-          rate: Math.floor(stats[2].target * easeOutQuart),
-          rank: Math.floor(stats[3].target * easeOutQuart),
-        })
-
-        if (step >= steps) clearInterval(timer)
-      }, interval)
-
-      return () => clearInterval(timer)
-    }
-  }, [statsVisible])
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
+ 
+ 
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -318,28 +238,7 @@ export function LandingPage() {
         ref={statsRef}
         className="py-16 bg-linear-to-r from-primary to-secondary text-primary-foreground relative overflow-hidden"
       >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-20" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: counters.students, suffix: "+", label: "Students Mentored" },
-              { value: counters.years, suffix: "+", label: "Years Excellence" },
-              { value: counters.rate, suffix: "%", label: "Success Rate" },
-              { value: counters.rank, suffix: "", label: "Best JEE AIR" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold mb-2">
-                  {stat.value}
-                  {stat.suffix}
-                </div>
-                <div className="text-primary-foreground/80">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* <StatsSection /> */}
       </section>
 
       {/* Programs Section */}
@@ -516,65 +415,7 @@ export function LandingPage() {
 
       {/* Testimonials */}
       <section className="py-20 bg-linear-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Success Stories</h2>
-            <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-              Hear from our students who achieved their dreams
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <div className="relative">
-              {testimonials.map((testimonial, i) => (
-                <div
-                  key={i}
-                  className={`transition-all duration-500 ${activeTestimonial === i
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 absolute inset-0 translate-y-4 pointer-events-none"
-                    }`}
-                >
-                  <Card className="p-8 md:p-12 border-0 shadow-2xl bg-white/10 backdrop-blur-xl text-primary-foreground">
-                    <Quote className="w-12 h-12 text-accent mb-6 opacity-50" />
-                    <p className="text-xl md:text-2xl leading-relaxed mb-8 italic">"{testimonial.quote}"</p>
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={testimonial.image || "/placeholder.svg"}
-                        alt={testimonial.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-                      />
-                      <div>
-                        <h4 className="font-bold text-lg">{testimonial.name}</h4>
-                        <p className="text-accent font-medium">{testimonial.achievement}</p>
-                        <p className="text-primary-foreground/70 text-sm">{testimonial.college}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              ))}
-            </div>
-
-            {/* Testimonial indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${activeTestimonial === i ? "w-8 bg-accent" : "w-2 bg-white/30 hover:bg-white/50"
-                    }`}
-                />
-              ))}
-
-              {/* <AnimatedTestimonialsDemo/> */}
-
-            </div>
-          </div>
-        </div>
+       <Testimonials />
       </section>
 
       {/* CTA Section */}
