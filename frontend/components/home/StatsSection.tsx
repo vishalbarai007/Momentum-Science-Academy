@@ -60,8 +60,9 @@ const StatsSection = () => {
 
 
     return (
-        <div>
-            
+        <div ref={statsRef}
+        >
+
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-20" />
             </div>

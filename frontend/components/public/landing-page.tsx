@@ -9,43 +9,31 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   GraduationCap,
-  BookOpen,
   Trophy,
-  Users,
-  ChevronRight,
   Star,
   ArrowRight,
   CheckCircle,
-  Quote,
   MapPin,
   Phone,
   Mail,
   Sparkles,
-  Target,
   Award,
-  TrendingUp,
   Clock,
   Zap,
 } from "lucide-react"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import FacultyPreview from "../home/FacultyPreview"
-import Program from "../home/Program"
 
 const StatsSection = dynamic(() => import('@/components/home/StatsSection'), { ssr: false })
 const Testimonials = dynamic(() => import('@/components/home/Testimonials'))
-// const InquiryManager = dynamic(() => import('@/components/home/InquiryManager'))
+const Program = dynamic(() => import('@/components/home/Program'))
+const FacultyPreview = dynamic(() => import('@/components/home/FacultyPreview'))
+
+
 
 export function LandingPage() {
   const [showInquiry, setShowInquiry] = useState(false)
   const statsRef = useRef<HTMLDivElement>(null)
-
-
-
-
-
-
-
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -165,7 +153,6 @@ export function LandingPage() {
 
       {/* Stats Section */}
       <section
-        ref={statsRef}
         className="py-16 bg-linear-to-r from-primary to-secondary text-primary-foreground relative overflow-hidden"
       >
         <StatsSection />
