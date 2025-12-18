@@ -1,15 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink, Save, Eye, EyeOff } from "lucide-react"
+import { Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink, Save, Eye, EyeOff, Filter, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 
 // Interface matching Backend Resource Model
@@ -21,23 +20,32 @@ interface Resource {
   targetClass: string // Frontend display format (e.g., "11")
   exam: string       // Frontend display format (e.g., "JEE Advanced")
   downloads: number
-  status: string 
+  status: string
   date: string
   description?: string
   fileUrl?: string
 }
 
-// 1. Updated Constants to match likely Backend Enumerations
+// Constants
 const CLASS_OPTIONS = ["9", "10", "11", "12"]
 const SUBJECT_OPTIONS = ["Mathematics", "Physics", "Chemistry", "Biology"]
 const TYPE_OPTIONS = ["PYQ", "Notes", "Assignment", "IMP"]
-// Updated to match specific backend formats like "JEE Advanced"
 const EXAM_OPTIONS = ["JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation", "Board Exam"]
 
 export default function TeacherResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
-  
+
+  // Filter State
+  const [filters, setFilters] = useState({
+    class: "all",
+    subject: "all",
+    type: "all",
+    exam: "all",
+    search: "",
+  })
+  const [showFilters, setShowFilters] = useState(false)
+
   // Modal States
   const [editModal, setEditModal] = useState<{ open: boolean; resource: Resource | null }>({
     open: false,
@@ -62,18 +70,47 @@ export default function TeacherResourcesPage() {
     classLevel: "",
     examType: "",
     fileLink: "",
-    visibility: "" 
+    visibility: ""
   })
-  
+
   const [isSaving, setIsSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     fetchResources()
   }, [])
 
-  // --- HELPER: Map Backend Types (lowercase/short) to Frontend Display ---
+  // --- Filter Logic ---
+  const filteredResources = useMemo(() => {
+    return resources.filter((resource) => {
+      // Normalize comparison for classes (e.g. data "Class 11" vs filter "11" or "Class 11")
+      const resourceClass = resource.targetClass.replace("Class ", "")
+      const filterClass = filters.class.replace("Class ", "")
+      const matchesClass = filters.class === "all" || resourceClass === filterClass
+
+      const matchesSubject =
+        filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
+      
+      const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
+      
+      const matchesExam = filters.exam === "all" || resource.exam === filters.exam
+      
+      const matchesSearch =
+        filters.search === "" ||
+        resource.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        resource.subject.toLowerCase().includes(filters.search.toLowerCase())
+
+      return matchesClass && matchesSubject && matchesType && matchesExam && matchesSearch
+    })
+  }, [filters, resources])
+
+  const resetFilters = () => {
+    setFilters({ class: "all", subject: "all", type: "all", exam: "all", search: "" })
+  }
+
+  const activeFiltersCount = Object.values(filters).filter((v) => v !== "all" && v !== "").length
+
+  // --- HELPER: Map Backend Types ---
   const formatResourceTypeFromBackend = (type: string) => {
     if (!type) return "Notes"
     const map: Record<string, string> = {
@@ -89,7 +126,7 @@ export default function TeacherResourcesPage() {
   const fetchResources = async () => {
     try {
       const token = localStorage.getItem("token")
-      if (!token) return 
+      if (!token) return
 
       const response = await fetch("http://localhost:8080/api/v1/resources/my-uploads", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -100,9 +137,9 @@ export default function TeacherResourcesPage() {
         const mappedData = data.map((item: any) => ({
           id: item.id,
           title: item.title,
-          type: formatResourceTypeFromBackend(item.type), // Convert 'notes' -> 'Notes'
+          type: formatResourceTypeFromBackend(item.type),
           subject: item.subject,
-          targetClass: item.targetClass, // Convert 'Class 11' -> '11'
+          targetClass: item.targetClass, 
           exam: item.exam,
           downloads: item.downloads || 0,
           status: item.isPublished ? "Published" : "Draft",
@@ -110,7 +147,8 @@ export default function TeacherResourcesPage() {
           description: item.description,
           fileUrl: item.fileUrl
         }))
-        setResources(mappedData)
+        // Sort by newest first
+        setResources(mappedData.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()))
       }
     } catch (error) {
       console.error("Failed to fetch resources:", error)
@@ -119,14 +157,14 @@ export default function TeacherResourcesPage() {
     }
   }
 
-  // Handle Edit Click - Populate Form
+  // --- Edit & Delete Handlers ---
   const handleEdit = (resource: Resource) => {
     setEditForm({
       title: resource.title,
       description: resource.description || "",
-      resourceType: resource.type, // Already formatted as "Notes", "PYQ" etc by fetch
+      resourceType: resource.type,
       subject: resource.subject,
-      classLevel: resource.targetClass, // Already formatted as "11", "12" by fetch
+      classLevel: resource.targetClass.replace("Class ", ""), // Strip prefix if present for select match
       examType: resource.exam || "",
       fileLink: resource.fileUrl || "",
       visibility: resource.status === "Published" ? "publish" : "draft"
@@ -134,32 +172,21 @@ export default function TeacherResourcesPage() {
     setEditModal({ open: true, resource })
   }
 
-  // Handle Save Changes (Convert Frontend Formats -> Backend Formats)
   const handleSaveEdit = async () => {
     if (!editModal.resource) return
     setIsSaving(true)
 
     try {
       const token = localStorage.getItem("token")
-      
-      // Construct Payload with BACKEND formats
       const payload = {
         title: editForm.title,
         description: editForm.description,
-        
-        // 1. Convert Type to Lowercase (e.g., "PYQ" -> "pyq")
         resourceType: editForm.resourceType.toLowerCase() === 'pyq' ? 'pq' : editForm.resourceType.toLowerCase(),
-        
         subject: editForm.subject,
-        
-        // 2. Convert Class to "Class X" format
-        classLevel: `Class ${editForm.classLevel}`, 
-        
-        // 3. Exam is sent as is (assuming dropdown matches backend)
-        examType: editForm.examType,     
-        
+        classLevel: `Class ${editForm.classLevel}`, // Add prefix for backend consistency
+        examType: editForm.examType,
         fileLink: editForm.fileLink,
-        visibility: editForm.visibility 
+        visibility: editForm.visibility
       }
 
       const response = await fetch(`http://localhost:8080/api/v1/resources/${editModal.resource.id}`, {
@@ -172,28 +199,12 @@ export default function TeacherResourcesPage() {
       })
 
       if (response.ok) {
-        // Optimistic UI Update (Keep Frontend Formats)
-        setResources(prev => prev.map(r => 
-          r.id === editModal.resource!.id 
-            ? { 
-                ...r, 
-                title: editForm.title,
-                description: editForm.description,
-                type: editForm.resourceType,
-                subject: editForm.subject,
-                targetClass: editForm.classLevel,
-                exam: editForm.examType,
-                fileUrl: editForm.fileLink,
-                status: editForm.visibility === "publish" ? "Published" : "Draft"
-              } 
-            : r
-        ))
-        
+        fetchResources() // Reload to get fresh data
         setSuccessMessage("Resource updated successfully!")
         setTimeout(() => setSuccessMessage(""), 3000)
         setEditModal({ open: false, resource: null })
       } else {
-        alert("Failed to update resource. Please try again.")
+        alert("Failed to update resource.")
       }
     } catch (error) {
       console.error("Error updating resource:", error)
@@ -226,7 +237,7 @@ export default function TeacherResourcesPage() {
     if (resource.fileUrl) {
       setOpenLinkModal({ open: true, link: resource.fileUrl, title: resource.title })
     } else {
-      alert("No file link available for this resource.")
+      alert("No file link available.")
     }
   }
 
@@ -237,21 +248,11 @@ export default function TeacherResourcesPage() {
     }
   }
 
-  const filteredResources = resources.filter((r) => r.title.toLowerCase().includes(searchQuery.toLowerCase()))
-
   return (
     <TeacherSidebar>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">My Resources</h1>
-          <p className="text-muted-foreground">Manage your uploaded study materials</p>
-        </div>
-        <Link href="/teacher/upload">
-          <Button className="bg-emerald-500 text-white hover:bg-emerald-600">
-            <Plus className="w-4 h-4 mr-2" />
-            New Upload
-          </Button>
-        </Link>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">My Resources</h1>
+        <p className="text-muted-foreground">Manage and filter your uploaded study materials</p>
       </div>
 
       {successMessage && (
@@ -261,18 +262,105 @@ export default function TeacherResourcesPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <Input
-          placeholder="Search resources..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
+      {/* --- Action Bar: Search, Filter Toggle, New Upload --- */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search by title or subject..."
+            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          />
+        </div>
+        
+        <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`gap-2 h-full ${activeFiltersCount > 0 ? "border-emerald-500 text-emerald-600 bg-emerald-50" : ""}`}
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+              {activeFiltersCount > 0 && (
+                <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </Button>
+
+            <Link href="/teacher/upload">
+              <Button className="bg-emerald-500 text-white hover:bg-emerald-600 h-full">
+                <Plus className="w-4 h-4 mr-2" />
+                Upload
+              </Button>
+            </Link>
+        </div>
       </div>
 
-      {/* Table */}
+      {/* --- Filter Panel --- */}
+      {showFilters && (
+        <Card className="p-4 mb-6 border-0 shadow-lg animate-fade-in bg-muted/20">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Filter Resources</h3>
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-destructive">
+              <X className="w-4 h-4 mr-1" /> Clear All
+            </Button>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Class</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={filters.class}
+                onChange={(e) => setFilters({ ...filters, class: e.target.value })}
+              >
+                <option value="all">All Classes</option>
+                {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>Class {opt}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Subject</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={filters.subject}
+                onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
+              >
+                <option value="all">All Subjects</option>
+                {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Type</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={filters.type}
+                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+              >
+                <option value="all">All Types</option>
+                {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Exam</label>
+              <select
+                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                value={filters.exam}
+                onChange={(e) => setFilters({ ...filters, exam: e.target.value })}
+              >
+                <option value="all">All Exams</option>
+                {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* --- Table --- */}
       <Card className="overflow-hidden border-0 shadow-lg min-h-[300px]">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
@@ -281,8 +369,9 @@ export default function TeacherResourcesPage() {
           </div>
         ) : filteredResources.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-            <p>No resources found.</p>
-            <Link href="/teacher/upload" className="text-emerald-500 hover:underline mt-2">Upload your first resource</Link>
+            <Search className="w-12 h-12 mb-4 text-muted-foreground/30" />
+            <p>No resources match your filters.</p>
+            <Button variant="link" onClick={resetFilters} className="text-emerald-500">Reset Filters</Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -300,7 +389,7 @@ export default function TeacherResourcesPage() {
                 {filteredResources.map((resource) => (
                   <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
-                      <button 
+                      <button
                         onClick={() => handleOpenLinkClick(resource)}
                         className="font-medium text-emerald-600 hover:underline flex items-center gap-2 text-left"
                       >
@@ -345,107 +434,95 @@ export default function TeacherResourcesPage() {
         )}
       </Card>
 
-      {/* --- EXPANDED EDIT MODAL --- */}
+      {/* --- EDIT MODAL (Unchanged Logic, mostly) --- */}
       <Dialog open={editModal.open} onOpenChange={(open) => setEditModal({ open, resource: null })}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Resource</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            
-            {/* Title */}
             <div>
               <label className="text-sm font-medium mb-1 block">Title</label>
-              <Input 
-                value={editForm.title} 
-                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} 
+              <Input
+                value={editForm.title}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                 placeholder="e.g. Physics Chapter 1 Notes"
               />
             </div>
-
-            {/* File URL */}
             <div>
               <label className="text-sm font-medium mb-1 block">File Link (Drive/Dropbox URL)</label>
               <div className="relative">
                 <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                    value={editForm.fileLink} 
-                    onChange={(e) => setEditForm({ ...editForm, fileLink: e.target.value })} 
-                    className="pl-9"
-                    placeholder="https://..."
+                <Input
+                  value={editForm.fileLink}
+                  onChange={(e) => setEditForm({ ...editForm, fileLink: e.target.value })}
+                  className="pl-9"
+                  placeholder="https://..."
                 />
               </div>
             </div>
-
-            {/* Row: Visibility (Status) */}
             <div className="bg-muted/30 p-3 rounded-lg border">
-                <label className="text-sm font-medium mb-1 block flex items-center gap-2">
-                    {editForm.visibility === 'publish' ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-                    Visibility Status
-                </label>
-                <select 
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                    value={editForm.visibility}
-                    onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}
+              <label className="text-sm font-medium mb-1 block flex items-center gap-2">
+                {editForm.visibility === 'publish' ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                Visibility Status
+              </label>
+              <select
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                value={editForm.visibility}
+                onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}
+              >
+                <option value="publish">Published (Visible)</option>
+                <option value="draft">Draft (Hidden)</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Type</label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  value={editForm.resourceType}
+                  onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}
                 >
-                    <option value="publish">Published (Visible to Students)</option>
-                    <option value="draft">Draft (Hidden)</option>
+                  <option value="">Select Type</option>
+                  {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Subject</label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  value={editForm.subject}
+                  onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
+                >
+                  <option value="">Select Subject</option>
+                  {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
             </div>
-
-            {/* Row 1: Type & Subject */}
             <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="text-sm font-medium mb-1 block">Type</label>
-                    <select 
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                        value={editForm.resourceType}
-                        onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}
-                    >
-                        <option value="">Select Type</option>
-                        {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="text-sm font-medium mb-1 block">Subject</label>
-                    <select 
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                        value={editForm.subject}
-                        onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
-                    >
-                        <option value="">Select Subject</option>
-                        {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Class</label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  value={editForm.classLevel}
+                  onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}
+                >
+                  <option value="">Select Class</option>
+                  {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Target Exam</label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  value={editForm.examType}
+                  onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}
+                >
+                  <option value="">Select Exam</option>
+                  {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              </div>
             </div>
-
-            {/* Row 2: Class & Exam */}
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="text-sm font-medium mb-1 block">Class</label>
-                    <select 
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                        value={editForm.classLevel}
-                        onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}
-                    >
-                        <option value="">Select Class</option>
-                        {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="text-sm font-medium mb-1 block">Target Exam</label>
-                    <select 
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                        value={editForm.examType}
-                        onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}
-                    >
-                        <option value="">Select Exam</option>
-                        {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                </div>
-            </div>
-
-            {/* Description */}
             <div>
               <label className="text-sm font-medium mb-1 block">Description</label>
               <Textarea
@@ -455,8 +532,6 @@ export default function TeacherResourcesPage() {
                 className="h-24"
               />
             </div>
-
-            {/* Footer Actions */}
             <div className="flex gap-2 mt-6">
               <Button
                 variant="outline"

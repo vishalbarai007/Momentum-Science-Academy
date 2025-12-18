@@ -60,7 +60,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -96,7 +96,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
           {/* User section */}
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold">
                 R
               </div>
               <div className="flex-1 min-w-0">
@@ -136,7 +136,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               </button>
               <Link href="/teacher/profile">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
                   R
                 </div>
               </Link>
