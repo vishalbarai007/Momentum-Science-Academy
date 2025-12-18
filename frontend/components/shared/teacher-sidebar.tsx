@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -19,7 +18,8 @@ import {
   MessageSquare,
   Bell,
   BarChart3,
-  ClipboardList, // Imported for Assignments
+  FilePlus,   // Changed icon for Create
+  FileCheck,  // New icon for Submissions
 } from "lucide-react"
 
 interface TeacherSidebarProps {
@@ -33,11 +33,13 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/teacher/dashboard" },
-    { icon: BookOpen, label: "My Resources", href: "/teacher/resources" },
     { icon: Upload, label: "Upload Resource", href: "/teacher/upload" },
-    { icon: ClipboardList, label: "Assignments", href: "/teacher/assignment" }, // New Link
+    { icon: BookOpen, label: "My Resources", href: "/teacher/resources" },
+    // Split Assignments into two links
+    { icon: FilePlus, label: "Create Assignment", href: "/teacher/assignment" },
+    { icon: FileCheck, label: "Submissions", href: "/teacher/submissions" },
     { icon: MessageSquare, label: "Student Feedback", href: "/teacher/feedback" },
-    { icon: BarChart3, label: "Analytics", href: "/teacher/analytics" },
+    // { icon: BarChart3, label: "Analytics", href: "/teacher/analytics" },
     { icon: User, label: "Profile", href: "/teacher/profile" },
     { icon: Settings, label: "Settings", href: "/teacher/settings" },
   ]

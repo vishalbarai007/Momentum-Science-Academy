@@ -26,49 +26,58 @@ export default function AboutPage() {
 
   const milestones = [
     {
-      year: "2009",
+      year: "2017",
       title: "The Beginning",
       description:
-        "Founded Momentum Science Academy with a vision to transform science education in Vasai region. Started with just 50 students and 3 dedicated teachers.",
+        "Founded Momentum Science Academy with a vision to transform science education in Vasai region. Started with just 30 students and 3 dedicated teachers.",
       icon: Building,
       color: "from-blue-500 to-cyan-500",
-      achievements: ["50 students enrolled", "3 expert faculty", "First JEE qualifier"],
+      achievements: ["30 students enrolled", "3 expert faculty", "First MHT-CET qualifier"],
     },
     {
-      year: "2012",
+      year: "2019",
       title: "Growing Strong",
       description:
         "Expanded to a larger facility with state-of-the-art labs. Introduced NEET preparation program and achieved first MBBS selection.",
       icon: TrendingUp,
       color: "from-emerald-500 to-teal-500",
-      achievements: ["500+ students", "New campus", "First MBBS selection"],
+      achievements: ["100+ students", "New campus", "First MBBS selection"],
     },
     {
-      year: "2016",
+      year: "2021",
       title: "Excellence Milestone",
       description:
         "Launched specialized JEE Advanced batch. Our student secured AIR 329, putting Momentum on the national map.",
       icon: Award,
       color: "from-amber-500 to-orange-500",
-      achievements: ["AIR 329 in JEE", "15+ faculty", "2000+ alumni"],
+      achievements: ["AIR 329 in JEE", "10+ faculty", "50+ alumni"],
     },
     {
-      year: "2020",
+      year: "2023",
       title: "Digital Transformation",
       description:
         "Launched comprehensive digital learning platform with live classes, recorded lectures, and online assessments.",
       icon: Globe,
       color: "from-purple-500 to-pink-500",
-      achievements: ["Online platform launch", "Hybrid learning", "AI-powered tests"],
+      achievements: ["5+ MHT-CET Toppers ", "Personalized learning", "Online Mock tests"],
     },
     {
       year: "2024",
-      title: "Present & Future",
+      title: "New Branch opening",
       description:
-        "Now mentoring 3000+ students across all programs with 99.6% pass rate and multiple top rankers every year.",
+        "Increasing Branch every year to meet students expectations. ",
       icon: Rocket,
       color: "from-primary to-secondary",
       achievements: ["3000+ students", "99.6% success rate", "NEET 635/720"],
+    },
+    {
+      year: "2025",
+      title: "Present & Future",
+      description:
+        "Now mentoring 3000+ students across all programs with 100% pass rate and multiple top rankers every year.",
+      icon: Rocket,
+      color: "from-primary to-secondary",
+      achievements: ["3000+ students", "95% selection rate", "NEET 624/720"],
     },
   ]
 
@@ -96,10 +105,10 @@ export default function AboutPage() {
   ]
 
   const stats = [
-    { value: "15+", label: "Years of Excellence", icon: Award },
+    { value: "9+", label: "Years of Excellence", icon: Award },
     { value: "3000+", label: "Students Mentored", icon: Users },
-    { value: "99.6%", label: "Success Rate", icon: TrendingUp },
-    { value: "50+", label: "Expert Faculty", icon: BookOpen },
+    { value: "99.5%", label: "Success Rate", icon: TrendingUp },
+    { value: "20+", label: "Expert Faculty", icon: BookOpen },
   ]
 
   useEffect(() => {
@@ -114,7 +123,7 @@ export default function AboutPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-primary/5 via-background to-secondary/5 relative overflow-hidden">
+      <section className="pt-32 pb-20 bg-linear-to-br from-primary/5 via-background to-secondary/5 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
@@ -124,16 +133,16 @@ export default function AboutPage() {
           <div className="text-center max-w-3xl mx-auto animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-6">
               <GraduationCap className="w-4 h-4" />
-              <span>Since 2009</span>
+              <span>Since 2017</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               Shaping Future{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Scientists & Doctors
+              <span className="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Engineers & Doctors
               </span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              For over 15 years, we've been committed to nurturing tomorrow's innovators, researchers, and healthcare
+              For over 9 years, we've been committed to nurturing tomorrow's innovators, researchers, and healthcare
               professionals through excellence in science education.
             </p>
           </div>
@@ -144,7 +153,7 @@ export default function AboutPage() {
               const Icon = stat.icon
               return (
                 <Card key={i} className="p-6 text-center hover-lift border-0 shadow-lg bg-card/80 backdrop-blur">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-linear-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
                   <div className="text-3xl md:text-4xl font-bold text-primary mb-1">{stat.value}</div>
@@ -160,7 +169,7 @@ export default function AboutPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="p-8 hover-lift border-0 shadow-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+            <Card className="p-8 hover-lift border-0 shadow-xl bg-linear-to-br from-primary to-primary/80 text-primary-foreground">
               <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6">
                 <Target className="w-8 h-8" />
               </div>
@@ -172,7 +181,7 @@ export default function AboutPage() {
               </p>
             </Card>
 
-            <Card className="p-8 hover-lift border-0 shadow-xl bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground">
+            <Card className="p-8 hover-lift border-0 shadow-xl bg-linear-to-br from-secondary to-secondary/80 text-secondary-foreground">
               <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6">
                 <Eye className="w-8 h-8" />
               </div>
@@ -188,7 +197,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Journey Timeline - Modern Interactive */}
-      <section className="py-20 bg-gradient-to-br from-muted/30 to-muted/10">
+      <section className="py-20 bg-linear-to-br from-muted/30 to-muted/10">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Journey</h2>
@@ -205,7 +214,7 @@ export default function AboutPage() {
                 onClick={() => setActiveYear(i)}
                 className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 whitespace-nowrap ${
                   activeYear === i
-                    ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-lg scale-105"
+                    ? "bg-linear-to-r from-primary to-secondary text-primary-foreground shadow-lg scale-105"
                     : "bg-card hover:bg-muted text-foreground border border-border"
                 }`}
               >
@@ -229,13 +238,13 @@ export default function AboutPage() {
                 >
                   <Card className="p-8 md:p-12 border-0 shadow-2xl overflow-hidden relative">
                     <div
-                      className={`absolute top-0 right-0 w-96 h-96 bg-gradient-to-br ${milestone.color} opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2`}
+                      className={`absolute top-0 right-0 w-96 h-96 bg-linear-to-br ${milestone.color} opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2`}
                     />
 
                     <div className="relative grid md:grid-cols-2 gap-8 items-center">
                       <div>
                         <div
-                          className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${milestone.color} flex items-center justify-center mb-6 shadow-xl`}
+                          className={`w-20 h-20 rounded-2xl bg-linear-to-br ${milestone.color} flex items-center justify-center mb-6 shadow-xl`}
                         >
                           <Icon className="w-10 h-10 text-white" />
                         </div>
@@ -249,11 +258,11 @@ export default function AboutPage() {
                         {milestone.achievements.map((achievement, j) => (
                           <div
                             key={j}
-                            className={`flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${milestone.color} bg-opacity-10`}
+                            className={`flex items-center gap-4 p-4 rounded-xl bg-linear-to-r ${milestone.color} bg-opacity-10`}
                             style={{ animationDelay: `${j * 0.1}s` }}
                           >
                             <div
-                              className={`w-10 h-10 rounded-lg bg-gradient-to-br ${milestone.color} flex items-center justify-center flex-shrink-0`}
+                              className={`w-10 h-10 rounded-lg bg-linear-to-br ${milestone.color} flex items-center justify-center shrink-0`}
                             >
                               <Award className="w-5 h-5 text-white" />
                             </div>
@@ -300,7 +309,7 @@ export default function AboutPage() {
               const Icon = value.icon
               return (
                 <Card key={i} className="p-6 hover-lift border-0 shadow-lg group">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary/10 to-secondary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold mb-2">{value.title}</h3>
