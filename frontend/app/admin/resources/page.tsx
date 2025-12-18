@@ -1,12 +1,10 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AdminSidebar } from "@/components/shared/admin-sidebar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -28,137 +26,118 @@ import {
   FileText,
   BookOpen,
   ClipboardList,
-  CheckCircle,
   AlertCircle,
   Plus,
-  Upload,
+  CheckCircle,
+  Loader2,
+  ExternalLink,
 } from "lucide-react"
 
+// Interface matching the transformed backend data
 interface Resource {
-  id: string
+  id: number
   title: string
-  type: "PYQ" | "Notes" | "Assignment" | "Important"
+  type: string
   subject: string
   class: string
   exam: string
   uploadedBy: string
   uploadedAt: string
   downloads: number
-  status: "active" | "archived"
-  fileSize: string
+  status: "Published" | "Draft"
+  fileSize: string // Placeholder as backend might not send file size yet
+  fileUrl: string
 }
 
-const initialResources: Resource[] = [
-  {
-    id: "1",
-    title: "JEE Main 2024 Physics Paper",
-    type: "PYQ",
-    subject: "Physics",
-    class: "12th",
-    exam: "JEE",
-    uploadedBy: "Prof. R.P. Singh",
-    uploadedAt: "2024-01-15",
-    downloads: 234,
-    status: "active",
-    fileSize: "2.4 MB",
-  },
-  {
-    id: "2",
-    title: "Organic Chemistry Notes - Chapter 1-5",
-    type: "Notes",
-    subject: "Chemistry",
-    class: "11th",
-    exam: "JEE",
-    uploadedBy: "Dr. P.V. Shukla",
-    uploadedAt: "2024-01-12",
-    downloads: 189,
-    status: "active",
-    fileSize: "5.1 MB",
-  },
-  {
-    id: "3",
-    title: "Biology Assignment - Cell Structure",
-    type: "Assignment",
-    subject: "Biology",
-    class: "11th",
-    exam: "NEET",
-    uploadedBy: "Dr. Anjali Mehta",
-    uploadedAt: "2024-01-10",
-    downloads: 156,
-    status: "active",
-    fileSize: "1.8 MB",
-  },
-  {
-    id: "4",
-    title: "Important Formulas - Mathematics",
-    type: "Important",
-    subject: "Mathematics",
-    class: "12th",
-    exam: "JEE",
-    uploadedBy: "Prof. S.K. Verma",
-    uploadedAt: "2024-01-08",
-    downloads: 312,
-    status: "active",
-    fileSize: "890 KB",
-  },
-  {
-    id: "5",
-    title: "NEET 2023 Biology Paper",
-    type: "PYQ",
-    subject: "Biology",
-    class: "12th",
-    exam: "NEET",
-    uploadedBy: "Dr. Anjali Mehta",
-    uploadedAt: "2024-01-05",
-    downloads: 278,
-    status: "archived",
-    fileSize: "3.2 MB",
-  },
-]
-
 export default function AdminResourcesPage() {
-  const [resources, setResources] = useState<Resource[]>(initialResources)
+  const [resources, setResources] = useState<Resource[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // Filter States
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState<string>("all")
   const [filterSubject, setFilterSubject] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  
+  // Modal States
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [successMessage, setSuccessMessage] = useState("")
 
-  const filteredResources = resources.filter((resource) => {
-    const matchesSearch =
-      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesType = filterType === "all" || resource.type === filterType
-    const matchesSubject = filterSubject === "all" || resource.subject === filterSubject
-    const matchesStatus = filterStatus === "all" || resource.status === filterStatus
-    return matchesSearch && matchesType && matchesSubject && matchesStatus
-  })
+  // --- 1. Fetch Resources from Backend ---
+  useEffect(() => {
+    fetchResources()
+  }, [])
 
-  const handleDelete = () => {
-    if (selectedResource) {
-      setResources(resources.filter((r) => r.id !== selectedResource.id))
-      setDeleteDialogOpen(false)
-      setSelectedResource(null)
-      showSuccess("Resource deleted successfully")
+  const fetchResources = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      // Use the generic GET endpoint which returns all resources for Admins
+      const response = await fetch("http://localhost:8080/api/v1/resources", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Map backend data to frontend interface
+        const mappedData: Resource[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          type: formatResourceType(item.type),
+          subject: item.subject,
+          class: item.targetClass,
+          exam: item.exam,
+          uploadedBy: item.uploadedBy?.fullName || "Unknown",
+          uploadedAt: new Date(item.createdAt).toLocaleDateString(),
+          downloads: item.downloads || 0,
+          status: item.isPublished ? "Published" : "Draft",
+          fileSize: "N/A", // Backend usually doesn't store size unless explicitly added
+          fileUrl: item.fileUrl
+        }))
+        
+        // Sort by newest first
+        setResources(mappedData.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()))
+      }
+    } catch (error) {
+      console.error("Failed to fetch resources:", error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleDownload = (resource: Resource) => {
-    setResources(resources.map((r) => (r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r)))
-    showSuccess(`Downloading ${resource.title}...`)
+  // --- Helper Functions ---
+  const formatResourceType = (type: string) => {
+    const map: Record<string, string> = {
+      'pq': 'PYQ', 'pyq': 'PYQ',
+      'notes': 'Notes',
+      'assignment': 'Assignment',
+      'imp': 'Important'
+    }
+    return map[type?.toLowerCase()] || type
   }
 
-  const handleToggleStatus = (resource: Resource) => {
-    setResources(
-      resources.map((r) =>
-        r.id === resource.id ? { ...r, status: r.status === "active" ? "archived" : "active" } : r,
-      ),
-    )
-    showSuccess(`Resource ${resource.status === "active" ? "archived" : "activated"}`)
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "PYQ": return <FileText className="w-4 h-4" />
+      case "Notes": return <BookOpen className="w-4 h-4" />
+      case "Assignment": return <ClipboardList className="w-4 h-4" />
+      case "Important": return <AlertCircle className="w-4 h-4" />
+      default: return <FileText className="w-4 h-4" />
+    }
+  }
+
+  const getTypeBadgeColor = (type: string) => {
+    switch (type) {
+      case "PYQ": return "bg-blue-100 text-blue-700"
+      case "Notes": return "bg-green-100 text-green-700"
+      case "Assignment": return "bg-orange-100 text-orange-700"
+      case "Important": return "bg-red-100 text-red-700"
+      default: return "bg-gray-100 text-gray-700"
+    }
   }
 
   const showSuccess = (message: string) => {
@@ -166,56 +145,63 @@ export default function AdminResourcesPage() {
     setTimeout(() => setSuccessMessage(""), 3000)
   }
 
-  const handleUpload = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const newResource: Resource = {
-      id: Date.now().toString(),
-      title: formData.get("title") as string,
-      type: formData.get("type") as Resource["type"],
-      subject: formData.get("subject") as string,
-      class: formData.get("class") as string,
-      exam: formData.get("exam") as string,
-      uploadedBy: "Admin",
-      uploadedAt: new Date().toISOString().split("T")[0],
-      downloads: 0,
-      status: "active",
-      fileSize: "1.0 MB",
-    }
-    setResources([newResource, ...resources])
-    setUploadDialogOpen(false)
-    showSuccess("Resource uploaded successfully!")
-  }
+  // --- Actions ---
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "PYQ":
-        return <FileText className="w-4 h-4" />
-      case "Notes":
-        return <BookOpen className="w-4 h-4" />
-      case "Assignment":
-        return <ClipboardList className="w-4 h-4" />
-      case "Important":
-        return <AlertCircle className="w-4 h-4" />
-      default:
-        return <FileText className="w-4 h-4" />
+  const handleDelete = async () => {
+    if (!selectedResource) return
+
+    try {
+      const token = localStorage.getItem("token")
+      const res = await fetch(`http://localhost:8080/api/v1/resources/${selectedResource.id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+
+      if (res.ok) {
+        setResources(resources.filter((r) => r.id !== selectedResource.id))
+        setDeleteDialogOpen(false)
+        setSelectedResource(null)
+        showSuccess("Resource deleted successfully")
+      } else {
+        alert("Failed to delete resource")
+      }
+    } catch (error) {
+      console.error("Error deleting resource:", error)
     }
   }
 
-  const getTypeBadgeColor = (type: string) => {
-    switch (type) {
-      case "PYQ":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-      case "Notes":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      case "Assignment":
-        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-      case "Important":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-      default:
-        return "bg-gray-100 text-gray-700"
+  const handleDownload = (resource: Resource) => {
+    if (resource.fileUrl) {
+        window.open(resource.fileUrl, "_blank")
+    } else {
+        alert("No file link available")
     }
   }
+
+  // Toggle Status (Publish/Draft) - Requires PUT endpoint updates
+  const handleToggleStatus = async (resource: Resource) => {
+    // This requires the Update Endpoint logic from previous steps.
+    // For now, we simulate UI update or implement if backend supports generic update
+    alert("Status toggle functionality requires the Edit Endpoint integration.")
+  }
+
+  // Filter Logic
+  const filteredResources = resources.filter((resource) => {
+    const matchesSearch =
+      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    // Note: Backend stores "Notes", Frontend filter uses "Notes"
+    const matchesType = filterType === "all" || resource.type === filterType
+    const matchesSubject = filterSubject === "all" || resource.subject === filterSubject
+    
+    // Status mapping: "active" filter -> "Published" status
+    const matchesStatus = filterStatus === "all" || 
+        (filterStatus === "active" && resource.status === "Published") ||
+        (filterStatus === "archived" && resource.status === "Draft")
+
+    return matchesSearch && matchesType && matchesSubject && matchesStatus
+  })
 
   return (
     <AdminSidebar>
@@ -234,18 +220,16 @@ export default function AdminResourcesPage() {
             <h1 className="text-3xl font-bold">Resources Management</h1>
             <p className="text-muted-foreground">Manage all educational resources</p>
           </div>
-          <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Upload Resource
-          </Button>
+          {/* Note: Admin upload usually redirects to a specific admin upload page or reuses teacher form */}
+          {/* <Button className="gap-2"> <Plus className="w-4 h-4" /> Upload Resource </Button> */}
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Total Resources", value: resources.length, color: "bg-blue-500" },
-            { label: "Active", value: resources.filter((r) => r.status === "active").length, color: "bg-green-500" },
-            { label: "Archived", value: resources.filter((r) => r.status === "archived").length, color: "bg-gray-500" },
+            { label: "Published", value: resources.filter((r) => r.status === "Published").length, color: "bg-green-500" },
+            { label: "Drafts", value: resources.filter((r) => r.status === "Draft").length, color: "bg-gray-500" },
             {
               label: "Total Downloads",
               value: resources.reduce((acc, r) => acc + r.downloads, 0),
@@ -268,7 +252,7 @@ export default function AdminResourcesPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search resources..."
+                placeholder="Search resources or uploader..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -304,15 +288,21 @@ export default function AdminResourcesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
+                <SelectItem value="active">Published</SelectItem>
+                <SelectItem value="archived">Draft</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {/* Resources Table */}
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden min-h-[300px]">
+          {loading ? (
+             <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                <Loader2 className="w-10 h-10 animate-spin mb-2 text-primary" />
+                <p>Loading resources...</p>
+             </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -336,7 +326,7 @@ export default function AdminResourcesPage() {
                       </div>
                       <div>
                         <p className="font-medium line-clamp-1">{resource.title}</p>
-                        <p className="text-xs text-muted-foreground">{resource.fileSize}</p>
+                        <p className="text-xs text-muted-foreground">{resource.uploadedAt}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -350,7 +340,9 @@ export default function AdminResourcesPage() {
                   <TableCell className="hidden lg:table-cell">{resource.uploadedBy}</TableCell>
                   <TableCell className="hidden lg:table-cell">{resource.downloads}</TableCell>
                   <TableCell>
-                    <Badge variant={resource.status === "active" ? "default" : "secondary"}>{resource.status}</Badge>
+                    <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"}>
+                        {resource.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -373,15 +365,12 @@ export default function AdminResourcesPage() {
                           <Download className="w-4 h-4 mr-2" />
                           Download
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleToggleStatus(resource)}>
-                          {resource.status === "active" ? "Archive" : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => {
-                            setSelectedResource(resource)
-                            setDeleteDialogOpen(true)
-                          }}
+                        <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => {
+                                setSelectedResource(resource)
+                                setDeleteDialogOpen(true)
+                            }}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
@@ -393,97 +382,8 @@ export default function AdminResourcesPage() {
               ))}
             </TableBody>
           </Table>
+          )}
         </div>
-
-        {/* Upload Dialog */}
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Upload New Resource</DialogTitle>
-              <DialogDescription>Add a new educational resource to the platform</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" name="title" required placeholder="Resource title" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Select name="type" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PYQ">PYQ</SelectItem>
-                      <SelectItem value="Notes">Notes</SelectItem>
-                      <SelectItem value="Assignment">Assignment</SelectItem>
-                      <SelectItem value="Important">Important</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Select name="subject" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Physics">Physics</SelectItem>
-                      <SelectItem value="Chemistry">Chemistry</SelectItem>
-                      <SelectItem value="Mathematics">Mathematics</SelectItem>
-                      <SelectItem value="Biology">Biology</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="class">Class</Label>
-                  <Select name="class" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="9th">9th</SelectItem>
-                      <SelectItem value="10th">10th</SelectItem>
-                      <SelectItem value="11th">11th</SelectItem>
-                      <SelectItem value="12th">12th</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="exam">Exam</Label>
-                  <Select name="exam" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select exam" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="JEE">JEE</SelectItem>
-                      <SelectItem value="NEET">NEET</SelectItem>
-                      <SelectItem value="MHT-CET">MHT-CET</SelectItem>
-                      <SelectItem value="Boards">Boards</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="file">File</Label>
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
-                  <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                  <p className="text-xs text-muted-foreground mt-1">PDF, DOC up to 10MB</p>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setUploadDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Upload Resource</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
@@ -516,10 +416,6 @@ export default function AdminResourcesPage() {
                     <p className="font-medium">{selectedResource.exam}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">File Size</p>
-                    <p className="font-medium">{selectedResource.fileSize}</p>
-                  </div>
-                  <div>
                     <p className="text-muted-foreground">Uploaded By</p>
                     <p className="font-medium">{selectedResource.uploadedBy}</p>
                   </div>
@@ -533,7 +429,7 @@ export default function AdminResourcesPage() {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Status</p>
-                    <Badge variant={selectedResource.status === "active" ? "default" : "secondary"}>
+                    <Badge variant={selectedResource.status === "Published" ? "default" : "secondary"}>
                       {selectedResource.status}
                     </Badge>
                   </div>
@@ -543,8 +439,8 @@ export default function AdminResourcesPage() {
                     Close
                   </Button>
                   <Button onClick={() => handleDownload(selectedResource)}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Open Resource
                   </Button>
                 </DialogFooter>
               </div>
