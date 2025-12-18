@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Bell,
   BarChart3,
+  ClipboardList, // Imported for Assignments
 } from "lucide-react"
 
 interface TeacherSidebarProps {
@@ -34,6 +35,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
     { icon: Home, label: "Dashboard", href: "/teacher/dashboard" },
     { icon: BookOpen, label: "My Resources", href: "/teacher/resources" },
     { icon: Upload, label: "Upload Resource", href: "/teacher/upload" },
+    { icon: ClipboardList, label: "Assignments", href: "/teacher/assignment" }, // New Link
     { icon: MessageSquare, label: "Student Feedback", href: "/teacher/feedback" },
     { icon: BarChart3, label: "Analytics", href: "/teacher/analytics" },
     { icon: User, label: "Profile", href: "/teacher/profile" },

@@ -110,6 +110,36 @@ public class ResourceController {
         return ResponseEntity.ok(allResources);
     }
 
+    @GetMapping("/assignments")
+    public ResponseEntity<List<Resource>> getStudentAssignments() {
+        // 1. Get Logged-in Student
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User student = userService.findByEmail(auth.getName());
+
+        if (student == null) return ResponseEntity.notFound().build();
+
+        // 2. Get All Resources
+        List<Resource> allResources = resourceService.getAllResources();
+
+        // 3. Filter for Assignments relevant to student
+        Set<String> accessTags = student.getAccessTags();
+
+        List<Resource> assignments = allResources.stream()
+                // Type Check: Must be an Assignment (Enum check)
+                .filter(r -> r.getType() == Resource.ResourceType.assignment)
+                // Visibility Check: Must be Published
+                .filter(r -> Boolean.TRUE.equals(r.getIsPublished()))
+                // Access Check: Must match student's tags
+                .filter(r -> accessTags != null && (
+                        accessTags.contains(String.valueOf(r.getTargetClass())) ||
+                                accessTags.contains(r.getExam()) ||
+                                accessTags.contains(r.getSubject())
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(assignments);
+    }
+
     @GetMapping("/my-uploads")
     public ResponseEntity<?> getMyUploads() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
