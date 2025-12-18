@@ -24,6 +24,7 @@ import {
 import Image from "next/image"
 import dynamic from "next/dynamic"
 
+
 const StatsSection = dynamic(() => import('@/components/home/StatsSection'), { ssr: false })
 const Testimonials = dynamic(() => import('@/components/home/Testimonials'))
 const Program = dynamic(() => import('@/components/home/Program'))
@@ -33,7 +34,6 @@ const FacultyPreview = dynamic(() => import('@/components/home/FacultyPreview'))
 
 export function LandingPage() {
   const [showInquiry, setShowInquiry] = useState(false)
-  const statsRef = useRef<HTMLDivElement>(null)
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">

@@ -2,6 +2,8 @@ import { BookOpen, Users, ChevronRight, ArrowRight, Award, GraduationCap, Sparkl
 import { Card } from '../ui/card'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
+import { memo } from "react"
+
 
 
 
