@@ -59,7 +59,7 @@ export default function AboutPage() {
         "Launched comprehensive digital learning platform with live classes, recorded lectures, and online assessments.",
       icon: Globe,
       color: "from-purple-500 to-pink-500",
-      achievements: ["5+ MHT-CET Toppers ", "Personalized learning", "Online Mock tests"],
+      achievements: ["5+ MHT-CET Toppers in a year ", "Personalized learning", "Online Mock tests"],
     },
     {
       year: "2024",
@@ -320,7 +320,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <TimelineDemo/>
+      {/* <TimelineDemo/> */}
 
       <Footer />
     </div>

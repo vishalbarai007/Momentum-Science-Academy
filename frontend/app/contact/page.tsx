@@ -11,6 +11,7 @@ import { Navbar } from "@/components/public/navbar"
 import { submitContactForm } from "@/lib/api" // Import the function
 import { toast } from "sonner" // Assuming you have sonner or use-toast
 import { Footer } from "@/components/public/footer"
+import Link from "next/link"
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,7 +76,7 @@ export default function ContactPage() {
     {
       icon: Mail,
       title: "Email Us",
-      content: "momentum@gmail.com",
+      content: "momentumscienceacademy@gmail.com",
       subtext: "We reply within 24 hours",
       link: "mailto:momentumscienceacademy@gmail.com",
       // Using Primary (Deep Indigo)
@@ -395,12 +396,16 @@ export default function ContactPage() {
             Check out our FAQ section or schedule a free consultation call with our academic advisors.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-12 shadow-lg">
-              View FAQ
-            </Button>
+            <Link href={"/programs/#FAQ"}>
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-12 shadow-lg">
+                View FAQ
+              </Button>
+            </Link>
+            <Link href={"#"}>
             <Button variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 h-12">
               Schedule a Call
             </Button>
+            </Link>
           </div>
         </div>
       </section>
