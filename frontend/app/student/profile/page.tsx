@@ -105,10 +105,10 @@ export default function StudentProfilePage() {
     <StudentSidebar>
       {/* Profile Header */}
       <Card className="border-0 shadow-xl mb-8 overflow-hidden">
-        <div className="h-32 bg-gradient-to-r from-primary via-primary/80 to-secondary" />
+        <div className="h-32 bg-linear-to-r from-primary via-primary/80 to-secondary" />
         <div className="px-6 pb-6">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-16">
-            <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-5xl font-bold text-white shadow-xl border-4 border-background">
+            <div className="w-32 h-32 rounded-2xl bg-linear-to-br from-primary to-secondary flex items-center justify-center text-5xl font-bold text-white shadow-xl border-4 border-background">
               {studentData.avatar}
             </div>
             <div className="flex-1">
@@ -195,7 +195,7 @@ export default function StudentProfilePage() {
                   <Card key={i} className="p-5 border-0 shadow-md hover:shadow-lg transition-shadow">
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}
+                        className={`w-14 h-14 rounded-xl bg-linear-to-br ${stat.color} flex items-center justify-center`}
                       >
                         <Icon className="w-7 h-7 text-white" />
                       </div>
@@ -247,7 +247,7 @@ export default function StudentProfilePage() {
             const Icon = achievement.icon
             return (
               <Card key={i} className="p-6 border-0 shadow-lg hover:shadow-xl transition-shadow text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-4">
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="font-bold text-lg mb-2">{achievement.title}</h3>

@@ -9,25 +9,42 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-poppins",
+  display: "swap",
 })
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
 })
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
-  title: "Momentum Science Academy - JEE/NEET/ICSE Coaching Excellence",
-  description:
-    "Premier coaching academy for 9th-12th standard and competitive exams (JEE, NEET, MHT-CET) in Vasai East. Expert faculty, proven results.",
-  keywords: ["JEE coaching", "NEET preparation", "ICSE coaching", "Vasai East", "competitive exams"],
+  metadataBase: new URL('https://momentum-science-academy.vercel.app'), // Replace with actual domain
+  title: {
+    default: "Momentum Science Academy - JEE, NEET & ICSE Coaching",
+    template: "%s | Momentum Science Academy"
+  },
+  description: "Top-rated coaching institute in Vasai East for JEE, NEET, MHT-CET, and Std 9-10. Proven track record with IIT & AIIMS selections.",
+  keywords: ["JEE coaching", "NEET preparation", "Science Academy Vasai", "MHT-CET classes", "ICSE tuition"],
   authors: [{ name: "Momentum Science Academy" }],
-  generator: "v0.app",
+  openGraph: {
+    title: "Momentum Science Academy - Engineering & Medical Entrance Coaching",
+    description: "Join the league of toppers. Expert faculty and personalized coaching for JEE, NEET, and Boards.",
+    url: 'https://momentum-science-academy.vercel.app/',
+    siteName: 'Momentum Science Academy',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       {
@@ -60,7 +77,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
-      <CircleCursor />
       <body className="font-sans antialiased">
         <CircleCursor />
 

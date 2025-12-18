@@ -6,6 +6,7 @@ import momentum.backend.model.User;
 import momentum.backend.repository.ResourceRepository;
 import momentum.backend.repository.UsersRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.Date;
 import java.util.List;
@@ -44,7 +45,8 @@ public class ResourceService {
         resource.setTitle(request.getTitle());
         resource.setDescription(request.getDescription());
 
-        // Handle Enum conversion safely (assuming frontend sends valid lowercase matching enum)
+        // Handle Enum conversion safely (assuming frontend sends valid lowercase
+        // matching enum)
         if (request.getResourceType() != null) {
             resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
         }
@@ -81,12 +83,18 @@ public class ResourceService {
         }
 
         // 3. Update Fields (Only if provided in request)
-        if (request.getTitle() != null) resource.setTitle(request.getTitle());
-        if (request.getDescription() != null) resource.setDescription(request.getDescription());
-        if (request.getSubject() != null) resource.setSubject(request.getSubject());
-        if (request.getTargetClass() != null) resource.setTargetClass(request.getTargetClass());
-        if (request.getExamType() != null) resource.setExam(request.getExamType());
-        if (request.getFileLink() != null) resource.setFileUrl(request.getFileLink());
+        if (request.getTitle() != null)
+            resource.setTitle(request.getTitle());
+        if (request.getDescription() != null)
+            resource.setDescription(request.getDescription());
+        if (request.getSubject() != null)
+            resource.setSubject(request.getSubject());
+        if (request.getTargetClass() != null)
+            resource.setTargetClass(request.getTargetClass());
+        if (request.getExamType() != null)
+            resource.setExam(request.getExamType());
+        if (request.getFileLink() != null)
+            resource.setFileUrl(request.getFileLink());
 
         // Update Type (Enum conversion)
         if (request.getResourceType() != null) {
@@ -107,11 +115,12 @@ public class ResourceService {
         return resourceRepository.save(resource);
     }
 
+    @Cacheable("resources")
     public List<Resource> getAllResources() {
         List<Resource> list = resourceRepository.findAll();
-        System.out.println(list.get(0).getExam());
-        System.out.println(list.get(0).getTargetClass());
-        System.out.println(list.get(0).getSubject());
+        // System.out.println(list.get(0).getExam());
+        // System.out.println(list.get(0).getTargetClass());
+        // System.out.println(list.get(0).getSubject());
         return list;
     }
 

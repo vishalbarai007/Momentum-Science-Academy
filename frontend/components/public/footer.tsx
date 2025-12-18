@@ -63,7 +63,7 @@ export function Footer() {
               and board exam success.
             </p>
             <div className="flex gap-3">
-              {[Facebook, Twitter, Instagram, Linkedin, Youtube].map((Icon, i) => (
+              {[Instagram, Linkedin, ].map((Icon, i) => (
                 <a
                   key={i}
                   href="#"
@@ -83,7 +83,7 @@ export function Footer() {
                 { href: "/programs", label: "Our Programs" },
                 { href: "/faculty", label: "Expert Faculty" },
                 { href: "/gallery", label: "Gallery" },
-                { href: "/blog", label: "Blog & News" },
+                { href: "/blog", label: "Blog" },
                 { href: "/contact", label: "Contact Us" },
               ].map((link) => (
                 <li key={link.href}>
@@ -130,32 +130,34 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 mt-0.5 text-accent" />
                 <span className="text-primary-foreground/80 text-sm">
-                  123 Education Lane, Vasai East,
+                  Rashmi Divya Complex 6
                   <br />
-                  Mumbai - 401208
+                  Near Agarwal Circle, next to Galaxy Hotel
+                  <br />
+                  Vasai East, Mumbai - 401208
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-accent" />
                 <a
-                  href="tel:+919876543210"
+                  href="tel:+919823788328"
                   className="text-primary-foreground/80 text-sm hover:text-accent transition-colors"
                 >
-                  +91 98765 43210
+                  +91 98237 88328
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-accent" />
                 <a
-                  href="mailto:contact@momentum.edu"
+                  href="mailto:momentumscienceacademy@gmail.com"
                   className="text-primary-foreground/80 text-sm hover:text-accent transition-colors"
                 >
-                  contact@momentum.edu
+                  momentumscienceacademy
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-accent" />
-                <span className="text-primary-foreground/80 text-sm">Mon-Sat: 8 AM - 8 PM</span>
+                <span className="text-primary-foreground/80 text-sm">Mon-Sat: 9 AM - 9 PM</span>
               </li>
             </ul>
           </div>

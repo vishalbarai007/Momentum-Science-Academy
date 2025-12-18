@@ -1,9 +1,7 @@
 "use client"
-
-import { useState, useEffect, useRef } from "react"
-import Hero from "../../public/Hero.png"
+import { useState, useRef } from "react"
+import Hero from "../../public/Infrastructure/Classroom.jpeg"
 import whychooseus from "../../public/whychooseus.png"
-
 import Link from "next/link"
 import { Navbar } from "./navbar"
 import { Footer } from "./footer"
@@ -11,189 +9,31 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   GraduationCap,
-  BookOpen,
   Trophy,
-  Users,
-  ChevronRight,
   Star,
   ArrowRight,
   CheckCircle,
-  Quote,
   MapPin,
   Phone,
   Mail,
   Sparkles,
-  Target,
   Award,
-  TrendingUp,
   Clock,
   Zap,
 } from "lucide-react"
-import { AnimatedTestimonialsDemo } from "../AnimatedTestimonialsDemo"
 import Image from "next/image"
-// import CircleCursor from "../ui/CircleCursor"
+import dynamic from "next/dynamic"
+
+
+const StatsSection = dynamic(() => import('@/components/home/StatsSection'), { ssr: false })
+const Testimonials = dynamic(() => import('@/components/home/Testimonials'))
+const Program = dynamic(() => import('@/components/home/Program'))
+const FacultyPreview = dynamic(() => import('@/components/home/FacultyPreview'))
+
+
 
 export function LandingPage() {
   const [showInquiry, setShowInquiry] = useState(false)
-  const [activeTestimonial, setActiveTestimonial] = useState(0)
-  const [counters, setCounters] = useState({ students: 0, years: 0, rate: 0, rank: 0 })
-  const statsRef = useRef<HTMLDivElement>(null)
-  const [statsVisible, setStatsVisible] = useState(false)
-
-  const testimonials = [
-    {
-      name: "Aditi Sharma",
-      achievement: "NEET 2024 - 635/720",
-      image: "/indian-female-student-portrait-smiling.jpg",
-      quote:
-        "Momentum's systematic approach and dedicated faculty helped me achieve my dream of becoming a doctor. The personalized attention made all the difference.",
-      college: "AIIMS Delhi",
-    },
-    {
-      name: "Rohan Patel",
-      achievement: "JEE Advanced - AIR 329",
-      image: "/indian-male-student-portrait-professional.jpg",
-      quote:
-        "The problem-solving techniques and regular mock tests at Momentum prepared me perfectly for JEE. Forever grateful to my mentors here.",
-      college: "IIT Bombay",
-    },
-    {
-      name: "Priya Singh",
-      achievement: "ICSE 2024 - 99.60% (AIR-2)",
-      image: "/indian-teenage-girl-student.png",
-      quote:
-        "From struggling with concepts to becoming a topper - Momentum transformed my academic journey. The teachers here truly care about every student.",
-      college: "St. Xavier's College",
-    },
-  ]
-
-  const programs = [
-    {
-      title: "Std 9-10 Foundation",
-      desc: "Strong fundamentals for board excellence",
-      icon: BookOpen,
-      color: "from-blue-500 to-cyan-500",
-      students: "500+",
-    },
-    {
-      title: "JEE Main & Advanced",
-      desc: "Your gateway to IITs and top NITs",
-      icon: Target,
-      color: "from-orange-500 to-red-500",
-      students: "800+",
-    },
-    {
-      title: "NEET Preparation",
-      desc: "Medical dreams start here",
-      icon: Award,
-      color: "from-emerald-500 to-teal-500",
-      students: "700+",
-    },
-    {
-      title: "MHT-CET Prep",
-      desc: "Maharashtra entrance mastery",
-      icon: TrendingUp,
-      color: "from-purple-500 to-pink-500",
-      students: "600+",
-    },
-    {
-      title: "Foundation Wing",
-      desc: "Std 7-8 early preparation",
-      icon: Sparkles,
-      color: "from-amber-500 to-orange-500",
-      students: "400+",
-    },
-    {
-      title: "ICSE/CBSE Board",
-      desc: "Board exam excellence",
-      icon: GraduationCap,
-      color: "from-indigo-500 to-purple-500",
-      students: "450+",
-    },
-  ]
-
-  const faculty = [
-    {
-      name: "Prof. R.P. Singh",
-      subject: "Mathematics",
-      exp: "18 years",
-      qual: "B.Tech IIT Delhi, GATE Qualified",
-      image: "/indian-male-professor-mathematics-professional.jpg",
-    },
-    {
-      name: "Dr. P.V. Shukla",
-      subject: "Physics",
-      exp: "20 years",
-      qual: "Ph.D Physics, IISc Bangalore",
-      image: "/indian-male-professor-physics-senior.jpg",
-    },
-    {
-      name: "Dr. Seema Verma",
-      subject: "Chemistry",
-      exp: "16 years",
-      qual: "M.Tech Biochemistry, AIIMS",
-      image: "/indian-female-professor-chemistry-professional.jpg",
-    },
-  ]
-
-  const stats = [
-    { target: 3000, label: "Students Mentored", suffix: "+" },
-    { target: 15, label: "Years of Excellence", suffix: "+" },
-    { target: 99, label: "Success Rate", suffix: "%" },
-    { target: 329, label: "Best JEE AIR", suffix: "" },
-  ]
-
-  // Animate counters when visible
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !statsVisible) {
-          setStatsVisible(true)
-        }
-      },
-      { threshold: 0.3 },
-    )
-
-    if (statsRef.current) {
-      observer.observe(statsRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [statsVisible])
-
-  useEffect(() => {
-    if (statsVisible) {
-      const duration = 2000
-      const steps = 60
-      const interval = duration / steps
-
-      let step = 0
-      const timer = setInterval(() => {
-        step++
-        const progress = step / steps
-        const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-
-        setCounters({
-          students: Math.floor(stats[0].target * easeOutQuart),
-          years: Math.floor(stats[1].target * easeOutQuart),
-          rate: Math.floor(stats[2].target * easeOutQuart),
-          rank: Math.floor(stats[3].target * easeOutQuart),
-        })
-
-        if (step >= steps) clearInterval(timer)
-      }, interval)
-
-      return () => clearInterval(timer)
-    }
-  }, [statsVisible])
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -220,14 +60,14 @@ export function LandingPage() {
 
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
                 Empowering Future{" "}
-                <span className="bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+                <span className="bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient bg-size-[200%_auto]">
                   Engineers
                 </span>
                 <br />& Doctors
               </h1>
 
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
-                Master JEE, NEET, MHT-CET & Board Exams with India's most trusted coaching academy. 15+ years of
+                Master JEE, NEET, MHT-CET & Board Exams with India's most trusted coaching academy. 9+ years of
                 excellence, proven results, personalized learning.
               </p>
 
@@ -255,8 +95,8 @@ export function LandingPage() {
               <div className="flex flex-wrap gap-6">
                 {[
                   { icon: Trophy, label: "AIR 329 JEE" },
-                  { icon: Star, label: "635/720 NEET" },
-                  { icon: Award, label: "99.6% Pass Rate" },
+                  { icon: Star, label: "624/720 NEET" },
+                  { icon: Award, label: "95% Pass Rate" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <item.icon className="w-5 h-5 text-accent" />
@@ -272,7 +112,7 @@ export function LandingPage() {
                 <Card className="p-8 shadow-2xl border-0 bg-card/80 backdrop-blur-xl">
                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-linear-to-br from-accent to-accent/50 rounded-2xl flex items-center justify-center shadow-lg animate-float">
                     <div className="text-center text-accent-foreground">
-                      <div className="text-2xl font-bold">15+</div>
+                      <div className="text-2xl font-bold">9+</div>
                       <div className="text-xs">Years</div>
                     </div>
                   </div>
@@ -283,11 +123,13 @@ export function LandingPage() {
                     className="w-full rounded-xl mb-6"
                   />
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     {[
                       { label: "JEE Toppers", value: "50+" },
-                      { label: "NEET Selections", value: "100+" },
+                      { label: "NEET Selections", value: "50+" },
                       { label: "Board Toppers", value: "200+" },
+                      { label: "Board Toppers", value: "100+" },
+
                     ].map((stat, i) => (
                       <div key={i} className="text-center p-3 bg-muted/50 rounded-xl">
                         <div className="text-xl font-bold text-primary">{stat.value}</div>
@@ -311,91 +153,14 @@ export function LandingPage() {
 
       {/* Stats Section */}
       <section
-        ref={statsRef}
         className="py-16 bg-linear-to-r from-primary to-secondary text-primary-foreground relative overflow-hidden"
       >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-20" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: counters.students, suffix: "+", label: "Students Mentored" },
-              { value: counters.years, suffix: "+", label: "Years Excellence" },
-              { value: counters.rate, suffix: "%", label: "Success Rate" },
-              { value: counters.rank, suffix: "", label: "Best JEE AIR" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold mb-2">
-                  {stat.value}
-                  {stat.suffix}
-                </div>
-                <div className="text-primary-foreground/80">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <StatsSection />
       </section>
 
       {/* Programs Section */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary/10 rounded-full text-secondary text-sm font-medium mb-4">
-              <BookOpen className="w-4 h-4" />
-              <span>Our Programs</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">Choose Your Path to Success</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Comprehensive programs designed for every academic goal and competitive exam
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-            {programs.map((program, i) => {
-              const Icon = program.icon
-              return (
-                <Card
-                  key={i}
-                  className="group p-6 hover-lift border-0 shadow-lg cursor-pointer overflow-hidden relative"
-                >
-                  <div
-                    className={`absolute top-0 right-0 w-32 h-32 bg-linear-to-br ${program.color} opacity-10 rounded-full blur-2xl translate-x-1/2 -translate-y-1/2 group-hover:opacity-20 transition-opacity`}
-                  />
-
-                  <div
-                    className={`w-14 h-14 rounded-2xl bg-linear-to-br ${program.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-
-                  <h3 className="text-xl font-bold mb-2">{program.title}</h3>
-                  <p className="text-muted-foreground mb-4">{program.desc}</p>
-                  <Link href="/programs">
-                    <div className="flex items-center justify-between pt-4 border-t border-border">
-                      <span className="text-sm text-muted-foreground flex items-center gap-1">
-
-                        <Users className="w-4 h-4" />
-                        {program.students} students
-                      </span>
-                      <ChevronRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </Link>
-                </Card>
-              )
-            })}
-          </div>
-
-          <div className="mt-12 text-center">
-            <Link href="/programs">
-              <Button size="lg" variant="outline" className="bg-transparent">
-                View All Programs
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
+        <Program />
       </section>
 
       {/* Why Choose Us */}
@@ -417,9 +182,9 @@ export function LandingPage() {
 
               <div className="space-y-4">
                 {[
-                  { title: "Expert Faculty", desc: "IITians, PhDs, and industry experts with 15+ years experience" },
+                  { title: "Expert Faculty", desc: "Engineers, PhDs, and industry experts with 15+ years experience" },
                   { title: "Small Batches", desc: "Maximum 25 students ensuring personalized attention" },
-                  { title: "Proven Results", desc: "AIR 329 JEE, 635/720 NEET, 99.6% pass rate" },
+                  { title: "Proven Results", desc: "AIR 329 JEE, 624/720 NEET, 95% pass rate" },
                   { title: "Comprehensive Resources", desc: "Notes, PYQs, mock tests, and 24/7 doubt support" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-card transition-colors">
@@ -446,7 +211,7 @@ export function LandingPage() {
                   </div>
                   <div>
                     <div className="text-3xl font-bold text-primary">500+</div>
-                    <div className="text-sm text-muted-foreground">Students Cleared IIT/AIIMS</div>
+                    <div className="text-sm text-muted-foreground">Students Ranked JEE/NEET/MHT-CET</div>
                   </div>
                 </div>
               </Card>
@@ -458,119 +223,13 @@ export function LandingPage() {
       {/* Faculty Preview */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-4">
-              <Users className="w-4 h-4" />
-              <span>Expert Faculty</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Learn from the Best</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our faculty comprises IITians, doctors, and PhD holders with decades of teaching experience
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 stagger-children">
-            {faculty.map((prof, i) => (
-              <Card key={i} className="group overflow-hidden border-0 shadow-lg hover-lift">
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={prof.image || "/placeholder.svg"}
-                    alt={prof.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <h3 className="text-xl font-bold">{prof.name}</h3>
-                    <p className="text-white/80 text-sm">{prof.qual}</p>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                      {prof.subject}
-                    </span>
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {prof.exp}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <div className="mt-12 text-center">
-            <Link href="/faculty">
-              <Button variant="outline" className="bg-transparent">
-                Meet All Faculty
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
+          <FacultyPreview />
         </div>
       </section>
 
       {/* Testimonials */}
       <section className="py-20 bg-linear-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Success Stories</h2>
-            <p className="text-primary-foreground/80 text-lg max-w-2xl mx-auto">
-              Hear from our students who achieved their dreams
-            </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            {/* <div className="relative">
-              {testimonials.map((testimonial, i) => (
-                <div
-                  key={i}
-                  className={`transition-all duration-500 ${activeTestimonial === i
-                    ? "opacity-100 translate-y-0"
-                    : "opacity-0 absolute inset-0 translate-y-4 pointer-events-none"
-                    }`}
-                >
-                  <Card className="p-8 md:p-12 border-0 shadow-2xl bg-white/10 backdrop-blur-xl text-primary-foreground">
-                    <Quote className="w-12 h-12 text-accent mb-6 opacity-50" />
-                    <p className="text-xl md:text-2xl leading-relaxed mb-8 italic">"{testimonial.quote}"</p>
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={testimonial.image || "/placeholder.svg"}
-                        alt={testimonial.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-                      />
-                      <div>
-                        <h4 className="font-bold text-lg">{testimonial.name}</h4>
-                        <p className="text-accent font-medium">{testimonial.achievement}</p>
-                        <p className="text-primary-foreground/70 text-sm">{testimonial.college}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              ))}
-            </div> */}
-
-            {/* Testimonial indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {/* {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${activeTestimonial === i ? "w-8 bg-accent" : "w-2 bg-white/30 hover:bg-white/50"
-                    }`}
-                />
-              ))} */}
-
-                <AnimatedTestimonialsDemo/>
-
-            </div>
-          </div>
-        </div>
+        <Testimonials />
       </section>
 
       {/* CTA Section */}
@@ -608,17 +267,19 @@ export function LandingPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: MapPin, title: "Visit Us", desc: "Vasai East, Mumbai" },
-                  { icon: Phone, title: "Call Us", desc: "+91 98765 43210" },
-                  { icon: Mail, title: "Email Us", desc: "contact@momentum.edu" },
-                  { icon: Clock, title: "Timings", desc: "Mon-Sat: 8AM - 8PM" },
+                  { icon: MapPin, title: "Visit Us", desc: "Rashmi Divya Complex 6, Vasai East", link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
+                  { icon: Phone, title: "Call Us", desc: "+91 98237 88328", link: "tel:+919823788328" },
+                  { icon: Mail, title: "Email Us", desc: "momentumscienceacademy@gmail.com", link: "mailto:momentumscienceacademy@gmail.com" },
+                  { icon: Clock, title: "Timings", desc: "Mon-Sat: 9AM - 9PM", link: "#" },
                 ].map((item, i) => {
                   const Icon = item.icon
                   return (
                     <Card key={i} className="p-4 border-0 shadow-lg hover-lift">
-                      <Icon className="w-6 h-6 text-primary mb-2" />
-                      <h4 className="font-semibold text-sm">{item.title}</h4>
-                      <p className="text-muted-foreground text-xs">{item.desc}</p>
+                      <Link href={item.link}>
+                        <Icon className="w-6 h-6 text-primary mb-2" />
+                        <h4 className="font-semibold text-sm">{item.title}</h4>
+                        <p className="text-muted-foreground text-xs">{item.desc}</p>
+                      </Link>
                     </Card>
                   )
                 })}

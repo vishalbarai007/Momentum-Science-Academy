@@ -12,65 +12,101 @@ export default function FacultyPage() {
   const faculty = [
     {
       name: "Prof. R.P. Singh",
-      subject: "Mathematics",
-      experience: "18 years",
-      qualifications: "B.Tech (IIT-D), GATE Qualified",
+      subject: "Mathematics & physics",
+      experience: "18+ years",
+      qualifications: "M.Sc, Ph.D in Physics (Mumbai Univ)",
       specialization: "JEE Advanced, Problem Solving",
       toppers: 5,
+      students: "2500+",
       image: "/professional-indian-male-professor-mathematics.jpg",
     },
     {
-      name: "Dr. P.V. Shukla",
-      subject: "Physics",
-      experience: "20 years",
-      qualifications: "Ph.D Physics, B.Sc (Honors)",
-      specialization: "Conceptual Physics, Research",
+      name: "Prof. P.V. Shukla",
+      subject: "Chemistry",
+      experience: "12+ years",
+      qualifications: "BDS (Mumbai Univ)",
+      specialization: "Oraganic Chemistry, JEE Main",
       toppers: 8,
+      students: "5000+",
       image: "/professional-indian-male-professor-physics.jpg",
     },
     {
-      name: "Dr. Seema Verma",
-      subject: "Chemistry",
-      experience: "16 years",
-      qualifications: "M.Tech Biochemistry, B.Sc",
-      specialization: "Organic Chemistry, NEET Prep",
+      name: "Prof. Rishi Singh",
+      subject: "Biology",
+      experience: "12+ years",
+      qualifications: "MBBS from K.E.M. Medical College, Mumbai",
+      specialization: "NEET Biology, Genetics",
       toppers: 6,
+      students: "3000+",
       image: "/professional-indian-female-professor-chemistry.jpg",
     },
     {
-      name: "Prof. Rajesh Gupta",
-      subject: "Mathematics",
-      experience: "14 years",
-      qualifications: "M.Sc Mathematics (Delhi Univ)",
+      name: "Prof. Deepak Pal",
+      subject: "Biology",
+      experience: "4+ years",
+      qualifications: "MBBS from JJ Hospital, Mumbai",
       specialization: "Trigonometry, Algebra",
       toppers: 4,
+      students: "800+",
       image: "/professional-indian-male-teacher-mathematics.jpg",
     },
     {
-      name: "Ms. Priya Nair",
-      subject: "Biology",
-      experience: "12 years",
-      qualifications: "M.Sc Botany, B.Sc (Honors)",
-      specialization: "NEET Biology, Anatomy",
+      name: "Prof. Avinash Mishra",
+      subject: "Chemistry",
+      experience: "10+ years",
+      qualifications: "M.Sc , B.Ed (Mumbai Univ)",
+      specialization: "Inorganic Chemistry, Physical Chemistry",
       toppers: 7,
+      students: "3000+",
       image: "/professional-indian-female-teacher-biology.jpg",
     },
     {
-      name: "Prof. Anil Kumar",
+      name: "Jittu Kanauja",
       subject: "Physics",
-      experience: "17 years",
-      qualifications: "B.Tech Mechanical Engineering",
+      experience: "5+ years",
+      qualifications: "B.Ed (Mumbai Univ)",
       specialization: "Mechanics, Thermodynamics",
       toppers: 5,
+      students: "2000+",
+      image: "/professional-indian-male-professor-physics-mechani.jpg",
+    },
+    {
+      name: "Rahul Maurya",
+      subject: "Mathematics",
+      experience: "12+ years",
+      qualifications: "B.Tech (Mumbai Univ)",
+      specialization: "Calculus, Coordinate Geometry",
+      toppers: 5,
+      students: "1500+",
+      image: "/professional-indian-male-professor-physics-mechani.jpg",
+    },
+    {
+      name: "Siddhart ",
+      subject: "Chemistry",
+      experience: "3+ years",
+      qualifications: "B.Tech (Mumbai Univ)",
+      specialization: "Calculus, Coordinate Geometry",
+      toppers: 5,
+      students: "1500+",
+      image: "/professional-indian-male-professor-physics-mechani.jpg",
+    },
+    {
+      name: "Rohit Gotpagar ",
+      subject: "Chemistry",
+      experience: "10+ years",
+      qualifications: "M.Sc (Mumbai Univ)",
+      specialization: "Inorganic Chemistry, Physical Chemistry",
+      toppers: 5,
+      students: "4000+",
       image: "/professional-indian-male-professor-physics-mechani.jpg",
     },
   ]
 
   const stats = [
-    { icon: GraduationCap, value: "50+", label: "Expert Faculty" },
+    { icon: GraduationCap, value: "10+", label: "Expert Faculty" },
     { icon: Award, value: "35+", label: "Top Rankers Produced" },
-    { icon: BookOpen, value: "18+", label: "Years Avg Experience" },
-    { icon: Users, value: "10,000+", label: "Students Taught" },
+    { icon: BookOpen, value: "10+", label: "Years Avg Experience" },
+    { icon: Users, value: "5,000+", label: "Students Taught" },
   ]
 
   return (
@@ -79,7 +115,7 @@ export default function FacultyPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative py-20 bg-gradient-to-br from-primary/10 via-background to-secondary/10 overflow-hidden">
+        <section className="relative py-20 bg-linear-to-br from-primary/10 via-background to-secondary/10 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
@@ -133,7 +169,7 @@ export default function FacultyPage() {
                       alt={prof.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <h3 className="text-xl font-bold">{prof.name}</h3>
                       <p className="text-primary-foreground/80">{prof.subject}</p>
@@ -154,6 +190,10 @@ export default function FacultyPage() {
                         <span className="font-medium text-right max-w-[60%]">{prof.specialization}</span>
                       </div>
                       <div className="pt-3 border-t border-border flex justify-between items-center">
+                       <span className="text-muted-foreground">Students Mentored</span>
+                        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
+                          {prof.students}
+                        </span>
                         <span className="text-muted-foreground">Toppers Mentored</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
                           {prof.toppers} Top Rankers
