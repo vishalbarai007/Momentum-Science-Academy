@@ -84,7 +84,8 @@ export default function TeacherResourcesPage() {
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
       // Normalize comparison for classes (e.g. data "Class 11" vs filter "11" or "Class 11")
-      const resourceClass = resource.targetClass.replace("Class ", "")
+      // const resourceClass = resource.targetClass.replace("Class ", "")
+      const resourceClass = resource.targetClass
       const filterClass = filters.class.replace("Class ", "")
       const matchesClass = filters.class === "all" || resourceClass === filterClass
 

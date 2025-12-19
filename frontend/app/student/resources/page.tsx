@@ -4,19 +4,35 @@ import { useState, useMemo, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
-import { Download, Search, Filter, X, FileText, BookOpen, ClipboardList, Star, Loader2 } from "lucide-react"
+import { 
+  Download, Search, Filter, X, FileText, BookOpen, 
+  ClipboardList, Star, Loader2, Info, MessageSquare, Send 
+} from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 
 // Types
 interface Resource {
   id: number
   title: string
+  description?: string // Added
   type: string
   subject: string
-  targetClass: string // Backend field name
+  targetClass: string
   exam: string
   downloads: number
   fileUrl: string
   createdAt: string
+  uploadedBy?: string // Teacher Name
 }
 
 export default function StudentResourcesPage() {
@@ -24,6 +40,7 @@ export default function StudentResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [accessTags, setAccessTags] = useState<string[]>([])
   
+  // Filters
   const [filters, setFilters] = useState({
     class: "all",
     subject: "all",
@@ -31,11 +48,25 @@ export default function StudentResourcesPage() {
     exam: "all",
     search: "",
   })
+  
+  // UI States
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
 
-  // 1. Fetch Profile (Access Tags) & Resources
-useEffect(() => {
+  // Modals
+  const [infoModal, setInfoModal] = useState<{ open: boolean; resource: Resource | null }>({
+    open: false, resource: null,
+  })
+  const [doubtModal, setDoubtModal] = useState<{ open: boolean; resource: Resource | null }>({
+    open: false, resource: null,
+  })
+
+  // Form States
+  const [doubtMessage, setDoubtMessage] = useState("")
+  const [isSendingDoubt, setIsSendingDoubt] = useState(false)
+
+  // 1. Fetch Resources
+  useEffect(() => {
     const fetchResources = async () => {
         const token = localStorage.getItem("token")
         if (!token) {
@@ -44,14 +75,12 @@ useEffect(() => {
         }
 
         try {
-            // Backend now handles filtering automatically based on the token
             const response = await fetch("http://localhost:8080/api/v1/resources", {
                 headers: { "Authorization": `Bearer ${token}` }
             })
             
             if (response.ok) {
                 const data = await response.json()
-                // Optional: Sort by newest first
                 const sortedData = data.sort((a: any, b: any) => 
                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                 )
@@ -70,16 +99,14 @@ useEffect(() => {
     fetchResources()
   }, [])
 
-  // 2. Apply UI Filters (Dropdowns/Search) on the Allowed Resources
+  // 2. Filters
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
       const matchesClass = filters.class === "all" || resource.targetClass === filters.class
-      const matchesSubject =
-        filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
+      const matchesSubject = filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
       const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
       const matchesExam = filters.exam === "all" || resource.exam === filters.exam
-      const matchesSearch =
-        filters.search === "" ||
+      const matchesSearch = filters.search === "" ||
         resource.title.toLowerCase().includes(filters.search.toLowerCase()) ||
         resource.subject.toLowerCase().includes(filters.search.toLowerCase())
 
@@ -87,20 +114,50 @@ useEffect(() => {
     })
   }, [filters, resources])
 
+  // 3. Actions
   const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
-    
     if (fileUrl && fileUrl.startsWith("http")) {
-        // Real Download
         setTimeout(() => {
             window.open(fileUrl, "_blank")
             setDownloadingId(null)
         }, 1000)
     } else {
-        // Simulation
         await new Promise((resolve) => setTimeout(resolve, 1000))
         alert("Downloading file... (Simulated)")
         setDownloadingId(null)
+    }
+  }
+
+  const handleDoubtSubmit = async () => {
+    if (!doubtModal.resource || !doubtMessage) return
+    setIsSendingDoubt(true)
+    try {
+        const token = localStorage.getItem("token")
+        const res = await fetch("http://localhost:8080/api/v1/doubts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                contextType: "RESOURCE",
+                contextId: doubtModal.resource.id,
+                question: doubtMessage
+            })
+        })
+        if (res.ok) {
+            alert("Doubt sent successfully!")
+            setDoubtModal({ open: false, resource: null })
+            setDoubtMessage("")
+        } else {
+            alert("Failed to send doubt.")
+        }
+    } catch (error) {
+        console.error("Error sending doubt:", error)
+        alert("Network error.")
+    } finally {
+        setIsSendingDoubt(false)
     }
   }
 
@@ -108,6 +165,7 @@ useEffect(() => {
     setFilters({ class: "all", subject: "all", type: "all", exam: "all", search: "" })
   }
 
+  // Visual Helpers
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case "pyq": return FileText
@@ -171,11 +229,7 @@ useEffect(() => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Class</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={filters.class}
-                onChange={(e) => setFilters({ ...filters, class: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}>
                 <option value="all">All Classes</option>
                 <option value="Class 9">Class 9</option>
                 <option value="Class 10">Class 10</option>
@@ -183,14 +237,9 @@ useEffect(() => {
                 <option value="Class 12">Class 12</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Subject</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={filters.subject}
-                onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
                 <option value="all">All Subjects</option>
                 <option value="Mathematics">Mathematics</option>
                 <option value="Physics">Physics</option>
@@ -198,14 +247,9 @@ useEffect(() => {
                 <option value="Biology">Biology</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Type</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
                 <option value="all">All Types</option>
                 <option value="pq">PYQ</option>
                 <option value="notes">Notes</option>
@@ -213,14 +257,9 @@ useEffect(() => {
                 <option value="imp">IMP Topics</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Exam</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                value={filters.exam}
-                onChange={(e) => setFilters({ ...filters, exam: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}>
                 <option value="all">All Exams</option>
                 <option value="JEE Main">JEE Main</option>
                 <option value="JEE Advanced">JEE Advanced</option>
@@ -236,11 +275,6 @@ useEffect(() => {
       {/* Results Count */}
       <div className="mb-4 text-sm text-muted-foreground flex justify-between items-center">
         <span>Showing {filteredResources.length} resources</span>
-        {accessTags.length > 0 && (
-            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
-                Access enabled for: {accessTags.slice(0,3).join(", ")}{accessTags.length > 3 ? "..." : ""}
-            </span>
-        )}
       </div>
 
       {loading ? (
@@ -274,9 +308,19 @@ useEffect(() => {
                 </span>
               </div>
 
-              <h3 className="font-bold text-lg mb-2 hover:text-primary cursor-pointer line-clamp-2" title={resource.title}>
-                {resource.title}
-              </h3>
+              <div className="flex items-center gap-2 mb-2">
+                 <h3 className="font-bold text-lg hover:text-primary cursor-pointer line-clamp-1 flex-1" title={resource.title}>
+                    {resource.title}
+                 </h3>
+                 <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-muted-foreground hover:text-primary shrink-0"
+                    onClick={() => setInfoModal({ open: true, resource })}
+                 >
+                    <Info className="w-4 h-4" />
+                 </Button>
+              </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
@@ -292,23 +336,31 @@ useEffect(() => {
 
               <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads || 0} downloads</p>
 
-              <Button
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => handleDownload(resource.id, resource.fileUrl)}
-                disabled={downloadingId === resource.id}
-              >
-                {downloadingId === resource.id ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Downloading...
-                  </span>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setDoubtModal({ open: true, resource })}
+                >
+                    <MessageSquare className="w-4 h-4 mr-2" /> Doubt
+                </Button>
+                <Button
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => handleDownload(resource.id, resource.fileUrl)}
+                    disabled={downloadingId === resource.id}
+                >
+                    {downloadingId === resource.id ? (
+                    <span className="flex items-center gap-2">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                    </span>
+                    ) : (
+                    <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                    </>
+                    )}
+                </Button>
+              </div>
             </Card>
           )
         })}
@@ -322,14 +374,86 @@ useEffect(() => {
             <Search className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold mb-2">No resources found</h3>
-          <p className="text-muted-foreground mb-4">
-            {accessTags.length === 0 
-                ? "You currently have no access permissions. Contact your admin." 
-                : "Try adjusting your filters or search query."}
-          </p>
           <Button onClick={resetFilters}>Clear Filters</Button>
         </div>
       )}
+
+      {/* --- INFO MODAL --- */}
+      <Dialog open={infoModal.open} onOpenChange={(open) => setInfoModal({ open, resource: null })}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Resource Details</DialogTitle>
+            </DialogHeader>
+            {infoModal.resource && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="outline">{infoModal.resource.subject}</Badge>
+                        <span>•</span>
+                        <span>{formatResourceType(infoModal.resource.type)}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Class</span>
+                        <span className="font-medium">{infoModal.resource.targetClass}</span></div>
+                        
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Exam</span>
+                        <span className="font-medium">{infoModal.resource.exam || "N/A"}</span></div>
+
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Uploaded By</span>
+                        <span className="font-medium">{infoModal.resource.uploadedBy || "Teacher"}</span></div>
+
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Downloads</span>
+                        <span className="font-medium">{infoModal.resource.downloads}</span></div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <Label className="text-muted-foreground">Description</Label>
+                        <div className="p-4 bg-muted rounded-lg text-sm whitespace-pre-wrap min-h-[100px]">
+                            {infoModal.resource.description || "No description provided."}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button className="w-full" onClick={() => handleDownload(infoModal.resource!.id, infoModal.resource!.fileUrl)}>
+                            <Download className="w-4 h-4 mr-2" /> Download File
+                        </Button>
+                    </DialogFooter>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
+
+      {/* --- DOUBT MODAL --- */}
+      <Dialog open={doubtModal.open} onOpenChange={(open) => setDoubtModal({ open, resource: null })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ask Doubt</DialogTitle>
+            <DialogDescription>
+                Ask a question about <strong>{doubtModal.resource?.title}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="doubt">Your Question</Label>
+              <Textarea 
+                id="doubt" 
+                placeholder="Type your question here..." 
+                rows={4} 
+                value={doubtMessage} 
+                onChange={(e) => setDoubtMessage(e.target.value)} 
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDoubtModal({ open: false, resource: null })}>Cancel</Button>
+            <Button onClick={handleDoubtSubmit} disabled={isSendingDoubt || !doubtMessage.trim()} className="bg-emerald-500 hover:bg-emerald-600">
+              {isSendingDoubt ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Send Doubt</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </StudentSidebar>
   )
 }

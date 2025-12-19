@@ -20,34 +20,83 @@ public class AssignmentController {
         this.assignmentService = assignmentService;
     }
 
-    // --- NEW: Upload Endpoint ---
+    // ==========================================
+    // TEACHER ENDPOINTS
+    // ==========================================
+
+    /**
+     * 1. Create a new Assignment
+     */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadAssignment(@RequestBody AssignmentUploadRequest request) {
         // Basic Validation
         if (request.getTitle() == null || request.getFileLink() == null || request.getDueDate() == null) {
-            return ResponseEntity.badRequest().body("Missing required fields: Title, File Link, and Due Date are mandatory.");
+            return ResponseEntity.badRequest().body("Missing required fields: Title, File Link, and Due Date.");
         }
 
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String email = auth.getName();
-
-            // Call service to create assignment
-            Assignment createdAssignment = assignmentService.createAssignment(request, email);
-
+            Assignment createdAssignment = assignmentService.createAssignment(request, auth.getName());
             return ResponseEntity.ok(createdAssignment);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<StudentAssignmentDTO>> getMyAssignments() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        return ResponseEntity.ok(assignmentService.getAssignmentsWithStatus(email));
+    /**
+     * 2. Edit an existing Assignment
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAssignment(@PathVariable Long id, @RequestBody AssignmentUploadRequest request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Assignment updatedAssignment = assignmentService.updateAssignment(id, request, auth.getName());
+            return ResponseEntity.ok(updatedAssignment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
+    /**
+     * 3. Get all assignments created by the logged-in Teacher
+     */
+    @GetMapping("/created")
+    public ResponseEntity<List<Assignment>> getTeacherAssignments() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(assignmentService.getAssignmentsByTeacher(auth.getName()));
+    }
+
+    /**
+     * 4. View Submissions for a specific Assignment (Teacher Only)
+     */
+    @GetMapping("/{id}/submissions")
+    public ResponseEntity<?> getAssignmentSubmissions(@PathVariable Long id) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            List<SubmissionDTO> submissions = assignmentService.getSubmissionsForAssignment(id, auth.getName());
+            return ResponseEntity.ok(submissions);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // STUDENT ENDPOINTS
+    // ==========================================
+
+    /**
+     * 5. Get Assignments for the Logged-in Student
+     * (Filtered by Access Tags & Published Status)
+     */
+    @GetMapping
+    public ResponseEntity<List<StudentAssignmentDTO>> getStudentAssignments() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return ResponseEntity.ok(assignmentService.getAssignmentsWithStatus(auth.getName()));
+    }
+
+    /**
+     * 6. Submit an Assignment
+     */
     @PostMapping("/{id}/submit")
     public ResponseEntity<?> submitAssignment(@PathVariable Long id, @RequestBody SubmissionRequest req) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,45 +104,80 @@ public class AssignmentController {
         return ResponseEntity.ok("Assignment submitted successfully");
     }
 
-    // --- DTOs ---
+    // --- 7. TEACHER: Grade a specific submission ---
+    @PostMapping("/submissions/{id}/grade")
+    public ResponseEntity<?> gradeSubmission(@PathVariable Long id, @RequestBody GradeRequest req) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        assignmentService.gradeSubmission(id, req.getGrade(), req.getFeedback(), auth.getName());
+        return ResponseEntity.ok("Submission graded successfully");
+    }
 
-    // DTO for Uploading (Matches Frontend Form)
+    // --- 8. TEACHER: Delete an Assignment ---
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAssignment(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            assignmentService.deleteAssignment(id, auth.getName());
+            return ResponseEntity.ok("Assignment deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    // --- 9. STUDENT: Revoke Submission ---
+    @DeleteMapping("/{id}/submit")
+    public ResponseEntity<?> unsubmitAssignment(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            assignmentService.deleteSubmission(id, auth.getName());
+            return ResponseEntity.ok("Submission revoked successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // DTOs
+    // ==========================================
+
+    // --- DTO for Grading ---
+    public static class GradeRequest {
+        private String grade;
+        private String feedback;
+
+        public String getGrade() { return grade; }
+        public void setGrade(String grade) { this.grade = grade; }
+        public String getFeedback() { return feedback; }
+        public void setFeedback(String feedback) { this.feedback = feedback; }
+    }
+
     public static class AssignmentUploadRequest {
         private String title;
         private String description;
         private String subject;
         private Integer targetClass;
-        private String examType;
+        private String examType;   // Maps to targetExam
         private String fileLink;
-        private String dueDate;    // String format YYYY-MM-DD from frontend
+        private String dueDate;    // YYYY-MM-DD
         private String difficulty; // Easy, Medium, Hard
-        private String visibility; // publish/draft
+        private String visibility; // publish, draft
 
-        // Getters and Setters
+        // Getters
         public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
         public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
         public String getSubject() { return subject; }
-        public void setSubject(String subject) { this.subject = subject; }
         public Integer getTargetClass() { return targetClass; }
-        public void setTargetClass(Integer targetClass) { this.targetClass = targetClass; }
         public String getExamType() { return examType; }
-        public void setExamType(String examType) { this.examType = examType; }
         public String getFileLink() { return fileLink; }
-        public void setFileLink(String fileLink) { this.fileLink = fileLink; }
         public String getDueDate() { return dueDate; }
-        public void setDueDate(String dueDate) { this.dueDate = dueDate; }
         public String getDifficulty() { return difficulty; }
-        public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
         public String getVisibility() { return visibility; }
-        public void setVisibility(String visibility) { this.visibility = visibility; }
     }
 
-    // DTO for returning data to Student (Existing)
     public static class StudentAssignmentDTO {
         public Long id;
         public String title;
+        public String description;
         public String subject;
         public String teacher;
         public String dueDate;
@@ -103,9 +187,10 @@ public class AssignmentController {
         public String submissionFileUrl;
         public String score;
 
-        public StudentAssignmentDTO(Long id, String title, String subject, String teacher, String dueDate, String status, String difficulty, String questionFileUrl, String submissionFileUrl, String score) {
+        public StudentAssignmentDTO(Long id, String title, String description, String subject, String teacher, String dueDate, String status, String difficulty, String questionFileUrl, String submissionFileUrl, String score) {
             this.id = id;
             this.title = title;
+            this.description = description;
             this.subject = subject;
             this.teacher = teacher;
             this.dueDate = dueDate;
@@ -117,7 +202,28 @@ public class AssignmentController {
         }
     }
 
-    // DTO for submission (Existing)
+    public static class SubmissionDTO {
+        private String studentName;
+        private String studentEmail;
+        private String submittedAt;
+        private String fileUrl;
+        private String status;
+
+        public SubmissionDTO(String studentName, String studentEmail, String submittedAt, String fileUrl, String status) {
+            this.studentName = studentName;
+            this.studentEmail = studentEmail;
+            this.submittedAt = submittedAt;
+            this.fileUrl = fileUrl;
+            this.status = status;
+        }
+
+        public String getStudentName() { return studentName; }
+        public String getStudentEmail() { return studentEmail; }
+        public String getSubmittedAt() { return submittedAt; }
+        public String getFileUrl() { return fileUrl; }
+        public String getStatus() { return status; }
+    }
+
     public static class SubmissionRequest {
         private String fileUrl;
         public String getFileUrl() { return fileUrl; }

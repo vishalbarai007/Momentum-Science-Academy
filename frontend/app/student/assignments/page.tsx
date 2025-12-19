@@ -15,7 +15,13 @@ import {
   Upload,
   Link as LinkIcon,
   MessageSquare,
-  Send
+  Send,
+  ExternalLink,
+  Search,
+  Filter,
+  Info,
+  Trash2, 
+  RotateCcw 
 } from "lucide-react"
 import {
   Dialog,
@@ -27,16 +33,19 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea" // Ensure this component exists, or use standard textarea
-import { toast } from "sonner" 
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
+// Interface matching Backend DTO: StudentAssignmentDTO
 interface Assignment {
   id: number
   title: string
+  description?: string 
   subject: string
   teacher: string
   dueDate: string
-  status: string // "Pending", "Missing", "Submitted", "Late", "Graded"
+  status: string 
   difficulty: string
   questionFileUrl: string
   submissionFileUrl?: string
@@ -47,40 +56,49 @@ export default function StudentAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Submit Assignment Modal State
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterSubject, setFilterSubject] = useState("all")
+  const [filterStatus, setFilterStatus] = useState("all")
+
+  // Modal States
   const [submitModal, setSubmitModal] = useState<{ open: boolean; assignment: Assignment | null }>({
     open: false, assignment: null,
   })
-  const [submissionLink, setSubmissionLink] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Feedback/Doubt Modal State
   const [feedbackModal, setFeedbackModal] = useState<{ open: boolean; assignment: Assignment | null }>({
     open: false, assignment: null,
   })
+  const [infoModal, setInfoModal] = useState<{ open: boolean; assignment: Assignment | null }>({
+    open: false, assignment: null,
+  })
+  const [revokeModal, setRevokeModal] = useState<{ open: boolean; assignment: Assignment | null }>({
+    open: false, assignment: null,
+  })
+
+  // Async States
+  const [submissionLink, setSubmissionLink] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState("")
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
+  const [isRevoking, setIsRevoking] = useState(false)
 
-  // Fetch Assignments
+  // --- Fetch Assignments ---
   const fetchAssignments = async () => {
     try {
       const token = localStorage.getItem("token")
-      // Simulated fetch
-      setTimeout(() => {
-        setAssignments([
-          {
-            id: 1, title: "Integration Practice Set", subject: "Mathematics", teacher: "Prof. R.P. Singh",
-            dueDate: "2024-03-20", status: "Pending", difficulty: "Medium", questionFileUrl: "#"
-          },
-          {
-            id: 2, title: "Organic Chemistry Reactions", subject: "Chemistry", teacher: "Dr. P.V. Shukla",
-            dueDate: "2024-03-15", status: "Submitted", difficulty: "Hard", questionFileUrl: "#", score: "Pending"
-          }
-        ])
-        setLoading(false)
-      }, 1000)
+      if (!token) return
+
+      const res = await fetch("http://localhost:8080/api/v1/assignments", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setAssignments(data)
+      }
     } catch (error) {
       console.error("Failed to load assignments", error)
+    } finally {
       setLoading(false)
     }
   }
@@ -89,53 +107,118 @@ export default function StudentAssignmentsPage() {
     fetchAssignments()
   }, [])
 
-  // Handle Assignment Submission
+  // --- Filter Logic ---
+  const filteredAssignments = assignments.filter(assignment => {
+    const matchesSearch = assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          assignment.teacher.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesSubject = filterSubject === "all" || assignment.subject === filterSubject
+    
+    let matchesStatus = true
+    if (filterStatus !== "all") {
+        matchesStatus = assignment.status.toLowerCase() === filterStatus.toLowerCase()
+    }
+
+    return matchesSearch && matchesSubject && matchesStatus
+  })
+
+  // --- Actions ---
   const handleSubmitAssignment = async () => {
     if (!submitModal.assignment || !submissionLink) return
-
     setIsSubmitting(true)
     try {
-      // API Call would go here
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const token = localStorage.getItem("token")
+      const res = await fetch(`http://localhost:8080/api/v1/assignments/${submitModal.assignment.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ fileUrl: submissionLink })
+      })
 
-      setAssignments(prev => prev.map(a =>
-        a.id === submitModal.assignment!.id ? { ...a, status: "Submitted" } : a
-      ))
-
-      setSubmitModal({ open: false, assignment: null })
-      setSubmissionLink("")
-      alert("Assignment Submitted Successfully!") 
+      if (res.ok) {
+        await fetchAssignments()
+        setSubmitModal({ open: false, assignment: null })
+        setSubmissionLink("")
+        alert("Assignment Submitted Successfully!")
+      } else {
+        alert("Failed to submit. Please try again.")
+      }
     } catch (error) {
+      console.error(error)
       alert("Error submitting assignment")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Handle Feedback/Doubt Submission
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackModal.assignment || !feedbackMessage) return
-
-    setIsSubmittingFeedback(true)
+  const handleRevokeSubmission = async () => {
+    if (!revokeModal.assignment) return
+    setIsRevoking(true)
     try {
-      // API Call to send feedback would go here:
-      // await fetch(`http://localhost:8080/api/v1/assignments/${feedbackModal.assignment.id}/feedback`, { ... })
+      const token = localStorage.getItem("token")
+      const res = await fetch(`http://localhost:8080/api/v1/assignments/${revokeModal.assignment.id}/submit`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      })
 
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      alert(`Feedback sent to ${feedbackModal.assignment.teacher}!`)
-      
-      setFeedbackModal({ open: false, assignment: null })
-      setFeedbackMessage("")
+      if (res.ok) {
+        await fetchAssignments()
+        setRevokeModal({ open: false, assignment: null })
+      } else {
+        const err = await res.text()
+        alert(`Failed to revoke: ${err}`)
+      }
     } catch (error) {
       console.error(error)
-      alert("Failed to send feedback")
+      alert("Error revoking submission")
     } finally {
-      setIsSubmittingFeedback(false)
+      setIsRevoking(false)
     }
   }
 
-  // --- Helper: Status Styles ---
+  // --- UPDATED: Handle Doubt/Feedback Submission ---
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackModal.assignment || !feedbackMessage) return
+    setIsSubmittingFeedback(true)
+
+    try {
+      const token = localStorage.getItem("token")
+      
+      // Connecting to the Doubts Backend
+      const res = await fetch("http://localhost:8080/api/v1/doubts", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        // Payload matching DoubtController.DoubtRequest
+        body: JSON.stringify({
+            contextType: "ASSIGNMENT",
+            contextId: feedbackModal.assignment.id,
+            question: feedbackMessage
+        })
+      })
+
+      if (res.ok) {
+        alert(`Doubt sent to ${feedbackModal.assignment.teacher}!`)
+        setFeedbackModal({ open: false, assignment: null })
+        setFeedbackMessage("")
+      } else {
+        alert("Failed to send doubt. Please try again.")
+      }
+    } catch (error) { 
+      console.error("Error sending doubt:", error)
+      alert("Network error occurred.")
+    } finally { 
+      setIsSubmittingFeedback(false) 
+    }
+  }
+
+  const openFile = (url: string) => {
+    if (url) window.open(url, "_blank")
+    else alert("No file link available.")
+  }
+
+  // --- Helpers ---
   const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {
       case "pending": return <Clock className="w-4 h-4 text-orange-500" />
@@ -199,17 +282,56 @@ export default function StudentAssignmentsPage() {
         </Card>
       </div>
 
+      {/* --- FILTERS --- */}
+      <div className="bg-card p-4 rounded-xl border shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+                placeholder="Search assignments or teachers..." 
+                className="pl-9" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
+        <div className="flex gap-2">
+            <Select value={filterSubject} onValueChange={setFilterSubject}>
+                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Subject" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    <SelectItem value="Mathematics">Mathematics</SelectItem>
+                    <SelectItem value="Physics">Physics</SelectItem>
+                    <SelectItem value="Chemistry">Chemistry</SelectItem>
+                    <SelectItem value="Biology">Biology</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Submitted">Submitted</SelectItem>
+                    <SelectItem value="Graded">Graded</SelectItem>
+                    <SelectItem value="Missing">Missing</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+      </div>
+
       {/* Assignments List */}
       <div className="space-y-4">
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>
-        ) : assignments.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-xl">
-            No active assignments found.
+        ) : filteredAssignments.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground bg-muted/20 rounded-xl border-2 border-dashed flex flex-col items-center">
+            <FileText className="w-12 h-12 mb-4 opacity-50" />
+            <p className="text-lg font-medium">No assignments found</p>
+            <p className="text-sm">Try adjusting your filters</p>
           </div>
         ) : (
-          assignments.map((assignment) => {
-            const isSubmittable = ["pending", "missing"].includes(assignment.status.toLowerCase());
+          filteredAssignments.map((assignment) => {
+            const statusLower = assignment.status.toLowerCase();
+            const isSubmittable = ["pending", "missing"].includes(statusLower);
+            const isRevokable = ["submitted", "late"].includes(statusLower);
 
             return (
               <Card key={assignment.id} className="p-5 border-0 shadow-lg hover:shadow-xl transition-shadow">
@@ -219,7 +341,19 @@ export default function StudentAssignmentsPage() {
                       <FileText className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg mb-1">{assignment.title}</h3>
+                      {/* Title & Info Button */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-lg">{assignment.title}</h3>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 text-muted-foreground hover:text-primary"
+                            onClick={() => setInfoModal({ open: true, assignment })}
+                        >
+                            <Info className="w-4 h-4" />
+                        </Button>
+                      </div>
+
                       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                         <span>{assignment.subject}</span>
                         <span>•</span>
@@ -248,39 +382,41 @@ export default function StudentAssignmentsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-2 ml-16 md:ml-0">
-                    {/* Feedback Button */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setFeedbackModal({ open: true, assignment })}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setFeedbackModal({ open: true, assignment })}>
                       <MessageSquare className="w-4 h-4 mr-2" />
-                      Ask Doubt
+                      Doubt
                     </Button>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(assignment.questionFileUrl, "_blank")}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => openFile(assignment.questionFileUrl)}>
                       <Download className="w-4 h-4 mr-2" />
                       Question
                     </Button>
 
                     {isSubmittable ? (
-                      <Button
-                        size="sm"
-                        className="bg-primary text-primary-foreground"
-                        onClick={() => setSubmitModal({ open: true, assignment })}
-                      >
+                      <Button size="sm" className="bg-primary text-primary-foreground" onClick={() => setSubmitModal({ open: true, assignment })}>
                         <Upload className="w-4 h-4 mr-2" />
                         Submit
                       </Button>
                     ) : (
-                      <Button variant="secondary" size="sm" disabled>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Submitted
-                      </Button>
+                      <>
+                        <Button variant="secondary" size="sm" onClick={() => openFile(assignment.submissionFileUrl || "")}>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Work
+                        </Button>
+                        
+                        {/* Revoke Button */}
+                        {isRevokable && (
+                            <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="px-2"
+                                onClick={() => setRevokeModal({ open: true, assignment })}
+                                title="Unsubmit Assignment"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                            </Button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -290,104 +426,116 @@ export default function StudentAssignmentsPage() {
         )}
       </div>
 
-      {/* Submit Assignment Modal */}
+      {/* --- INFO / DETAILS MODAL --- */}
+      <Dialog open={infoModal.open} onOpenChange={(open) => setInfoModal({ open, assignment: null })}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Assignment Details</DialogTitle>
+            </DialogHeader>
+            {infoModal.assignment && (
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                         <Badge variant="outline">{infoModal.assignment.subject}</Badge>
+                         <span>•</span>
+                         <span>{infoModal.assignment.teacher}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Due Date</span>
+                        <span className="font-medium">{infoModal.assignment.dueDate}</span></div>
+                        
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Difficulty</span>
+                        <span className="font-medium">{infoModal.assignment.difficulty}</span></div>
+
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Status</span>
+                        <span className="capitalize">{infoModal.assignment.status}</span></div>
+
+                        {infoModal.assignment.score && (
+                            <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Score</span>
+                            <span className="font-bold text-emerald-600">{infoModal.assignment.score}</span></div>
+                        )}
+                    </div>
+
+                    <div className="space-y-1">
+                        <Label className="text-muted-foreground">Description / Instructions</Label>
+                        <div className="p-4 bg-muted rounded-lg text-sm whitespace-pre-wrap min-h-[100px]">
+                            {infoModal.assignment.description || "No description provided."}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => openFile(infoModal.assignment!.questionFileUrl)}>
+                            <Download className="w-4 h-4 mr-2" /> Download Question
+                        </Button>
+                        <Button onClick={() => setInfoModal({ open: false, assignment: null })}>Close</Button>
+                    </DialogFooter>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
+
+      {/* --- SUBMIT MODAL --- */}
       <Dialog open={submitModal.open} onOpenChange={(open) => setSubmitModal({ open, assignment: null })}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Submit Assignment</DialogTitle>
-            <DialogDescription>
-              Submit your work for <strong>{submitModal.assignment?.title}</strong>
-            </DialogDescription>
+            <DialogDescription>Submit work for <strong>{submitModal.assignment?.title}</strong></DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="link">Google Drive / Dropbox Link</Label>
               <div className="relative">
                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="link"
-                  className="pl-9"
-                  placeholder="https://drive.google.com/..."
-                  value={submissionLink}
-                  onChange={(e) => setSubmissionLink(e.target.value)}
-                />
+                <Input id="link" className="pl-9" placeholder="https://..." value={submissionLink} onChange={(e) => setSubmissionLink(e.target.value)} />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Ensure the link is accessible (set permission to "Anyone with the link").
-              </p>
+              <p className="text-xs text-muted-foreground">Ensure link is accessible to anyone.</p>
             </div>
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSubmitModal({ open: false, assignment: null })}>
-              Cancel
+            <Button variant="outline" onClick={() => setSubmitModal({ open: false, assignment: null })}>Cancel</Button>
+            <Button onClick={handleSubmitAssignment} disabled={isSubmitting || !submissionLink} className="bg-emerald-500 hover:bg-emerald-600">
+              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</> : <><Upload className="w-4 h-4 mr-2" /> Submit Work</>}
             </Button>
-            <Button
-              onClick={handleSubmitAssignment}
-              disabled={isSubmitting || !submissionLink}
-              className="bg-emerald-500 hover:bg-emerald-600"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Submit Work
-                </>
-              )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* --- REVOKE CONFIRMATION MODAL --- */}
+      <Dialog open={revokeModal.open} onOpenChange={(open) => setRevokeModal({ open, assignment: null })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2"><Trash2 className="w-5 h-5"/> Unsubmit Assignment</DialogTitle>
+            <DialogDescription>
+                Are you sure you want to unsubmit <strong>{revokeModal.assignment?.title}</strong>? 
+                <br/>This will remove your submission file and mark the assignment as pending.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevokeModal({ open: false, assignment: null })}>Cancel</Button>
+            <Button onClick={handleRevokeSubmission} disabled={isRevoking} variant="destructive">
+              {isRevoking ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Revoking...</> : "Yes, Unsubmit"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Feedback / Doubt Modal */}
+      {/* --- FEEDBACK/DOUBT MODAL --- */}
       <Dialog open={feedbackModal.open} onOpenChange={(open) => setFeedbackModal({ open, assignment: null })}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Feedback & Doubts</DialogTitle>
-            <DialogDescription>
-              Message for <strong>{feedbackModal.assignment?.teacher}</strong> regarding <strong>{feedbackModal.assignment?.title}</strong>
-            </DialogDescription>
+            <DialogTitle>Ask Doubt</DialogTitle>
+            <DialogDescription>Message for <strong>{feedbackModal.assignment?.teacher}</strong></DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="feedback">Your Message</Label>
-              <Textarea
-                id="feedback"
-                placeholder="Ask a doubt or share your feedback about this assignment..."
-                rows={4}
-                value={feedbackMessage}
-                onChange={(e) => setFeedbackMessage(e.target.value)}
-                className="resize-none"
-              />
+              <Textarea id="feedback" placeholder="Type your doubt here..." rows={4} value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)} className="resize-none" />
             </div>
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFeedbackModal({ open: false, assignment: null })}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleFeedbackSubmit}
-              disabled={isSubmittingFeedback || !feedbackMessage.trim()}
-              className="bg-emerald-500 hover:bg-emerald-600"
-            >
-              {isSubmittingFeedback ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Message
-                </>
-              )}
+            <Button variant="outline" onClick={() => setFeedbackModal({ open: false, assignment: null })}>Cancel</Button>
+            <Button onClick={handleFeedbackSubmit} disabled={isSubmittingFeedback || !feedbackMessage.trim()} className="bg-emerald-500 hover:bg-emerald-600">
+              {isSubmittingFeedback ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Send Message</>}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Upload, CheckCircle, Calendar, FileText } from "lucide-react"
+import { Upload, CheckCircle, Calendar, FileText, Loader2 } from "lucide-react"
 
 // Define the shape of our form data for Assignments
 interface AssignmentFormData {
@@ -17,8 +17,8 @@ interface AssignmentFormData {
   classLevel: number
   examType: string
   fileLink: string
-  dueDate: string // Specific to assignments
-  difficulty: string // Specific to assignments (Easy, Medium, Hard)
+  dueDate: string 
+  difficulty: string 
   visibility: 'publish' | 'draft'
 }
 
@@ -55,29 +55,28 @@ export default function TeacherAssignmentUploadPage() {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      console.error("Authentication token not found.");
+      alert("Authentication token not found. Please log in.");
       setIsUploading(false);
       return;
     }
 
-    // Prepare Payload mapping to Backend ResourceDTO
-    // Note: We append Due Date and Difficulty to description since backend 
-    // Resource model might not have dedicated columns for them yet, 
-    // or we use them if you extended the model as discussed previously.
+    // Prepare Payload matching Backend 'AssignmentUploadRequest' DTO
+    // We send clean data now, no need to hide metadata in the description
     const payload = {
       title: formData.title,
-      // HACK: Storing metadata in description if backend doesn't have specific fields yet
-      description: `${formData.description}\n\n[Metadata] Due: ${formData.dueDate} | Difficulty: ${formData.difficulty}`, 
-      resourceType: "assignment", // Hardcoded for this page
+      description: formData.description,
       subject: formData.subject,
-      targetClass: formData.classLevel,
+      targetClass: Number(formData.classLevel), // Ensure Integer
       examType: formData.examType === "Not Applicable" ? null : formData.examType,
       fileLink: formData.fileLink,
-      visibility: formData.visibility,
+      dueDate: formData.dueDate,       // Backend expects String YYYY-MM-DD
+      difficulty: formData.difficulty, // Easy, Medium, Hard
+      visibility: formData.visibility, // publish, draft
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/resources/upload", {
+      // UPDATED: Pointing to the new Assignment Controller Endpoint
+      const response = await fetch("http://localhost:8080/api/v1/assignments/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,13 +95,13 @@ export default function TeacherAssignmentUploadPage() {
       setFormData(initialFormData);
 
       setTimeout(() => {
-        router.push("/teacher/assignments"); // Redirect to assignments list
+        router.push("/teacher/submissions"); // Redirect to assignments list
       }, 2000);
 
     } catch (err) {
       console.error("API Call Error:", err);
       setIsUploading(false);
-      alert("Failed to upload assignment. Please try again.");
+      alert("Failed to upload assignment. Please check your inputs and try again.");
     }
   };
 
@@ -178,10 +177,10 @@ export default function TeacherAssignmentUploadPage() {
                   required
                 >
                   <option value="">Select subject</option>
-                  <option>Mathematics</option>
-                  <option>Physics</option>
-                  <option>Chemistry</option>
-                  <option>Biology</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="Physics">Physics</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Biology">Biology</option>
                 </select>
               </div>
               <div>
@@ -194,11 +193,11 @@ export default function TeacherAssignmentUploadPage() {
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="">Select class</option>
-                  <option value="9">Class 9</option>
-                  <option value="10">Class 10</option>
-                  <option value="11">Class 11</option>
-                  <option value="12">Class 12</option>
+                  <option value={0}>Select class</option>
+                  <option value={9}>Class 9</option>
+                  <option value={10}>Class 10</option>
+                  <option value={11}>Class 11</option>
+                  <option value={12}>Class 12</option>
                 </select>
               </div>
             </div>
@@ -229,9 +228,9 @@ export default function TeacherAssignmentUploadPage() {
                         value={formData.difficulty}
                         onChange={handleInputChange}
                     >
-                        <option>Easy</option>
-                        <option>Medium</option>
-                        <option>Hard</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
                     </select>
                 </div>
                 <div>
@@ -243,11 +242,11 @@ export default function TeacherAssignmentUploadPage() {
                         value={formData.examType}
                         onChange={handleInputChange}
                     >
-                        <option>Not Applicable</option>
-                        <option>JEE Main</option>
-                        <option>JEE Advanced</option>
-                        <option>NEET</option>
-                        <option>Board Exam</option>
+                        <option value="Not Applicable">Not Applicable</option>
+                        <option value="JEE Main">JEE Main</option>
+                        <option value="JEE Advanced">JEE Advanced</option>
+                        <option value="NEET">NEET</option>
+                        <option value="Board Exam">Board Exam</option>
                     </select>
                 </div>
             </div>
@@ -309,7 +308,7 @@ export default function TeacherAssignmentUploadPage() {
               >
                 {isUploading ? (
                   <span className="flex items-center gap-2">
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Creating...
                   </span>
                 ) : (
