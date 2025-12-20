@@ -6,12 +6,14 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { BookOpen, Home, FileText, Settings, User, LogOut, Menu, X, GraduationCap, BarChart3, Bell } from "lucide-react"
+import { 
+  BookOpen, Home, FileText, Settings, User, LogOut, Menu, X, 
+  GraduationCap, BarChart3, Bell, MessageSquare // Added MessageSquare
+} from "lucide-react"
 
 interface StudentSidebarProps {
   children: React.ReactNode
 }
-
 
 interface StudentData {
   id: number
@@ -67,11 +69,11 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
     fetchProfile()
   }, [])
 
-
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/student/dashboard" },
     { icon: BookOpen, label: "Resources", href: "/student/resources" },
     { icon: FileText, label: "Assignments", href: "/student/assignments" },
+    { icon: MessageSquare, label: "My Doubts", href: "/student/doubts" }, // Added Doubts Page
     { icon: BarChart3, label: "Performance", href: "/student/performance" },
     { icon: User, label: "Profile", href: "/student/profile" },
     { icon: Settings, label: "Settings", href: "/student/settings" },
@@ -129,10 +131,10 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
               <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-                A
+                {studentData?.avatar || "S"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{studentData?.fullName || "Aditya Kumar"  }</p>
+                <p className="font-medium truncate">{studentData?.fullName || "Aditya Kumar"}</p>
                 <p className="text-xs text-muted-foreground">{studentData?.studentClass || "Class 12 - JEE"}</p>
               </div>
             </div>
@@ -169,7 +171,7 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
               </button>
               <Link href="/student/profile">
                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
-                  A
+                  {studentData?.avatar || "S"}
                 </div>
               </Link>
             </div>
@@ -182,5 +184,3 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
     </div>
   )
 }
-
-

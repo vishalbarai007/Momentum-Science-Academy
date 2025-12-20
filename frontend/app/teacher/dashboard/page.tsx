@@ -1,277 +1,307 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Upload, Download, Users, Star, ChevronRight, TrendingUp, FileText, MessageSquare, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { jwtDecode } from "jwt-decode"
+import { 
+  FileText, 
+  MessageSquare, 
+  Users, 
+  Plus, 
+  Clock, 
+  CheckCircle, 
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  TrendingUp,
+  Search,
+  UploadCloud,
+  Library
+} from "lucide-react"
+
+// --- Types ---
+interface TeacherStats {
+  totalAssignments: number
+  activeAssignments: number
+  pendingDoubts: number
+  totalStudents: number
+}
+
+interface RecentActivity {
+  id: number
+  type: "Assignment" | "Doubt"
+  title: string
+  subtitle: string
+  date: string
+  status?: string
+}
 
 export default function TeacherDashboard() {
-  const [teacherName, setTeacherName] = useState("");
-  // State for dynamic recent resources
-  const [recentResources, setRecentResources] = useState<any[]>([]); 
-  const [loadingResources, setLoadingResources] = useState(true);
-
-  const stats = [
-    { label: "Total Uploads", value: "47", icon: Upload, color: "from-blue-500 to-cyan-500", change: "+3 this week" },
-    {
-      label: "Total Downloads",
-      value: "3,420",
-      icon: Download,
-      color: "from-emerald-500 to-teal-500",
-      change: "+156 this week",
-    },
-    { label: "Active Students", value: "156", icon: Users, color: "from-orange-500 to-red-500", change: "+12 new" },
-    { label: "Avg Rating", value: "4.8", icon: Star, color: "from-purple-500 to-pink-500", change: "Out of 5" },
-  ]
-
-  const recentFeedback = [
-    {
-      student: "Aditya Kumar",
-      message: "The calculus notes were very helpful!",
-      resource: "Calculus Notes",
-      time: "2 hours ago",
-    },
-    {
-      student: "Priya Singh",
-      message: "Can you add more practice problems?",
-      resource: "Algebra Assignment",
-      time: "Yesterday",
-    },
-    {
-      student: "Rahul Sharma",
-      message: "Great explanation of concepts!",
-      resource: "Physics Notes",
-      time: "2 days ago",
-    },
-  ]
-
-  // Helper to format Enum values
-  const formatResourceType = (type: string) => {
-    const map: Record<string, string> = {
-      'pq': 'PYQ',
-      'notes': 'Notes',
-      'assignment': 'Assignment',
-      'imp': 'IMP'
-    }
-    return map[type?.toLowerCase()] || type
-  }
+  const [loading, setLoading] = useState(true)
+  const [userName, setUserName] = useState("Instructor")
+  
+  // Data State
+  const [stats, setStats] = useState<TeacherStats>({
+    totalAssignments: 0,
+    activeAssignments: 0,
+    pendingDoubts: 0,
+    totalStudents: 156
+  })
+  const [activityFeed, setActivityFeed] = useState<RecentActivity[]>([])
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const fetchData = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) return
 
-    try {
-      // 1. Fetch Teacher Profile (using /me endpoint)
-      fetch(`http://localhost:8080/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => {
-            if (res.ok) return res.json();
-            throw new Error("Failed to fetch profile");
-        })
-        .then(user => setTeacherName(user.fullName)) // Extract fullName from User object
-        .catch(err => console.error("Error fetching teacher profile:", err));
+      try {
+        const headers = { "Authorization": `Bearer ${token}` }
 
-      // 2. Fetch Recent Resources
-      fetch("http://localhost:8080/api/v1/resources/my-uploads", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          // Sort by date (newest first) and take the top 4
-          const sorted = data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          const recent = sorted.slice(0, 4).map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            type: formatResourceType(item.type),
-            class: item.targetClass,
-            downloads: item.downloads || 0,
-            date: new Date(item.createdAt).toLocaleDateString() // Format date
-          }));
-          setRecentResources(recent);
+        // 1. Fetch Teacher Info
+        const meRes = await fetch("http://localhost:8080/api/auth/me", { headers })
+        if (meRes.ok) {
+          const user = await meRes.json()
+          setUserName(user.fullName || "Instructor")
         }
-      })
-      .catch(err => console.error("Error fetching resources:", err))
-      .finally(() => setLoadingResources(false));
 
-    } catch (err) {
-      console.error("Error in dashboard initialization:", err);
+        // 2. Fetch Assignments
+        const assignRes = await fetch("http://localhost:8080/api/v1/assignments/created", { headers })
+        let assignments = []
+        if (assignRes.ok) {
+            assignments = await assignRes.json()
+        }
+
+        // 3. Fetch Doubts
+        const doubtsRes = await fetch("http://localhost:8080/api/v1/doubts/incoming", { headers })
+        let doubts = []
+        if (doubtsRes.ok) {
+            doubts = await doubtsRes.json()
+        }
+
+        // --- Process Data ---
+        const publishedCount = assignments.filter((a: any) => a.isPublished).length
+        const pendingDoubtsCount = doubts.filter((d: any) => !d.answer).length
+
+        setStats(prev => ({
+            ...prev,
+            totalAssignments: assignments.length,
+            activeAssignments: publishedCount,
+            pendingDoubts: pendingDoubtsCount
+        }))
+
+        // Activity Feed Logic
+        const assignmentActivities = assignments.map((a: any) => ({
+            id: a.id,
+            type: "Assignment",
+            title: `Created: ${a.title}`,
+            subtitle: `Class ${a.targetClass} • ${a.subject}`,
+            date: a.createdAt,
+            status: a.isPublished ? "Published" : "Draft"
+        }))
+
+        const doubtActivities = doubts.map((d: any) => ({
+            id: d.id,
+            type: "Doubt",
+            title: `New Doubt from ${d.student?.fullName || "Student"}`,
+            subtitle: d.question,
+            date: d.createdAt,
+            status: d.answer ? "Resolved" : "Pending"
+        }))
+
+        const combined = [...assignmentActivities, ...doubtActivities]
+            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 5)
+
+        setActivityFeed(combined)
+
+      } catch (error) {
+        console.error("Dashboard data load failed", error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, []);
 
+    fetchData()
+  }, [])
+
+  // Helper to format Date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Just now"
+    return new Date(dateString).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })
+  }
+
+  if (loading) {
+    return (
+        <TeacherSidebar>
+            <div className="flex justify-center items-center h-[80vh]"><Loader2 className="w-10 h-10 animate-spin text-emerald-600" /></div>
+        </TeacherSidebar>
+    )
+  }
 
   return (
     <TeacherSidebar>
-      {/* Welcome */}
-      <div className="flex items-center justify-between mb-8">
+      {/* Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Welcome back, {teacherName || "Teacher"}!
-          </h1>
-          <p className="text-muted-foreground">Mathematics - 15 years experience</p>
+            <h1 className="text-3xl font-bold text-gray-900">Hello, {userName}</h1>
+            <p className="text-muted-foreground mt-1">Here is an overview of your classroom activities.</p>
         </div>
-        <Link href="/teacher/upload">
-          <Button className="bg-emerald-500 text-white hover:bg-emerald-600">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Resource
-          </Button>
-        </Link>
+        <div className="flex gap-3">
+            <Link href="/teacher/assignment">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+                    <Plus className="w-4 h-4 mr-2" /> New Assignment
+                </Button>
+            </Link>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, i) => {
-          const Icon = stat.icon
-          return (
-            <Card key={i} className="p-5 border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}
-                >
-                  <Icon className="w-6 h-6 text-white" />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="p-5 border-0 shadow-md flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                <FileText className="w-6 h-6" />
+            </div>
+            <div>
+                <p className="text-2xl font-bold">{stats.totalAssignments}</p>
+                <p className="text-xs text-muted-foreground">Total Assignments</p>
+            </div>
+        </Card>
+
+        <Card className="p-5 border-0 shadow-md flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <CheckCircle className="w-6 h-6" />
+            </div>
+            <div>
+                <p className="text-2xl font-bold">{stats.activeAssignments}</p>
+                <p className="text-xs text-muted-foreground">Active / Published</p>
+            </div>
+        </Card>
+
+        <Link href="/teacher/submissions">
+            <Card className="p-5 border-0 shadow-md flex items-center gap-4 cursor-pointer hover:bg-orange-50 transition-colors border-l-4 border-l-orange-500">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                    <MessageSquare className="w-6 h-6" />
                 </div>
-                <span className="text-xs text-muted-foreground">{stat.change}</span>
-              </div>
-              <p className="text-3xl font-bold mb-1">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <div>
+                    <p className="text-2xl font-bold">{stats.pendingDoubts}</p>
+                    <p className="text-xs text-muted-foreground">Pending Doubts</p>
+                </div>
             </Card>
-          )
-        })}
+        </Link>
+
+        <Card className="p-5 border-0 shadow-md flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                <Users className="w-6 h-6" />
+            </div>
+            <div>
+                <p className="text-2xl font-bold">{stats.totalStudents}</p>
+                <p className="text-xs text-muted-foreground">Total Students</p>
+            </div>
+        </Card>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Resources */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Your Recent Resources</h2>
-            <Link href="/teacher/resources">
-              <Button variant="ghost" size="sm" className="text-emerald-500">
-                View All <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {loadingResources ? (
-              <div className="flex justify-center p-8">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-              </div>
-            ) : recentResources.length === 0 ? (
-              <div className="text-center p-8 border rounded-xl bg-muted/20">
-                <p className="text-muted-foreground">No resources uploaded yet.</p>
-                <Link href="/teacher/upload" className="text-emerald-500 hover:underline text-sm mt-2 block">
-                  Upload your first resource
-                </Link>
-              </div>
-            ) : (
-              recentResources.map((resource, i) => (
-                <Card key={i} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-emerald-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{resource.title}</h3>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          <span className="text-xs bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded">
-                            {resource.type}
-                          </span>
-                          <span className="text-xs text-muted-foreground">Class {resource.class}</span>
-                          <span className="text-xs text-muted-foreground">
-                            - {resource.downloads} downloads - {resource.date}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <Link href="/teacher/resources">
-                      <Button size="sm" variant="outline">
-                        Edit
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-
-          {/* Quick Stats */}
-          <Card className="mt-6 p-6 border-0 shadow-lg bg-gradient-to-r from-emerald-500/5 to-teal-500/5">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
-              <h3 className="font-bold">Upload Progress</h3>
+        {/* Left Col: Activity Feed */}
+        <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-600" /> Recent Activity
+                </h2>
+                <Button variant="ghost" size="sm" className="text-muted-foreground">View All</Button>
             </div>
-            <p className="text-sm text-muted-foreground mb-3">
-              Upload 3 more resources this month to earn the "Top Contributor" badge!
-            </p>
-            <div className="w-full bg-muted h-3 rounded-full overflow-hidden">
-              <div className="w-2/3 h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" />
+
+            <div className="space-y-4">
+                {activityFeed.length === 0 ? (
+                    <Card className="p-8 text-center text-muted-foreground border-dashed">
+                        No recent activity recorded.
+                    </Card>
+                ) : (
+                    activityFeed.map((item, i) => (
+                        <Card key={i} className="p-4 flex items-start gap-4 border-0 shadow-sm hover:shadow-md transition-shadow">
+                             <div className={`mt-1 p-2 rounded-full shrink-0 ${
+                                 item.type === "Assignment" ? "bg-blue-100 text-blue-600" : "bg-orange-100 text-orange-600"
+                             }`}>
+                                 {item.type === "Assignment" ? <FileText className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                             </div>
+                             <div className="flex-1 min-w-0">
+                                 <div className="flex justify-between items-start">
+                                     <h4 className="font-semibold text-sm truncate pr-2">{item.title}</h4>
+                                     <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(item.date)}</span>
+                                 </div>
+                                 <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>
+                                 <div className="mt-2">
+                                     <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                                         item.status === 'Published' || item.status === 'Resolved' 
+                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                         : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                     }`}>
+                                         {item.status}
+                                     </span>
+                                 </div>
+                             </div>
+                        </Card>
+                    ))
+                )}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">4/7 uploads this month</p>
-          </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Col: Quick Actions & Pending */}
         <div className="space-y-6">
-          {/* Student Feedback */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-emerald-500" />
-                Recent Feedback
-              </h3>
-              <Link href="/teacher/feedback">
-                <Button variant="ghost" size="sm" className="text-emerald-500">
-                  View All
-                </Button>
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {recentFeedback.map((feedback, i) => (
-                <Card key={i} className="p-4 border-0 shadow-md">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-sm font-bold">
-                      {feedback.student.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{feedback.student}</p>
-                      <p className="text-xs text-muted-foreground truncate">{feedback.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{feedback.time}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+            <Card className="p-5 border-0 shadow-lg bg-emerald-900 text-white">
+                <h3 className="font-bold mb-2">Quick Actions</h3>
+                <p className="text-emerald-100 text-sm mb-4">Manage your content and students.</p>
+                
+                {/* Updated Grid for Actions */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Link href="/teacher/assignment">
+                        <Button variant="secondary" className="w-full h-auto py-3 flex flex-col gap-1 text-xs bg-white/10 hover:bg-white/20 border-0 text-white">
+                            <Plus className="w-5 h-5 mb-1" /> Create Task
+                        </Button>
+                    </Link>
+                    <Link href="/teacher/submissions">
+                         <Button variant="secondary" className="w-full h-auto py-3 flex flex-col gap-1 text-xs bg-white/10 hover:bg-white/20 border-0 text-white">
+                            <Search className="w-5 h-5 mb-1" /> Review Work
+                        </Button>
+                    </Link>
+                    <Link href="/teacher/upload">
+                         <Button variant="secondary" className="w-full h-auto py-3 flex flex-col gap-1 text-xs bg-white/10 hover:bg-white/20 border-0 text-white">
+                            <UploadCloud className="w-5 h-5 mb-1" /> Upload Files
+                        </Button>
+                    </Link>
+                    <Link href="/teacher/resources">
+                         <Button variant="secondary" className="w-full h-auto py-3 flex flex-col gap-1 text-xs bg-white/10 hover:bg-white/20 border-0 text-white">
+                            <Library className="w-5 h-5 mb-1" /> Library
+                        </Button>
+                    </Link>
+                </div>
+            </Card>
 
-          {/* Quick Actions */}
-          <Card className="p-6 border-0 shadow-lg">
-            <h3 className="font-bold mb-4">Quick Actions</h3>
-            <div className="space-y-2">
-              <Link href="/teacher/upload">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Resource
-                </Button>
-              </Link>
-              <Link href="/teacher/resources">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Manage Resources
-                </Button>
-              </Link>
-              <Link href="/teacher/feedback">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  View Feedback
-                </Button>
-              </Link>
-            </div>
-          </Card>
+            <Card className="p-5 border-0 shadow-lg">
+                <h3 className="font-bold mb-4 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-orange-500" /> Pending Actions
+                </h3>
+                <div className="space-y-3">
+                    {stats.pendingDoubts > 0 ? (
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 border border-orange-100">
+                             <AlertCircle className="w-5 h-5 text-orange-500" />
+                             <div className="flex-1">
+                                 <p className="text-sm font-medium text-orange-900">{stats.pendingDoubts} Unresolved Doubts</p>
+                                 <p className="text-xs text-orange-700">Students are waiting for reply.</p>
+                             </div>
+                             <Link href="/teacher/submissions">
+                                 <Button size="sm" variant="ghost" className="h-7 w-7 p-0 rounded-full hover:bg-orange-200"><ArrowRight className="w-4 h-4 text-orange-700" /></Button>
+                             </Link>
+                        </div>
+                    ) : (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                            <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-50" />
+                            No pending doubts!
+                        </div>
+                    )}
+                </div>
+            </Card>
         </div>
       </div>
     </TeacherSidebar>

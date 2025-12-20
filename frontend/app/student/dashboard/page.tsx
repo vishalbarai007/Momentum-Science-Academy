@@ -11,15 +11,16 @@ import {
   Clock,
   Calendar,
   ChevronRight,
-  Flame,
   Target,
   Award,
   FileText,
   TrendingUp,
   Loader2,
+  Bell,
+  CheckCircle
 } from "lucide-react"
 
-// Types
+// --- Types ---
 interface Student {
   fullName: string
   email: string
@@ -36,13 +37,34 @@ interface Resource {
   fileUrl: string
 }
 
+interface PerformanceStats {
+  averageScore: string
+  totalTests: number
+  bestRank: string
+  improvement: string
+}
+
+interface Assignment {
+  id: number
+  title: string
+  dueDate: string
+  status: string
+  subject: string
+}
+
 export default function StudentDashboard() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
-  
-  // Dynamic State
-  const [student, setStudent] = useState<Student | null>(null)
-  const [recentResources, setRecentResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
+
+  // --- State Data ---
+  const [student, setStudent] = useState<Student | null>(null)
+  const [performance, setPerformance] = useState<PerformanceStats | null>(null)
+  const [recentResources, setRecentResources] = useState<Resource[]>([])
+  
+  // Derived State from Assignments
+  const [pendingCount, setPendingCount] = useState(0)
+  const [nextDeadline, setNextDeadline] = useState<string | null>(null)
+  const [upcomingAssignments, setUpcomingAssignments] = useState<Assignment[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,27 +75,41 @@ export default function StudentDashboard() {
       }
 
       try {
-        // 1. Fetch Student Profile using the new /me endpoint
-        const profileRes = await fetch("http://localhost:8080/api/auth/me", {
-          headers: { "Authorization": `Bearer ${token}` }
-        })
+        const headers = { "Authorization": `Bearer ${token}` }
+
+        // 1. Fetch Student Profile (Local fallback + API)
+        const storedUser = localStorage.getItem("user")
+        if (storedUser) setStudent(JSON.parse(storedUser))
         
-        if (profileRes.ok) {
-          const profileData = await profileRes.json()
-          setStudent(profileData)
+        // 2. Fetch Performance Stats
+        const perfRes = await fetch("http://localhost:8080/api/v1/performance/stats", { headers })
+        if (perfRes.ok) setPerformance(await perfRes.json())
+
+        // 3. Fetch Assignments (Calculate Pending & Deadlines)
+        const assignRes = await fetch("http://localhost:8080/api/v1/assignments", { headers })
+        if (assignRes.ok) {
+            const allAssignments: Assignment[] = await assignRes.json()
+            
+            // Logic: Filter Pending
+            const pending = allAssignments.filter(a => ["pending", "missing"].includes(a.status.toLowerCase()))
+            
+            // Logic: Sort by Date for "Upcoming"
+            const upcoming = [...pending]
+                .filter(a => new Date(a.dueDate) >= new Date()) // Future only
+                .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+
+            setPendingCount(pending.length)
+            setNextDeadline(upcoming.length > 0 ? new Date(upcoming[0].dueDate).toLocaleDateString() : "No deadlines")
+            setUpcomingAssignments(upcoming.slice(0, 3)) // Top 3 for Sidebar
         }
 
-        // 2. Fetch Resources
-        const resourcesRes = await fetch("http://localhost:8080/api/v1/resources", {
-           headers: { "Authorization": `Bearer ${token}` }
-        })
-
+        // 4. Fetch Resources
+        const resourcesRes = await fetch("http://localhost:8080/api/v1/resources", { headers })
         if (resourcesRes.ok) {
           const data = await resourcesRes.json()
-          // Sort by newest first and take top 4
           const sorted = data.sort((a: any, b: any) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          ).slice(0, 4)
+          ).slice(0, 4) // Top 4 Recent
           setRecentResources(sorted)
         }
 
@@ -87,55 +123,57 @@ export default function StudentDashboard() {
     fetchData()
   }, [])
 
+  // --- Stats Config (Hybrid of V1 and V2) ---
   const stats = [
     {
-      label: "Resources Accessed",
-      value: "42",
-      icon: BookOpen,
-      color: "from-blue-500 to-cyan-500",
-      change: "+5 this week",
+      label: "Pending Tasks",
+      value: pendingCount.toString(),
+      icon: Clock, // V1 Icon
+      color: "from-orange-500 to-red-500",
+      change: "Action Required",
     },
-    { label: "Current Streak", value: "15", icon: Flame, color: "from-orange-500 to-red-500", change: "days" },
     {
       label: "Avg. Test Score",
-      value: "87%",
-      icon: Target,
+      value: performance?.averageScore || "0%",
+      icon: Target, // V2 Icon
       color: "from-emerald-500 to-teal-500",
-      change: "+3% improvement",
+      change: performance?.improvement || "0%",
     },
-    { label: "Study Hours", value: "128", icon: Clock, color: "from-purple-500 to-pink-500", change: "hrs this month" },
-  ]
-
-  const upcomingEvents = [
-    { title: "Algebra Test", date: "Tomorrow, 2 PM", type: "Test", urgent: true },
-    { title: "Physics Doubt Session", date: "Dec 20, 5 PM", type: "Session", urgent: false },
-    { title: "Chemistry Assignment Due", date: "Dec 22", type: "Assignment", urgent: false },
+    {
+      label: "Resources Accessed",
+      value: recentResources.length.toString(),
+      icon: BookOpen, // V2 Icon
+      color: "from-blue-500 to-cyan-500",
+      change: "This Week",
+    },
+    { 
+        label: "Next Deadline", 
+        value: nextDeadline || "-", 
+        icon: Calendar, // V1 Icon
+        color: "from-purple-500 to-pink-500", 
+        change: "Upcoming" 
+    },
   ]
 
   const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
-    
-    // If it's a real URL, redirect to it
     if (fileUrl && fileUrl.startsWith("http")) {
         setTimeout(() => {
             window.open(fileUrl, "_blank")
             setDownloadingId(null)
         }, 800)
     } else {
-        // Fallback simulation if no real URL
         await new Promise((resolve) => setTimeout(resolve, 1000))
         setDownloadingId(null)
         alert("File download started (Simulated)")
     }
   }
 
-  // Helper to format Date
   const formatDate = (dateString: string) => {
     if (!dateString) return "Recent"
     return new Date(dateString).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })
   }
 
-  // Helper to format Type
   const formatType = (type: string) => {
     const map: any = { 'pq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }
     return map[type?.toLowerCase()] || type
@@ -152,9 +190,8 @@ export default function StudentDashboard() {
             Welcome back, {student?.fullName || "Student"}!
             </h1>
         )}
-
         <p className="text-muted-foreground text-lg">
-          You're enrolled in <span className="text-primary font-medium">{student?.program || "General"} Preparation</span> - Class {student?.studentClass || "..."}
+          You're enrolled in <span className="text-primary font-medium">{student?.program || "General"} Preparation</span> {student?.studentClass ? `- Class ${student.studentClass}` : ""}
         </p>
       </div>
 
@@ -165,14 +202,12 @@ export default function StudentDashboard() {
           return (
             <Card key={i} className="p-5 border-0 shadow-lg hover:shadow-xl transition-shadow">
               <div className="flex items-start justify-between mb-3">
-                <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}
-                >
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xs text-muted-foreground">{stat.change}</span>
               </div>
-              <p className="text-3xl font-bold mb-1">{stat.value}</p>
+              <p className="text-2xl font-bold mb-1 truncate" title={stat.value}>{stat.value}</p>
               <p className="text-sm text-muted-foreground">{stat.label}</p>
             </Card>
           )
@@ -181,10 +216,12 @@ export default function StudentDashboard() {
 
       {/* Main Grid */}
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Resources */}
+        {/* Left Column: Resources & Activity */}
         <div className="lg:col-span-2">
+          
+          {/* Recent Resources Section */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Recent Resources</h2>
+            <h2 className="text-xl font-bold flex items-center gap-2"><FileText className="w-5 h-5 text-primary"/> Recent Resources</h2>
             <Link href="/student/resources">
               <Button variant="ghost" size="sm" className="text-primary">
                 View All <ChevronRight className="w-4 h-4 ml-1" />
@@ -196,7 +233,10 @@ export default function StudentDashboard() {
             {loading ? (
                <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
             ) : recentResources.length === 0 ? (
-               <p className="text-muted-foreground">No resources found.</p>
+               <div className="p-8 text-center border-2 border-dashed rounded-xl">
+                 <FileText className="w-8 h-8 mx-auto text-muted-foreground opacity-50 mb-2"/>
+                 <p className="text-muted-foreground">No resources uploaded yet.</p>
+               </div>
             ) : (
                 recentResources.map((resource) => (
                 <Card key={resource.id} className="p-4 border-0 shadow-md hover:shadow-lg transition-shadow">
@@ -206,11 +246,8 @@ export default function StudentDashboard() {
                         <h3 className="font-semibold hover:text-primary cursor-pointer truncate max-w-[200px] md:max-w-md">
                             {resource.title}
                         </h3>
-                        {/* Logic for 'New' badge: uploaded within last 24 hours */}
                         {(new Date().getTime() - new Date(resource.createdAt).getTime()) < 86400000 && (
-                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
-                            New
-                            </span>
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">New</span>
                         )}
                         </div>
                         <div className="flex flex-wrap gap-2 mt-2">
@@ -227,16 +264,8 @@ export default function StudentDashboard() {
                         onClick={() => handleDownload(resource.id, resource.fileUrl)}
                         disabled={downloadingId === resource.id}
                     >
-                        {downloadingId === resource.id ? (
-                        <span className="flex items-center gap-1">
-                            <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        </span>
-                        ) : (
-                        <>
-                            <Download className="w-4 h-4 mr-1" />
-                            Download
-                        </>
-                        )}
+                        {downloadingId === resource.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                        {downloadingId === resource.id ? "" : "Download"}
                     </Button>
                     </div>
                 </Card>
@@ -244,30 +273,30 @@ export default function StudentDashboard() {
             )}
           </div>
 
-          {/* Quick Links */}
-          <div className="mt-6 grid grid-cols-2 gap-4">
+          {/* Quick Links / Actions */}
+          <div className="mt-8 grid grid-cols-2 gap-4">
             <Link href="/student/assignments">
-              <Card className="p-4 border-0 shadow-md hover:shadow-lg transition-all cursor-pointer hover:bg-primary/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-orange-500" />
+              <Card className="p-5 border-0 shadow-md hover:shadow-lg transition-all cursor-pointer hover:bg-primary/5 group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Clock className="w-6 h-6 text-orange-500" />
                   </div>
                   <div>
-                    <p className="font-semibold">Assignments</p>
-                    <p className="text-xs text-muted-foreground">3 pending</p>
+                    <p className="font-bold text-lg">Assignments</p>
+                    <p className="text-sm text-muted-foreground">{pendingCount} pending tasks</p>
                   </div>
                 </div>
               </Card>
             </Link>
             <Link href="/student/performance">
-              <Card className="p-4 border-0 shadow-md hover:shadow-lg transition-all cursor-pointer hover:bg-primary/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+              <Card className="p-5 border-0 shadow-md hover:shadow-lg transition-all cursor-pointer hover:bg-primary/5 group">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <TrendingUp className="w-6 h-6 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="font-semibold">Performance</p>
-                    <p className="text-xs text-muted-foreground">View results</p>
+                    <p className="font-bold text-lg">Leaderboard</p>
+                    <p className="text-sm text-muted-foreground">View your rank</p>
                   </div>
                 </div>
               </Card>
@@ -275,59 +304,69 @@ export default function StudentDashboard() {
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Sidebar: Due Soon & Performance */}
         <div className="space-y-6">
-          {/* Upcoming Events */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              Upcoming
-            </h3>
-            <div className="space-y-3">
-              {upcomingEvents.map((event, i) => (
-                <Card
-                  key={i}
-                  className={`p-4 border-l-4 ${event.urgent ? "border-l-red-500" : "border-l-primary"} border-0 shadow-md`}
-                >
-                  <p className="font-semibold text-sm">{event.title}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{event.date}</p>
-                  <span className="text-xs bg-muted px-2 py-1 rounded inline-block mt-2">{event.type}</span>
-                </Card>
-              ))}
+          
+          {/* Due Soon Section */}
+          <Card className="p-5 border-0 shadow-lg">
+             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-primary" /> Due Soon
+             </h3>
+             <div className="space-y-3">
+              {upcomingAssignments.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground bg-muted/20 rounded-lg">
+                      <CheckCircle className="w-8 h-8 mx-auto mb-2 opacity-20"/>
+                      <p className="text-sm">All caught up!</p>
+                  </div>
+              ) : (
+                  upcomingAssignments.map((event, i) => (
+                    <div key={i} className="p-3 border-l-4 border-l-orange-500 bg-muted/20 rounded-r-lg">
+                      <p className="font-semibold text-sm line-clamp-1">{event.title}</p>
+                      <div className="flex justify-between items-end mt-2">
+                         <div>
+                            <p className="text-xs text-muted-foreground">{new Date(event.dueDate).toLocaleDateString()}</p>
+                            <span className="text-[10px] bg-background border px-1.5 py-0.5 rounded text-muted-foreground mt-1 inline-block">{event.subject}</span>
+                         </div>
+                         <Link href="/student/assignments" className="text-xs font-medium text-primary hover:underline">Submit</Link>
+                      </div>
+                    </div>
+                  ))
+              )}
             </div>
-          </div>
+          </Card>
 
-          {/* Performance Card */}
+          {/* Performance Visualizer */}
           <Card className="p-5 border-0 shadow-lg bg-gradient-to-br from-primary/5 to-secondary/5">
             <h3 className="font-bold mb-4 flex items-center gap-2">
               <Award className="w-5 h-5 text-primary" />
-              Your Performance
+              Your Progress
             </h3>
-            <div className="space-y-3">
-              {[
-                { subject: "Mathematics", score: 82, trend: "+5%" },
-                { subject: "Physics", score: 78, trend: "+3%" },
-                { subject: "Chemistry", score: 75, trend: "-2%" },
-              ].map((item, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{item.subject}</span>
-                    <span className={`font-medium ${item.trend.startsWith("+") ? "text-emerald-600" : "text-red-500"}`}>
-                      {item.score}% ({item.trend})
-                    </span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-primary to-secondary h-2 rounded-full transition-all"
-                      style={{ width: `${item.score}%` }}
-                    />
-                  </div>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Average Score</span>
+                    <span className="text-xl font-bold text-emerald-600">{performance?.averageScore || "0%"}</span>
                 </div>
-              ))}
+                <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                        className="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full transition-all duration-1000" 
+                        style={{ width: performance?.averageScore || "0%" }}
+                    ></div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-border/10">
+                     <div className="bg-white/60 p-2 rounded text-center">
+                        <p className="text-xs text-muted-foreground">Tests</p>
+                        <p className="font-bold text-lg">{performance?.totalTests || 0}</p>
+                     </div>
+                     <div className="bg-white/60 p-2 rounded text-center">
+                        <p className="text-xs text-muted-foreground">Rank</p>
+                        <p className="font-bold text-lg">{performance?.bestRank || "-"}</p>
+                     </div>
+                </div>
             </div>
             <Link href="/student/performance">
-              <Button variant="ghost" size="sm" className="w-full mt-4 text-primary">
-                View Detailed Report <ChevronRight className="w-4 h-4 ml-1" />
+              <Button variant="ghost" size="sm" className="w-full mt-4 text-primary hover:bg-primary/10">
+                Detailed Report <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
           </Card>

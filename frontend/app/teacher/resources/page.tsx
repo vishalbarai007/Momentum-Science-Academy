@@ -5,25 +5,42 @@ import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink, Save, Eye, EyeOff, Filter, X } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { 
+  Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink, 
+  Save, Eye, EyeOff, Filter, X, MessageSquare, Send, CornerDownRight, User 
+} from "lucide-react"
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription 
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Interface matching Backend Resource Model
 interface Resource {
   id: number
   title: string
-  type: string       // Frontend display format (e.g., "PYQ")
+  type: string       
   subject: string
-  targetClass: string // Frontend display format (e.g., "11")
-  exam: string       // Frontend display format (e.g., "JEE Advanced")
+  targetClass: string 
+  exam: string       
   downloads: number
   status: string
   date: string
   description?: string
   fileUrl?: string
+}
+
+interface Doubt {
+  id: number
+  student: any // Can be object or string depending on DTO
+  question: string
+  answer: string | null
+  createdAt: string
+  contextType: string
+  contextId: number
 }
 
 // Constants
@@ -34,9 +51,10 @@ const EXAM_OPTIONS = ["JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation
 
 export default function TeacherResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
+  const [doubts, setDoubts] = useState<Doubt[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Filter State
+  // Filter State (Main Page)
   const [filters, setFilters] = useState({
     class: "all",
     subject: "all",
@@ -48,56 +66,55 @@ export default function TeacherResourcesPage() {
 
   // Modal States
   const [editModal, setEditModal] = useState<{ open: boolean; resource: Resource | null }>({
-    open: false,
-    resource: null,
+    open: false, resource: null,
   })
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; resourceId: number | null }>({
-    open: false,
-    resourceId: null,
+    open: false, resourceId: null,
   })
   const [openLinkModal, setOpenLinkModal] = useState<{ open: boolean; link: string | null; title: string | null }>({
-    open: false,
-    link: null,
-    title: null
+    open: false, link: null, title: null
+  })
+  const [doubtsModal, setDoubtsModal] = useState<{ open: boolean; resourceTitle: string; resourceId: number | null }>({
+    open: false, resourceTitle: "", resourceId: null
   })
 
   // Edit Form State
   const [editForm, setEditForm] = useState({
-    title: "",
-    description: "",
-    resourceType: "",
-    subject: "",
-    classLevel: "",
-    examType: "",
-    fileLink: "",
-    visibility: ""
+    title: "", description: "", resourceType: "", subject: "", classLevel: "", examType: "", fileLink: "", visibility: ""
   })
+
+  // Doubt Logic States
+  const [replyText, setReplyText] = useState("")
+  const [replyingId, setReplyingId] = useState<number | null>(null)
+  const [doubtSearch, setDoubtSearch] = useState("")
+  const [doubtFilter, setDoubtFilter] = useState("all") // "all", "pending", "replied"
 
   const [isSaving, setIsSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
 
   useEffect(() => {
     fetchResources()
+    fetchDoubts()
   }, [])
 
-  // --- Filter Logic ---
+  // Reset doubt filters when modal opens/closes
+  useEffect(() => {
+    if (doubtsModal.open) {
+      setDoubtSearch("")
+      setDoubtFilter("all")
+    }
+  }, [doubtsModal.open])
+
+  // --- Filter Logic (Resources) ---
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
-      // Normalize comparison for classes (e.g. data "Class 11" vs filter "11" or "Class 11")
-      // const resourceClass = resource.targetClass.replace("Class ", "")
       const resourceClass = resource.targetClass
       const filterClass = filters.class.replace("Class ", "")
       const matchesClass = filters.class === "all" || resourceClass === filterClass
-
-      const matchesSubject =
-        filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
-      
+      const matchesSubject = filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
       const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
-      
       const matchesExam = filters.exam === "all" || resource.exam === filters.exam
-      
-      const matchesSearch =
-        filters.search === "" ||
+      const matchesSearch = filters.search === "" ||
         resource.title.toLowerCase().includes(filters.search.toLowerCase()) ||
         resource.subject.toLowerCase().includes(filters.search.toLowerCase())
 
@@ -111,16 +128,10 @@ export default function TeacherResourcesPage() {
 
   const activeFiltersCount = Object.values(filters).filter((v) => v !== "all" && v !== "").length
 
-  // --- HELPER: Map Backend Types ---
+  // --- FETCH DATA ---
   const formatResourceTypeFromBackend = (type: string) => {
     if (!type) return "Notes"
-    const map: Record<string, string> = {
-      'pq': 'PYQ',
-      'pyq': 'PYQ',
-      'notes': 'Notes',
-      'assignment': 'Assignment',
-      'imp': 'IMP'
-    }
+    const map: Record<string, string> = { 'pq': 'PYQ', 'pyq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }
     return map[type.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1)
   }
 
@@ -148,13 +159,94 @@ export default function TeacherResourcesPage() {
           description: item.description,
           fileUrl: item.fileUrl
         }))
-        // Sort by newest first
         setResources(mappedData.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()))
       }
     } catch (error) {
       console.error("Failed to fetch resources:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchDoubts = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+      const response = await fetch("http://localhost:8080/api/v1/doubts/incoming", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setDoubts(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch doubts:", error)
+    }
+  }
+
+  // --- Doubt Helpers ---
+  const getResourceDoubtsCount = (resourceId: number) => {
+    return doubts.filter(d => d.contextType === "RESOURCE" && d.contextId === resourceId).length
+  }
+
+  const getStudentName = (student: any) => {
+    if (!student) return "Student"
+    if (typeof student === 'string') return student
+    return student.fullName || "Student"
+  }
+
+  // Filter Logic (Doubts)
+  const filteredDoubts = useMemo(() => {
+    if (!doubtsModal.resourceId) return []
+    
+    // 1. Filter by specific resource
+    let relevantDoubts = doubts
+      .filter(d => d.contextType === "RESOURCE" && d.contextId === doubtsModal.resourceId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    // 2. Apply Search
+    if (doubtSearch) {
+        relevantDoubts = relevantDoubts.filter(d => 
+            getStudentName(d.student).toLowerCase().includes(doubtSearch.toLowerCase()) ||
+            d.question.toLowerCase().includes(doubtSearch.toLowerCase())
+        )
+    }
+
+    // 3. Apply Status Filter
+    if (doubtFilter === "pending") {
+        relevantDoubts = relevantDoubts.filter(d => !d.answer)
+    } else if (doubtFilter === "replied") {
+        relevantDoubts = relevantDoubts.filter(d => d.answer)
+    }
+
+    return relevantDoubts
+  }, [doubts, doubtsModal.resourceId, doubtSearch, doubtFilter])
+
+  const handleReplySubmit = async (doubtId: number) => {
+    if (!replyText.trim()) return
+    setReplyingId(doubtId)
+    try {
+        const token = localStorage.getItem("token")
+        const res = await fetch(`http://localhost:8080/api/v1/doubts/${doubtId}/reply`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ answer: replyText })
+        })
+
+        if (res.ok) {
+            setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: replyText } : d))
+            setReplyText("")
+        } else {
+            alert("Failed to send reply")
+        }
+    } catch (err) {
+        console.error(err)
+        alert("Error sending reply")
+    } finally {
+        setReplyingId(null)
     }
   }
 
@@ -165,7 +257,7 @@ export default function TeacherResourcesPage() {
       description: resource.description || "",
       resourceType: resource.type,
       subject: resource.subject,
-      classLevel: resource.targetClass.replace("Class ", ""), // Strip prefix if present for select match
+      classLevel: resource.targetClass.replace("Class ", ""),
       examType: resource.exam || "",
       fileLink: resource.fileUrl || "",
       visibility: resource.status === "Published" ? "publish" : "draft"
@@ -176,7 +268,6 @@ export default function TeacherResourcesPage() {
   const handleSaveEdit = async () => {
     if (!editModal.resource) return
     setIsSaving(true)
-
     try {
       const token = localStorage.getItem("token")
       const payload = {
@@ -184,23 +275,18 @@ export default function TeacherResourcesPage() {
         description: editForm.description,
         resourceType: editForm.resourceType.toLowerCase() === 'pyq' ? 'pq' : editForm.resourceType.toLowerCase(),
         subject: editForm.subject,
-        classLevel: `Class ${editForm.classLevel}`, // Add prefix for backend consistency
+        classLevel: `Class ${editForm.classLevel}`,
         examType: editForm.examType,
         fileLink: editForm.fileLink,
         visibility: editForm.visibility
       }
-
       const response = await fetch(`http://localhost:8080/api/v1/resources/${editModal.resource.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
       })
-
       if (response.ok) {
-        fetchResources() // Reload to get fresh data
+        fetchResources()
         setSuccessMessage("Resource updated successfully!")
         setTimeout(() => setSuccessMessage(""), 3000)
         setEditModal({ open: false, resource: null })
@@ -221,7 +307,6 @@ export default function TeacherResourcesPage() {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
-
       if (response.ok) {
         setResources(resources.filter((r) => r.id !== id))
         setSuccessMessage("Resource deleted successfully!")
@@ -235,11 +320,8 @@ export default function TeacherResourcesPage() {
   }
 
   const handleOpenLinkClick = (resource: Resource) => {
-    if (resource.fileUrl) {
-      setOpenLinkModal({ open: true, link: resource.fileUrl, title: resource.title })
-    } else {
-      alert("No file link available.")
-    }
+    if (resource.fileUrl) setOpenLinkModal({ open: true, link: resource.fileUrl, title: resource.title })
+    else alert("No file link available.")
   }
 
   const confirmRedirect = () => {
@@ -263,7 +345,7 @@ export default function TeacherResourcesPage() {
         </div>
       )}
 
-      {/* --- Action Bar: Search, Filter Toggle, New Upload --- */}
+      {/* --- Action Bar --- */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -312,47 +394,28 @@ export default function TeacherResourcesPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Class</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                value={filters.class}
-                onChange={(e) => setFilters({ ...filters, class: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}>
                 <option value="all">All Classes</option>
                 {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>Class {opt}</option>)}
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Subject</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                value={filters.subject}
-                onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
                 <option value="all">All Subjects</option>
                 {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Type</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
                 <option value="all">All Types</option>
                 {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium mb-2">Exam</label>
-              <select
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                value={filters.exam}
-                onChange={(e) => setFilters({ ...filters, exam: e.target.value })}
-              >
+              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}>
                 <option value="all">All Exams</option>
                 {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -387,166 +450,178 @@ export default function TeacherResourcesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredResources.map((resource) => (
-                  <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleOpenLinkClick(resource)}
-                        className="font-medium text-emerald-600 hover:underline flex items-center gap-2 text-left"
-                      >
-                        {resource.title}
-                        <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                      </button>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {resource.subject} • {resource.exam}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded font-medium uppercase">
-                        {resource.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm">{resource.targetClass}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}>
-                        {resource.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-destructive hover:bg-destructive/10 bg-transparent"
-                          onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filteredResources.map((resource) => {
+                  const doubtsCount = getResourceDoubtsCount(resource.id)
+                  return (
+                    <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <button onClick={() => handleOpenLinkClick(resource)} className="font-medium text-emerald-600 hover:underline flex items-center gap-2 text-left">
+                          {resource.title}
+                          <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                        <div className="text-xs text-muted-foreground mt-1">{resource.subject} • {resource.exam}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded font-medium uppercase">{resource.type}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm">{resource.targetClass}</td>
+                      <td className="px-6 py-4">
+                        <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}>
+                          {resource.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className={`flex items-center gap-1 ${doubtsCount > 0 ? "text-blue-600 border-blue-200 bg-blue-50" : "text-muted-foreground"}`}
+                            onClick={() => setDoubtsModal({ open: true, resourceTitle: resource.title, resourceId: resource.id })}
+                            title="View Doubts"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            {doubtsCount > 0 && <span className="text-xs font-bold">{doubtsCount}</span>}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10 bg-transparent" onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </Card>
 
-      {/* --- EDIT MODAL (Unchanged Logic, mostly) --- */}
+      {/* --- EDIT MODAL --- */}
       <Dialog open={editModal.open} onOpenChange={(open) => setEditModal({ open, resource: null })}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Resource</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Edit Resource</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Title</label>
-              <Input
-                value={editForm.title}
-                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                placeholder="e.g. Physics Chapter 1 Notes"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">File Link (Drive/Dropbox URL)</label>
-              <div className="relative">
-                <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={editForm.fileLink}
-                  onChange={(e) => setEditForm({ ...editForm, fileLink: e.target.value })}
-                  className="pl-9"
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
+            <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} /></div>
+            <div><label className="text-sm font-medium mb-1 block">File Link</label><Input value={editForm.fileLink} onChange={(e) => setEditForm({ ...editForm, fileLink: e.target.value })} /></div>
             <div className="bg-muted/30 p-3 rounded-lg border">
               <label className="text-sm font-medium mb-1 block flex items-center gap-2">
-                {editForm.visibility === 'publish' ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
-                Visibility Status
+                {editForm.visibility === 'publish' ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />} Visibility Status
               </label>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                value={editForm.visibility}
-                onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}
-              >
-                <option value="publish">Published (Visible)</option>
-                <option value="draft">Draft (Hidden)</option>
+              <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.visibility} onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}>
+                <option value="publish">Published</option><option value="draft">Draft</option>
               </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Type</label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  value={editForm.resourceType}
-                  onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}
-                >
-                  <option value="">Select Type</option>
-                  {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Subject</label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  value={editForm.subject}
-                  onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
-                >
-                  <option value="">Select Subject</option>
-                  {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
+              <div><label className="text-sm font-medium mb-1 block">Type</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.resourceType} onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}><option value="">Select Type</option>{TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Subject</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.subject} onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}><option value="">Select Subject</option>{SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Class</label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  value={editForm.classLevel}
-                  onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}
-                >
-                  <option value="">Select Class</option>
-                  {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Target Exam</label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  value={editForm.examType}
-                  onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}
-                >
-                  <option value="">Select Exam</option>
-                  {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
+              <div><label className="text-sm font-medium mb-1 block">Class</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.classLevel} onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}><option value="">Select Class</option>{CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Exam</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.examType} onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}><option value="">Select Exam</option>{EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Description</label>
-              <Textarea
-                value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Optional description..."
-                className="h-24"
-              />
-            </div>
-            <div className="flex gap-2 mt-6">
-              <Button
-                variant="outline"
-                onClick={() => setEditModal({ open: false, resource: null })}
-                className="flex-1"
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSaveEdit} className="flex-1 bg-emerald-500 hover:bg-emerald-600" disabled={isSaving}>
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
-              </Button>
-            </div>
+            <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="h-24" /></div>
+            <div className="flex gap-2 mt-6"><Button variant="outline" onClick={() => setEditModal({ open: false, resource: null })} className="flex-1" disabled={isSaving}>Cancel</Button><Button onClick={handleSaveEdit} className="flex-1 bg-emerald-500 hover:bg-emerald-600" disabled={isSaving}>{isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}</Button></div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- DOUBTS MODAL --- */}
+      <Dialog open={doubtsModal.open} onOpenChange={(open) => setDoubtsModal({ ...doubtsModal, open })}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Doubts: {doubtsModal.resourceTitle}</DialogTitle>
+            <DialogDescription>Review and reply to student questions regarding this resource.</DialogDescription>
+          </DialogHeader>
+          
+          {/* Doubts Search & Filter */}
+          <div className="flex gap-2 mb-2">
+             <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search doubts..." 
+                    className="pl-9 h-9" 
+                    value={doubtSearch}
+                    onChange={(e) => setDoubtSearch(e.target.value)}
+                />
+             </div>
+             <Select value={doubtFilter} onValueChange={setDoubtFilter}>
+                <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Filter" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="replied">Replied</SelectItem>
+                </SelectContent>
+             </Select>
+          </div>
+
+          <ScrollArea className="flex-1 pr-4 -mr-4 mt-2">
+            <div className="space-y-6 pb-4">
+              {filteredDoubts.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                  {doubtsModal.resourceId ? "No doubts found matching your filters." : "Loading..."}
+                </div>
+              ) : (
+                filteredDoubts.map((doubt) => (
+                  <div key={doubt.id} className="border rounded-xl p-4 bg-card shadow-sm">
+                    {/* Student Question */}
+                    <div className="flex gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{getStudentName(doubt.student)}</span>
+                          <span className="text-xs text-muted-foreground">• {new Date(doubt.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm">{doubt.question}</p>
+                      </div>
+                    </div>
+
+                    {/* Teacher Reply */}
+                    {doubt.answer ? (
+                      <div className="ml-11 bg-emerald-50/50 p-3 rounded-lg border border-emerald-100">
+                        <div className="flex items-center gap-2 mb-1 text-emerald-700 font-medium text-xs">
+                          <CornerDownRight className="w-3 h-3" />
+                          You replied:
+                        </div>
+                        <p className="text-sm text-emerald-900">{doubt.answer}</p>
+                      </div>
+                    ) : (
+                      <div className="ml-11 mt-3">
+                        {replyingId === doubt.id ? (
+                          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Sending...
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Input 
+                              placeholder="Type your reply here..." 
+                              className="h-9 text-sm"
+                              value={replyingId === null ? replyText : ""} 
+                              onChange={(e) => {
+                                setReplyText(e.target.value)
+                              }}
+                            />
+                            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 h-9 px-3" onClick={() => handleReplySubmit(doubt.id)}>
+                              <Send className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+          
+          <DialogFooter className="mt-2">
+            <Button variant="outline" onClick={() => setDoubtsModal({ open: false, resourceTitle: "", resourceId: null })}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

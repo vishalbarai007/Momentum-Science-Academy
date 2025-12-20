@@ -38,7 +38,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
     // Split Assignments into two links
     { icon: FilePlus, label: "Create Assignment", href: "/teacher/assignment" },
     { icon: FileCheck, label: "Submissions", href: "/teacher/submissions" },
-    { icon: MessageSquare, label: "Student Feedback", href: "/teacher/feedback" },
+    { icon: MessageSquare, label: "Feedback", href: "/teacher/feedback" },
     // { icon: BarChart3, label: "Analytics", href: "/teacher/analytics" },
     { icon: User, label: "Profile", href: "/teacher/profile" },
     { icon: Settings, label: "Settings", href: "/teacher/settings" },

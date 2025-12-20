@@ -185,15 +185,20 @@ public class AssignmentService {
 
         List<Submission> submissions = submissionRepository.findByAssignment(assignment);
 
+        // --- UPDATED MAPPING (Includes ID, Grade, Feedback) ---
         return submissions.stream().map(sub -> new SubmissionDTO(
+                sub.getId(), // <--- Pass ID
                 sub.getStudent().getFullName(),
                 sub.getStudent().getEmail(),
                 sub.getSubmittedAt().format(DateTimeFormatter.ofPattern("MMM dd, hh:mm a")),
                 sub.getFileUrl(),
-                sub.getStatus()
+                sub.getStatus(),
+                sub.getGrade(),   // <--- Pass Grade
+                sub.getFeedback() // <--- Pass Feedback
         )).collect(Collectors.toList());
     }
 
+    // --- 7. Grade Submission ---
     public void gradeSubmission(Long submissionId, String grade, String feedback, String teacherEmail) {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
@@ -210,7 +215,7 @@ public class AssignmentService {
         submissionRepository.save(submission);
     }
 
-    // --- 8. NEW: Delete Assignment ---
+    // --- 8. Delete Assignment ---
     public void deleteAssignment(Long assignmentId, String teacherEmail) {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
@@ -219,13 +224,10 @@ public class AssignmentService {
             throw new RuntimeException("Unauthorized: You can only delete your own assignments");
         }
 
-        // Optional: You might want to delete all related submissions first
-        // depending on your database Cascade settings.
-        // If you used CascadeType.ALL in the entity, this isn't needed.
-
         assignmentRepository.delete(assignment);
     }
 
+    // --- 9. Delete/Revoke Submission ---
     public void deleteSubmission(Long assignmentId, String studentEmail) {
         User student = usersRepository.findByEmail(studentEmail);
         Assignment assignment = assignmentRepository.findById(assignmentId)

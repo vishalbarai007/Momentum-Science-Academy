@@ -73,6 +73,7 @@ public class AssignmentController {
     public ResponseEntity<?> getAssignmentSubmissions(@PathVariable Long id) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            // Service will now return the updated SubmissionDTO with ID, Grade, and Feedback
             List<SubmissionDTO> submissions = assignmentService.getSubmissionsForAssignment(id, auth.getName());
             return ResponseEntity.ok(submissions);
         } catch (RuntimeException e) {
@@ -105,6 +106,7 @@ public class AssignmentController {
     }
 
     // --- 7. TEACHER: Grade a specific submission ---
+    // Note: The {id} here is the SUBMISSION ID, not the Assignment ID
     @PostMapping("/submissions/{id}/grade")
     public ResponseEntity<?> gradeSubmission(@PathVariable Long id, @RequestBody GradeRequest req) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -202,26 +204,37 @@ public class AssignmentController {
         }
     }
 
+    // --- UPDATED SUBMISSION DTO ---
     public static class SubmissionDTO {
+        private Long id; // Added Submission ID
         private String studentName;
         private String studentEmail;
         private String submittedAt;
         private String fileUrl;
         private String status;
+        private String grade;    // Added Grade
+        private String feedback; // Added Feedback
 
-        public SubmissionDTO(String studentName, String studentEmail, String submittedAt, String fileUrl, String status) {
+        public SubmissionDTO(Long id, String studentName, String studentEmail, String submittedAt,
+                             String fileUrl, String status, String grade, String feedback) {
+            this.id = id;
             this.studentName = studentName;
             this.studentEmail = studentEmail;
             this.submittedAt = submittedAt;
             this.fileUrl = fileUrl;
             this.status = status;
+            this.grade = grade;
+            this.feedback = feedback;
         }
 
+        public Long getId() { return id; }
         public String getStudentName() { return studentName; }
         public String getStudentEmail() { return studentEmail; }
         public String getSubmittedAt() { return submittedAt; }
         public String getFileUrl() { return fileUrl; }
         public String getStatus() { return status; }
+        public String getGrade() { return grade; }
+        public String getFeedback() { return feedback; }
     }
 
     public static class SubmissionRequest {

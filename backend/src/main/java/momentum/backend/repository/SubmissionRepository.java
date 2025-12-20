@@ -12,15 +12,14 @@ import java.util.Optional;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
-    /**
-     * Checks if a specific student has submitted a specific assignment.
-     * Used to determine status (Pending vs Submitted) on the Student Dashboard.
-     */
+    // Existing method used in AssignmentService
     Optional<Submission> findByAssignmentAndStudent(Assignment assignment, User student);
 
-    /**
-     * Fetches all submissions for a specific assignment.
-     * Used for the Teacher's "View Submissions" modal.
-     */
+    // --- NEW METHODS REQUIRED FOR PERFORMANCE SERVICE ---
+
+    // 1. To calculate overall stats and list student's results
+    List<Submission> findByStudent(User student);
+
+    // 2. To calculate rank and leaderboard for a specific test
     List<Submission> findByAssignment(Assignment assignment);
 }
