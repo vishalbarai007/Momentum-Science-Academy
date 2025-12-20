@@ -8,7 +8,7 @@ import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
 import { 
   CheckCircle, Clock, FileText, Download, User, ExternalLink, 
   GraduationCap, Loader2, Calendar, ChevronRight, Plus, 
-  MoreVertical, Trash2, Edit, Eye, EyeOff, Search, Filter,
+  MoreVertical, Trash2, Edit, Eye, Search,
   MessageSquare, Send, CornerDownRight
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -85,7 +85,9 @@ export default function TeacherAssignmentsPage() {
   // 5. Form States
   const [editFormData, setEditFormData] = useState<any>({})
   const [gradeData, setGradeData] = useState({ id: 0, score: "", feedback: "" })
-  const [replyText, setReplyText] = useState("")
+  
+  // --- FIX: Use a Dictionary for Reply Texts ---
+  const [replyTexts, setReplyTexts] = useState<{ [key: number]: string }>({}) 
   const [replyingId, setReplyingId] = useState<number | null>(null)
 
   // 6. Filter States
@@ -113,6 +115,7 @@ export default function TeacherAssignmentsPage() {
     if (showDoubtsModal) {
       setDoubtSearch("")
       setDoubtFilter("all")
+      setReplyTexts({}) // Reset replies
     }
   }, [showDoubtsModal])
 
@@ -184,12 +187,10 @@ export default function TeacherAssignmentsPage() {
   const filteredDoubts = useMemo(() => {
     if (!selectedAssignment) return []
     
-    // 1. Filter by specific assignment
     let relevantDoubts = doubts
       .filter(d => d.contextType === "ASSIGNMENT" && d.contextId === selectedAssignment.id)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    // 2. Apply Search
     if (doubtSearch) {
         relevantDoubts = relevantDoubts.filter(d => 
             getStudentName(d.student).toLowerCase().includes(doubtSearch.toLowerCase()) ||
@@ -197,7 +198,6 @@ export default function TeacherAssignmentsPage() {
         )
     }
 
-    // 3. Apply Status Filter
     if (doubtFilter === "pending") {
         relevantDoubts = relevantDoubts.filter(d => !d.answer)
     } else if (doubtFilter === "replied") {
@@ -207,12 +207,10 @@ export default function TeacherAssignmentsPage() {
     return relevantDoubts
   }, [doubts, selectedAssignment, doubtSearch, doubtFilter])
 
-  // --- DOUBT HELPERS ---
   const getAssignmentDoubtsCount = (assignmentId: number) => {
     return doubts.filter(d => d.contextType === "ASSIGNMENT" && d.contextId === assignmentId).length
   }
 
-  // Check if a specific student email exists in the fetched submissions list
   const checkSubmissionStatus = (studentEmail: string) => {
     const hasSubmitted = submissions.some(s => s.studentEmail === studentEmail);
     return hasSubmitted ? (
@@ -259,7 +257,9 @@ export default function TeacherAssignmentsPage() {
   }
 
   const handleReplySubmit = async (doubtId: number) => {
-    if (!replyText.trim()) return
+    const text = replyTexts[doubtId]
+    if (!text?.trim()) return
+
     setReplyingId(doubtId)
     try {
         const token = localStorage.getItem("token")
@@ -269,12 +269,17 @@ export default function TeacherAssignmentsPage() {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify({ answer: replyText })
+            body: JSON.stringify({ answer: text })
         })
 
         if (res.ok) {
-            setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: replyText } : d))
-            setReplyText("")
+            setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: text } : d))
+            // Clear only this specific input
+            setReplyTexts(prev => {
+                const newState = { ...prev }
+                delete newState[doubtId]
+                return newState
+            })
         } else {
             alert("Failed to send reply")
         }
@@ -286,7 +291,6 @@ export default function TeacherAssignmentsPage() {
     }
   }
 
-  // --- Other Actions ---
   const handleDelete = async () => {
     if (!selectedAssignment) return
     setIsDeleting(true)
@@ -520,24 +524,14 @@ export default function TeacherAssignmentsPage() {
             <DialogDescription>Questions from students regarding this assignment.</DialogDescription>
           </DialogHeader>
           
-          {/* Doubts Filter */}
           <div className="flex gap-2 mb-2">
              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search doubts..." 
-                    className="pl-9 h-9" 
-                    value={doubtSearch}
-                    onChange={(e) => setDoubtSearch(e.target.value)}
-                />
+                <Input placeholder="Search doubts..." className="pl-9 h-9" value={doubtSearch} onChange={(e) => setDoubtSearch(e.target.value)} />
              </div>
              <Select value={doubtFilter} onValueChange={setDoubtFilter}>
                 <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Filter" /></SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="replied">Replied</SelectItem>
-                </SelectContent>
+                <SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="replied">Replied</SelectItem></SelectContent>
              </Select>
           </div>
 
@@ -578,7 +572,12 @@ export default function TeacherAssignmentsPage() {
                           <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-3 h-3 animate-spin" /> Sending...</div>
                         ) : (
                           <div className="flex gap-2">
-                            <Input placeholder="Type your reply here..." className="h-9 text-sm" value={replyingId === null ? replyText : ""} onChange={(e) => setReplyText(e.target.value)} />
+                            <Input 
+                                placeholder="Type your reply here..." 
+                                className="h-9 text-sm" 
+                                value={replyTexts[doubt.id] || ""} // <--- Unique state access
+                                onChange={(e) => setReplyTexts(prev => ({ ...prev, [doubt.id]: e.target.value }))} // <--- Unique state update
+                            />
                             <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 h-9 px-3" onClick={() => handleReplySubmit(doubt.id)}><Send className="w-3 h-3" /></Button>
                           </div>
                         )}

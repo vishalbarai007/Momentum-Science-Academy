@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,9 +17,8 @@ import {
   GraduationCap,
   MessageSquare,
   Bell,
-  BarChart3,
-  FilePlus,   // Changed icon for Create
-  FileCheck,  // New icon for Submissions
+  FilePlus,
+  FileCheck,
 } from "lucide-react"
 
 interface TeacherSidebarProps {
@@ -28,6 +27,12 @@ interface TeacherSidebarProps {
 
 export function TeacherSidebar({ children }: TeacherSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  
+  // --- Dynamic User State ---
+  const [teacherName, setTeacherName] = useState("Instructor")
+  const [teacherSubject, setTeacherSubject] = useState("Department")
+  const [avatar, setAvatar] = useState("T")
+
   const pathname = usePathname()
   const router = useRouter()
 
@@ -35,18 +40,52 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
     { icon: Home, label: "Dashboard", href: "/teacher/dashboard" },
     { icon: Upload, label: "Upload Resource", href: "/teacher/upload" },
     { icon: BookOpen, label: "My Resources", href: "/teacher/resources" },
-    // Split Assignments into two links
     { icon: FilePlus, label: "Create Assignment", href: "/teacher/assignment" },
     { icon: FileCheck, label: "Submissions", href: "/teacher/submissions" },
     { icon: MessageSquare, label: "Feedback", href: "/teacher/feedback" },
-    // { icon: BarChart3, label: "Analytics", href: "/teacher/analytics" },
     { icon: User, label: "Profile", href: "/teacher/profile" },
     { icon: Settings, label: "Settings", href: "/teacher/settings" },
   ]
 
+  // --- Fetch Teacher Profile ---
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      try {
+        const res = await fetch("http://localhost:8080/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        
+        if (res.ok) {
+          const data = await res.json()
+          setTeacherName(data.fullName || "Instructor")
+          
+          // Use the first access tag as the main subject/department, or default to General
+          const subject = data.accessTags && data.accessTags.length > 0 
+            ? data.accessTags[0] 
+            : "General Faculty"
+          setTeacherSubject(subject)
+          
+          // Set Avatar Initial
+          if (data.fullName) {
+            setAvatar(data.fullName.charAt(0).toUpperCase())
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load sidebar profile", error)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
   const handleLogout = () => {
+    localStorage.removeItem("token")
     localStorage.removeItem("userRole")
     localStorage.removeItem("isAuthenticated")
+    localStorage.removeItem("user")
     router.push("/login")
   }
 
@@ -60,7 +99,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -82,7 +121,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive
-                      ? "bg-emerald-500 text-white shadow-lg"
+                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
@@ -93,21 +132,21 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
             })}
           </nav>
 
-          {/* User section */}
+          {/* User section (Dynamic) */}
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold">
-                R
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold shrink-0">
+                {avatar}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">Prof. R.P. Singh</p>
-                <p className="text-xs text-muted-foreground">Mathematics</p>
+                <p className="font-medium truncate text-sm" title={teacherName}>{teacherName}</p>
+                <p className="text-xs text-muted-foreground truncate" title={teacherSubject}>{teacherSubject}</p>
               </div>
             </div>
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="w-full mt-2 justify-start text-muted-foreground hover:text-destructive"
+              className="w-full mt-2 justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Logout
@@ -136,8 +175,8 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               </button>
               <Link href="/teacher/profile">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
-                  R
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
+                  {avatar}
                 </div>
               </Link>
             </div>
