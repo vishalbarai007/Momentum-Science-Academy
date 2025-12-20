@@ -5,8 +5,10 @@ import momentum.backend.model.Resource;
 import momentum.backend.model.User;
 import momentum.backend.repository.ResourceRepository;
 import momentum.backend.repository.UsersRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +18,9 @@ public class ResourceService {
 
     private final ResourceRepository resourceRepository;
     private final UsersRepository usersRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     public ResourceService(ResourceRepository resourceRepository, UsersRepository usersRepository) {
         this.resourceRepository = resourceRepository;
@@ -64,7 +69,24 @@ public class ResourceService {
         resource.setRating(0.0);
         resource.setCreatedAt(new Date());
 
-        return resourceRepository.save(resource);
+        Resource savedResource = resourceRepository.save(resource);
+
+        // Convert targetClass int to String to match User accessTags
+        String classTag = String.valueOf(savedResource.getTargetClass());
+        String examTag = savedResource.getExam();
+
+        // Find students who have access to this class or exam
+        List<User> studentsToNotify = usersRepository.findStudentsByResourceCriteria(classTag, examTag);
+
+        // Send notification to each student
+        for (User student : studentsToNotify) {
+            messagingTemplate.convertAndSendToUser(
+                    student.getEmail(),
+                    "/queue/notifications",
+                    "New " + savedResource.getType() + " added for " + savedResource.getSubject() + " (Class " + classTag + ")"
+            );
+        }
+        return savedResource;
     }
 
     /**
