@@ -31,26 +31,63 @@ interface Student {
 }
 
 export default function AdminDashboard() {
-  const [recentStudents, setRecentStudents] = useState<Student[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(true)
+  const [recentStudents, setRecentStudents] = useState<Student[]>([])
+  const [recentLeads, setRecentLeads] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalTeachers: 0,
+    activeLeads: 0
+  })
+
+ useEffect(() => {
+  const fetchDashboardData = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    const headers = { "Authorization": `Bearer ${token}` }
+
+    try {
+      // Fetch Students, Teachers, and Leads in parallel for better performance
+      const [studentRes, teacherRes, leadRes] = await Promise.all([
+        fetch("http://localhost:8080/api/auth/students", { headers }),
+        fetch("http://localhost:8080/api/auth/teachers", { headers }),
+        fetch("http://localhost:8080/api/leads", { headers })
+      ])
+
+      const students = await studentRes.json()
+      const teachers = await teacherRes.json()
+      const leads = await leadRes.json()
+
+      // Update state with actual counts from their respective endpoints
+      setStats({
+        totalStudents: Array.isArray(students) ? students.length : 0,
+        totalTeachers: Array.isArray(teachers) ? teachers.length : 0,
+        activeLeads: Array.isArray(leads) ? leads.filter((l: any) => l.status !== 'enrolled').length : 0
+      })
+
+      // Update Recent Leads (Top 3)
+      if (Array.isArray(leads)) {
+        setRecentLeads(leads.slice(0, 3).map((l: any) => ({
+          name: l.name,
+          status: l.status.toLowerCase(),
+          program: l.program || "General",
+          phone: l.phone
+        })))
+      }
+
+    } catch (e) {
+      console.error("Dashboard fetch error:", e)
+    }
+  }
+  fetchDashboardData()
+}, [])
 
   const metrics = [
-    { label: "Total Students", value: "2,847", change: "+12%", icon: Users, color: "from-blue-500 to-cyan-500" },
-    {
-      label: "Total Teachers",
-      value: "156",
-      change: "+5%",
-      icon: GraduationCap,
-      color: "from-emerald-500 to-teal-500",
-    },
-    { label: "Active Leads", value: "423", change: "+28%", icon: Mail, color: "from-orange-500 to-red-500" },
-    { label: "Resources", value: "1,203", change: "+43", icon: BookOpen, color: "from-purple-500 to-pink-500" },
-  ]
-
-  const recentLeads = [
-    { name: "Aditya Kumar", status: "new", program: "JEE", phone: "+91 98765 43210" },
-    { name: "Neha Sharma", status: "contacted", program: "NEET", phone: "+91 87654 32109" },
-    { name: "Vikram Singh", status: "interested", program: "JEE", phone: "+91 76543 21098" },
+    { label: "Total Students", value: stats.totalStudents.toLocaleString(), change: "Live", icon: Users, color: "from-blue-500 to-cyan-500" },
+    { label: "Total Teachers", value: stats.totalTeachers.toLocaleString(), change: "Live", icon: GraduationCap, color: "from-emerald-500 to-teal-500" },
+    { label: "Active Leads", value: stats.activeLeads.toLocaleString(), change: "Live", icon: Mail, color: "from-orange-500 to-red-500" },
+    // ...
   ]
 
   // Fetch Recent Students

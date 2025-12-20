@@ -6,8 +6,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { 
-  BookOpen, Home, FileText, Settings, User, LogOut, Menu, X, 
+import {
+  BookOpen, Home, FileText, Settings, User, LogOut, Menu, X,
   GraduationCap, BarChart3, Bell, MessageSquare // Added MessageSquare
 } from "lucide-react"
 
@@ -80,6 +80,7 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
   ]
 
   const handleLogout = () => {
+    localStorage.removeItem("token")
     localStorage.removeItem("userRole")
     localStorage.removeItem("isAuthenticated")
     router.push("/login")

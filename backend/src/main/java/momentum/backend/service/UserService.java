@@ -21,7 +21,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User register(String email, String rawPassword, String fullName, User.Role role,
+    public User register(String email, String rawPassword, String fullName, User.Role role, String phone,
                          String studentClass, String program, Set<String> accessTags,
                          List<String> expertise, Integer experience) {
 
@@ -42,6 +42,7 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(rawPassword));
         user.setFullName(fullName);
         user.setRole(role);
+        user.setPhone(phone);
 
         // Student Fields
         user.setStudentClass(studentClass);

@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -28,8 +27,32 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ children }: AdminSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // State for dynamic admin details
+  const [adminName, setAdminName] = useState("Admin User")
+  
   const pathname = usePathname()
   const router = useRouter()
+
+  // Fetch admin name on component mount
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      try {
+        const token = localStorage.getItem("token")
+        // Calling the verified /me endpoint
+        const response = await fetch("http://localhost:8080/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          // Update state with the fullName from the database
+          setAdminName(data.fullName || "Admin User")
+        }
+      } catch (error) {
+        console.error("Failed to fetch admin profile for sidebar:", error)
+      }
+    }
+    fetchAdminProfile()
+  }, [])
 
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/admin/dashboard" },
@@ -43,6 +66,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
   ]
 
   const handleLogout = () => {
+    localStorage.removeItem("token")
     localStorage.removeItem("userRole")
     localStorage.removeItem("isAuthenticated")
     router.push("/login")
@@ -91,15 +115,15 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
             })}
           </nav>
 
-          {/* Admin section */}
+          {/* Dynamic Admin Profile section */}
           <div className="p-4 border-t border-border">
             <Link href="/admin/profile">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-                  A
+                  {adminName.charAt(0)} {/* Dynamic Initial */}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">Admin User</p>
+                  <p className="font-medium truncate">{adminName}</p> {/* Dynamic Name */}
                   <p className="text-xs text-muted-foreground">Super Admin</p>
                 </div>
               </div>
@@ -137,7 +161,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
               </button>
               <Link href="/admin/profile">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
-                  A
+                  {adminName.charAt(0)} {/* Dynamic Initial */}
                 </div>
               </Link>
             </div>

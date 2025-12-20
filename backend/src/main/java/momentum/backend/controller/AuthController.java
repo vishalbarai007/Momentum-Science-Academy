@@ -7,7 +7,9 @@ import momentum.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +43,7 @@ public class AuthController {
                     req.getPassword(),
                     req.getFullName(),
                     User.Role.valueOf(req.getRole().toLowerCase()),
+                    req.getPhone(),
                     req.getStudentClass(),
                     req.getProgram(),
                     req.getAccessTags(),
@@ -99,12 +102,18 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userService.findByEmail(userDetails.getUsername()));
+    }
+
     // DTOs
     public static class AuthRequest {
         private String email;
         private String password;
         private String fullName;
         private String role;
+        private String phone;
         // New Fields
         private String studentClass;
         private String program;
@@ -131,6 +140,8 @@ public class AuthController {
         public void setExpertise(List<String> expertise) { this.expertise = expertise; }
         public Integer getExperience() { return experience; }
         public void setExperience(Integer experience) { this.experience = experience; }
+        public String getPhone() { return phone; } // 2. Add getter
+        public void setPhone(String phone) { this.phone = phone; }
     }
 
     public static class AuthResponse {

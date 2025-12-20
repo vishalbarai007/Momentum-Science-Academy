@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AdminSidebar } from "@/components/shared/admin-sidebar"
@@ -10,20 +10,76 @@ import { Input } from "@/components/ui/input"
 export default function AdminProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState({
-    name: "Admin User",
-    email: "admin@momentum.edu",
-    phone: "+91 98765 00000",
-    role: "Super Admin",
-    joinDate: "January 1, 2020",
+    id: "",
+    name: "",
+    email: "",
+    phone: "",
+    role: "",
+    joinDate: "",
   })
 
-  const handleSave = () => {
-    setIsEditing(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
+  useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      
+      // FIX 1: Use the correct backend endpoint path "/api/auth/me"
+      const response = await fetch("http://localhost:8080/api/auth/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
 
+      if (response.ok) {
+        const data = await response.json()
+        
+        // FIX 2: Map backend fields (fullName) to frontend state (name)
+        setProfile({
+          id: data.id,
+          name: data.fullName, // Backend returns fullName
+          email: data.email,
+          phone: data.phone || "Not Provided",
+          role: data.role,
+          joinDate: new Date(data.createdAt).toLocaleDateString()
+        })
+      } else {
+        console.error("Failed to fetch profile: ", response.statusText)
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  fetchProfile()
+}, [])
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch(`http://localhost:8080/api/v1/admin/users/${profile.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fullName: profile.name,
+          email: profile.email,
+          phone: profile.phone
+        })
+      })
+
+      if (response.ok) {
+        setIsEditing(false)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } catch (error) {
+      alert("Failed to update profile")
+    }
+  }
+  if (isLoading) return <p>Loading...</p>
   return (
     <AdminSidebar>
       <div className="max-w-3xl">

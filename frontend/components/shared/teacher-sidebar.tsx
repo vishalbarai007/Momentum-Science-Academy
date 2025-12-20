@@ -27,7 +27,7 @@ interface TeacherSidebarProps {
 
 export function TeacherSidebar({ children }: TeacherSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  
+
   // --- Dynamic User State ---
   const [teacherName, setTeacherName] = useState("Instructor")
   const [teacherSubject, setTeacherSubject] = useState("Department")
@@ -57,17 +57,17 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
         const res = await fetch("http://localhost:8080/api/auth/me", {
           headers: { "Authorization": `Bearer ${token}` }
         })
-        
+
         if (res.ok) {
           const data = await res.json()
           setTeacherName(data.fullName || "Instructor")
-          
+
           // Use the first access tag as the main subject/department, or default to General
-          const subject = data.accessTags && data.accessTags.length > 0 
-            ? data.accessTags[0] 
+          const subject = data.accessTags && data.accessTags.length > 0
+            ? data.accessTags[0]
             : "General Faculty"
           setTeacherSubject(subject)
-          
+
           // Set Avatar Initial
           if (data.fullName) {
             setAvatar(data.fullName.charAt(0).toUpperCase())
@@ -82,10 +82,9 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
+    localStorage.removeItem("token") // Added this line
     localStorage.removeItem("userRole")
     localStorage.removeItem("isAuthenticated")
-    localStorage.removeItem("user")
     router.push("/login")
   }
 
@@ -119,11 +118,10 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
                       ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
