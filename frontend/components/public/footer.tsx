@@ -7,12 +7,9 @@ import {
   Phone,
   MapPin,
   Clock,
-  Facebook,
-  Twitter,
+  ArrowRight,
   Instagram,
   Linkedin,
-  Youtube,
-  ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 

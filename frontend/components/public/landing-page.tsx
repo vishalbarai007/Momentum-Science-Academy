@@ -37,7 +37,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* <CircleCursor /> */}
       <Navbar />
 
       {/* Hero Section */}
