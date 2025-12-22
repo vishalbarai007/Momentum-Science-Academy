@@ -229,6 +229,8 @@ export function LandingPage() {
       {/* Testimonials */}
       <section className="py-20 bg-linear-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
         <Testimonials />
+        <Testimonials />
+
       </section>
 
       {/* CTA Section */}
