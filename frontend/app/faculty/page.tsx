@@ -175,7 +175,7 @@ export default function FacultyPage() {
                       <p className="text-primary-foreground/80">{prof.subject}</p>
                     </div>
                   </div>
-                  <div className="p-6">
+                  <div className="px-6 py-0">
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Experience</span>
@@ -190,14 +190,18 @@ export default function FacultyPage() {
                         <span className="font-medium text-right max-w-[60%]">{prof.specialization}</span>
                       </div>
                       <div className="pt-3 border-t border-border flex justify-between items-center">
-                       <span className="text-muted-foreground">Students Mentored</span>
+                        <span className="text-muted-foreground">Students Mentored</span>
                         <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
                           {prof.students}
                         </span>
+
+                      </div>
+                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Toppers Mentored</span>
-                        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
-                          {prof.toppers} Top Rankers
+                        <span className="px-3 bg-primary/10 text-primary rounded-full font-bold">
+                          {prof.toppers}
                         </span>
+
                       </div>
                     </div>
                   </div>

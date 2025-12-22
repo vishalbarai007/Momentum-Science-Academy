@@ -141,7 +141,7 @@ const galleryData: GalleryItem[] = [
   },
 ]
 
-const years = ["All", "2024", "2023", "2022"]
+// const years = ["All", "2024", "2023", "2022"]
 const categories = ["All", "Events", "Achievements", "Academic", "Sports", "Infrastructure"]
 
 export default function GalleryPage() {
@@ -193,8 +193,8 @@ export default function GalleryPage() {
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             {/* Year Filter */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Year:</span>
-              <div className="flex gap-2">
+              {/* <span className="text-sm font-medium text-muted-foreground">Year:</span> */}
+              {/* <div className="flex gap-2">
                 {years.map((year) => (
                   <Button
                     key={year}
@@ -210,7 +210,7 @@ export default function GalleryPage() {
                     {year}
                   </Button>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             {/* Category Filter */}

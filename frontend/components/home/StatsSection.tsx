@@ -10,7 +10,7 @@ const StatsSection = () => {
     const stats = [
         { target: 3000, label: "Students Mentored", suffix: "+" },
         { target: 9, label: "Years of Excellence", suffix: "+" },
-        { target: 95, label: "Success Rate", suffix: "%" },
+        { target: 99.9, label: "Success Rate", suffix: "%" },
         { target: 329, label: "Best JEE AIR", suffix: "" },
     ]
 

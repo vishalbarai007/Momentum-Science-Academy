@@ -8,30 +8,39 @@ const FacultyPreview = () => {
     const faculty = [
         {
             name: "Prof. R.P. Singh",
-            subject: "Mathematics & Physics",
-            exp: "18+ years",
-            qual: "M.Sc, Ph.D in Physics (Mumbai Univ)",
-            image: "/Faculty/RP-Singh.jpeg",
+            subject: "Mathematics & physics",
+            experience: "18+ years",
+            qualifications: "M.Sc, Ph.D in Physics (Mumbai Univ)",
+            specialization: "JEE Advanced, Problem Solving",
+            toppers: 5,
+            students: "2500+",
+            image: "/Faculty/RP.png",
         },
         {
             name: "Prof. P.V. Shukla",
             subject: "Chemistry",
-            exp: "12+ years",
-            qual: "BDS (Mumbai Univ)",
-            image: "/Faculty/PV-Shukla.jpeg",
+            experience: "12+ years",
+            qualifications: "BDS (Mumbai Univ)",
+            specialization: "Oraganic Chemistry, JEE Main",
+            toppers: 8,
+            students: "5000+",
+            image: "/professional-indian-male-professor-physics.jpg",
         },
         {
             name: "Prof. Rishi Singh",
             subject: "Biology",
-            exp: "12+ years",
-            qual: "MBBS from K.E.M. Medical College, Mumbai",
-            image: "/Faculty/Rishi-Singh.jpeg",
+            experience: "12+ years",
+            qualifications: "MBBS from K.E.M. Medical College, Mumbai",
+            specialization: "NEET Biology, Genetics",
+            toppers: 6,
+            students: "3000+",
+            image: "/professional-indian-female-professor-chemistry.jpg",
         },
     ]
 
     return (
         <div>
-            <section className="py-20 bg-background">
+            {/* <section className="py-20 bg-background">
                 <div className="max-w-7xl mx-auto px-4 md:px-8">
                     <div className="text-center mb-16">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-4">
@@ -47,7 +56,7 @@ const FacultyPreview = () => {
                     <div className="grid md:grid-cols-3 gap-8 stagger-children">
                         {faculty.map((prof, i) => (
                             <Card key={i} className="group overflow-hidden border-0 shadow-lg hover-lift">
-                                <div className="relative h-64 overflow-hidden">
+                                <div className="relative h-80 overflow-hidden">
                                     <img
                                         src={prof.image || "/placeholder.svg"}
                                         alt={prof.name}
@@ -84,6 +93,65 @@ const FacultyPreview = () => {
                         </Link>
                     </div>
 
+                </div>
+            </section> */}
+
+            <section className="py-16">
+                <div className="max-w-6xl mx-auto px-4 md:px-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {faculty.map((prof, i) => (
+                            <Card
+                                key={i}
+                                className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                                style={{ animationDelay: `${i * 0.1}s` }}
+                            >
+                                <div className="relative h-64 overflow-hidden">
+                                    <img
+                                        src={prof.image || "/placeholder.svg"}
+                                        alt={prof.name}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                                    <div className="absolute bottom-4 left-4 right-4 text-white">
+                                        <h3 className="text-xl font-bold">{prof.name}</h3>
+                                        <p className="text-primary-foreground/80">{prof.subject}</p>
+                                    </div>
+                                </div>
+                                <div className="p-6">
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Experience</span>
+                                            <span className="font-medium">{prof.experience}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Qualifications</span>
+                                            <span className="font-medium text-right max-w-[60%]">{prof.qualifications}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Specialization</span>
+                                            <span className="font-medium text-right max-w-[60%]">{prof.specialization}</span>
+                                        </div>
+                                        <div className="pt-3 border-t border-border flex justify-between items-center">
+                                            <span className="text-muted-foreground">Students Mentored</span>
+                                            <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
+                                                {prof.students}
+                                            </span>
+                        
+                                        </div>
+                                         <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground">Toppers Mentored</span>
+                                            <span className="px-3 bg-primary/10 text-primary rounded-full font-bold">
+                                                {prof.toppers}
+                                            </span>
+                        
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
             </section>
         </div>

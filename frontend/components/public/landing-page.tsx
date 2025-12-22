@@ -94,8 +94,8 @@ export function LandingPage() {
               <div className="flex flex-wrap gap-6">
                 {[
                   { icon: Trophy, label: "AIR 329 JEE" },
-                  { icon: Star, label: "624/720 NEET" },
-                  { icon: Award, label: "95% Pass Rate" },
+                  { icon: Star, label: "645/720 NEET" },
+                  { icon: Award, label: "99.9% Pass Rate" },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <item.icon className="w-5 h-5 text-accent" />
@@ -124,10 +124,10 @@ export function LandingPage() {
 
                   <div className="grid grid-cols-4 gap-4">
                     {[
-                      { label: "JEE Toppers", value: "50+" },
-                      { label: "NEET Selections", value: "50+" },
-                      { label: "Board Toppers", value: "200+" },
-                      { label: "Board Toppers", value: "100+" },
+                      { label: "Board Toppers", value: "250+" },
+                      { label: "MHT-CET Toppers", value: "200+" },
+                      { label: "JEE Toppers", value: "75+" },
+                      { label: "NEET Selections", value: "75+" },
 
                     ].map((stat, i) => (
                       <div key={i} className="text-center p-3 bg-muted/50 rounded-xl">
@@ -183,7 +183,7 @@ export function LandingPage() {
                 {[
                   { title: "Expert Faculty", desc: "Engineers, PhDs, and industry experts with 15+ years experience" },
                   { title: "Small Batches", desc: "Maximum 25 students ensuring personalized attention" },
-                  { title: "Proven Results", desc: "AIR 329 JEE, 624/720 NEET, 95% pass rate" },
+                  { title: "Proven Results", desc: "AIR 329 JEE, 645/720 NEET, 99.9% pass rate" },
                   { title: "Comprehensive Resources", desc: "Notes, PYQs, mock tests, and 24/7 doubt support" },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 p-4 rounded-xl hover:bg-card transition-colors">
@@ -229,8 +229,6 @@ export function LandingPage() {
       {/* Testimonials */}
       <section className="py-20 bg-linear-to-br from-primary to-primary/90 text-primary-foreground relative overflow-hidden">
         <Testimonials />
-        <Testimonials />
-
       </section>
 
       {/* CTA Section */}
