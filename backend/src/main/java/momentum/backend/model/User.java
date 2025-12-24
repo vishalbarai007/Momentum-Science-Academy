@@ -35,6 +35,10 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date();
 
+    // --- NEW FIELD: Track Last Login for Analytics ---
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastLoginDate;
+
     // ---------- Access Control ----------
     // This allows admins to define specific tags (e.g., "11", "JEE", "Physics")
     // that this user is allowed to access.
@@ -164,6 +168,16 @@ public class User {
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
+
+    // --- New Getter/Setter for Last Login ---
+    public Date getLastLoginDate() {
+        return lastLoginDate;
+    }
+
+    public void setLastLoginDate(Date lastLoginDate) {
+        this.lastLoginDate = lastLoginDate;
+    }
+    // ----------------------------------------
 
     public Set<String> getAccessTags() {
         return accessTags;

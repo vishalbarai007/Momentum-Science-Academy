@@ -25,7 +25,6 @@ public class UserService {
                          String studentClass, String program, Set<String> accessTags,
                          List<String> expertise, Integer experience) {
 
-        // FIX: Check for null instead of .isPresent()
         if (usersRepository.findByEmail(email) != null) {
             throw new RuntimeException("Email already registered!");
         }
@@ -61,7 +60,6 @@ public class UserService {
     }
 
     public User login(String email, String rawPassword) {
-        // FIX: Direct assignment + null check
         User user = usersRepository.findByEmail(email);
 
         if (user == null) {
@@ -76,6 +74,11 @@ public class UserService {
             throw new RuntimeException("Account disabled");
         }
 
+        // --- NEW: Update Last Login Date for Analytics ---
+        user.setLastLoginDate(new Date());
+        usersRepository.save(user);
+        // -------------------------------------------------
+
         return user;
     }
 
@@ -88,10 +91,11 @@ public class UserService {
         return usersRepository.save(user);
     }
 
-    // New Update Method for Admin
+    // --- UPDATE METHOD (Includes Access Tags) ---
     public User updateUser(Long userId, String fullName, String email, String phone,
                            String newPassword, String studentClass, String program,
-                           Integer experience, List<String> expertise, List<String> qualifications) {
+                           Integer experience, List<String> expertise, List<String> qualifications,
+                           Set<String> accessTags) {
 
         User user = usersRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -121,6 +125,11 @@ public class UserService {
             if (experience != null) user.setExperience(experience);
             if (expertise != null) user.setExpertise(expertise);
             if (qualifications != null) user.setQualifications(qualifications);
+        }
+
+        // 5. Update Access Tags
+        if (accessTags != null) {
+            user.setAccessTags(accessTags);
         }
 
         return usersRepository.save(user);

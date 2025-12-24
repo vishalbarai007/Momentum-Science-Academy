@@ -1,6 +1,6 @@
 package momentum.backend.service;
 
-import momentum.backend.controller.ResourceController.ResourceUploadRequest; // Import the DTO
+import momentum.backend.controller.ResourceController.ResourceUploadRequest;
 import momentum.backend.model.Resource;
 import momentum.backend.model.User;
 import momentum.backend.repository.ResourceRepository;
@@ -50,8 +50,7 @@ public class ResourceService {
         resource.setTitle(request.getTitle());
         resource.setDescription(request.getDescription());
 
-        // Handle Enum conversion safely (assuming frontend sends valid lowercase
-        // matching enum)
+        // Handle Enum conversion safely
         if (request.getResourceType() != null) {
             resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
         }
@@ -90,45 +89,34 @@ public class ResourceService {
     }
 
     /**
-     * NEW: Updates an existing resource.
-     * Includes security check to ensure only the owner (uploader) can edit.
+     * Updates an existing resource.
      */
     public Resource updateResource(Long id, ResourceUploadRequest request, String userEmail) {
         // 1. Find existing resource
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Resource not found with ID: " + id));
 
-        // 2. Security Check: Ensure the logged-in user is the owner
-        // (You can also allow ADMIN role here if needed)
+        // 2. Security Check
         if (!resource.getUploadedBy().getEmail().equals(userEmail)) {
             throw new RuntimeException("Unauthorized: You can only edit your own resources.");
         }
 
-        // 3. Update Fields (Only if provided in request)
-        if (request.getTitle() != null)
-            resource.setTitle(request.getTitle());
-        if (request.getDescription() != null)
-            resource.setDescription(request.getDescription());
-        if (request.getSubject() != null)
-            resource.setSubject(request.getSubject());
-        if (request.getTargetClass() != null)
-            resource.setTargetClass(request.getTargetClass());
-        if (request.getExamType() != null)
-            resource.setExam(request.getExamType());
-        if (request.getFileLink() != null)
-            resource.setFileUrl(request.getFileLink());
+        // 3. Update Fields
+        if (request.getTitle() != null) resource.setTitle(request.getTitle());
+        if (request.getDescription() != null) resource.setDescription(request.getDescription());
+        if (request.getSubject() != null) resource.setSubject(request.getSubject());
+        if (request.getTargetClass() != null) resource.setTargetClass(request.getTargetClass());
+        if (request.getExamType() != null) resource.setExam(request.getExamType());
+        if (request.getFileLink() != null) resource.setFileUrl(request.getFileLink());
 
-        // Update Type (Enum conversion)
         if (request.getResourceType() != null) {
             try {
                 resource.setType(Resource.ResourceType.valueOf(request.getResourceType().toLowerCase()));
             } catch (IllegalArgumentException e) {
-                // Keep old type or throw specific error if enum is invalid
                 System.err.println("Invalid resource type: " + request.getResourceType());
             }
         }
 
-        // Update Visibility status
         if (request.getVisibility() != null) {
             resource.setIsPublished("publish".equalsIgnoreCase(request.getVisibility()));
         }
@@ -137,13 +125,22 @@ public class ResourceService {
         return resourceRepository.save(resource);
     }
 
+    // --- NEW: Track Downloads ---
+    public void incrementDownload(Long id) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+
+        // Handle null safety for existing records
+        long current = resource.getDownloads() == null ? 0L : resource.getDownloads();
+        resource.setDownloads(current + 1);
+
+        resourceRepository.save(resource);
+    }
+    // ----------------------------
+
     @Cacheable("resources")
     public List<Resource> getAllResources() {
-        List<Resource> list = resourceRepository.findAll();
-        // System.out.println(list.get(0).getExam());
-        // System.out.println(list.get(0).getTargetClass());
-        // System.out.println(list.get(0).getSubject());
-        return list;
+        return resourceRepository.findAll();
     }
 
     public List<Resource> getMyUploads(String email) {

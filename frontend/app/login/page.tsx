@@ -57,71 +57,48 @@ function LoginForm() {
 
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault()
-  if (!selectedRole) return
+    e.preventDefault()
+    if (!selectedRole) return
 
-  const data = await loginUser(credentials);
-   
-   // Save token
-   localStorage.setItem("token", data.token);
-   
-   // --- NEW: Ask for Notification Permission ---
-   if (data.role === 'admin') {
-      // Trigger the subscription function we created in Step 2
-      subscribeToPushNotifications(data.token); 
-   }
-   // -------------------------------------------
+    setIsLoading(true)
+    setError("")
 
-   router.push('/admin/dashboard');
+    try {
+      // 1. Use the API helper with the correct state variable (formData)
+      const data = await loginUser(formData)
 
+      // 2. Save Session Data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("email", data.email)
+      localStorage.setItem("role", data.role)
+      localStorage.setItem("isAuthenticated", "true")
 
+      // 3. Subscribe to Notifications (Safe execution)
+      try {
+        // You can enable this for all roles or just specific ones
+        await subscribeToPushNotifications(data.token)
+      } catch (subError) {
+        console.warn("Notification subscription failed/skipped:", subError)
+        // We don't block login if notifications fail
+      }
 
+      // 4. Redirect based on the returned role
+      const roleConfig = roles.find((r) => r.id === data.role)
+      
+      if (roleConfig) {
+        router.push(roleConfig.redirect)
+      } else {
+        // Fallback if role doesn't match frontend config
+        router.push("/dashboard")
+      }
 
-  setIsLoading(true)
-  setError("")
-
-  try {
-    const response = await fetch("http://localhost:8080/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    })
-
-    if (!response.ok) {
-      const msg = await response.text()
-      setError(msg || "Invalid credentials")
+    } catch (err: any) {
+      console.error("Login error:", err)
+      setError(err.message || "Invalid credentials. Please try again.")
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    const data = await response.json() // { token, email, role }
-
-    // Save token and data
-    localStorage.setItem("token", data.token)
-    localStorage.setItem("email", data.email)
-    localStorage.setItem("role", data.role)
-    localStorage.setItem("isAuthenticated", "true")
-
-    // Redirect based on backend role
-    const role = roles.find((r) => r.id === data.role)
-    if (role) {
-      router.push(role.redirect)
-    } else {
-      setError("Invalid role returned from server")
-    }
-
-  } catch (err) {
-    setError("Something went wrong. Try again.")
   }
-
-  setIsLoading(false)
-}
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4 relative overflow-hidden">

@@ -2,7 +2,6 @@ package momentum.backend.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
-// Removed: import lombok.*;
 
 @Entity
 @Table(name = "resources")
@@ -25,7 +24,7 @@ public class Resource {
     @Column(nullable = false)
     private String subject;
 
-    @Column(name = "target_class") // "class" is a reserved keyword in Java
+    @Column(name = "target_class")
     private int targetClass; // e.g., "11", "12"
 
     private String exam; // e.g., "JEE", "NEET"
@@ -36,11 +35,16 @@ public class Resource {
     @JoinColumn(name = "uploaded_by_id", nullable = false)
     private User uploadedBy;
 
+    // --- Analytics Fields (Updated with DB Defaults) ---
+    @Column(columnDefinition = "bigint default 0")
     private Long downloads = 0L;
 
+    @Column(columnDefinition = "bigint default 0")
     private Long views = 0L;
 
+    @Column(columnDefinition = "double default 0.0")
     private Double rating = 0.0;
+    // ----------------------------------------------------
 
     private Boolean isPublished;
 
@@ -51,14 +55,12 @@ public class Resource {
     private Date updatedAt;
 
     // -----------------------------------------------------------------
-    // Constructors (Replacing @NoArgsConstructor and @AllArgsConstructor)
+    // Constructors
     // -----------------------------------------------------------------
 
-    // No-Argument Constructor
     public Resource() {
     }
 
-    // All-Argument Constructor (for completeness, though often not used)
     public Resource(Long id, String title, String description, ResourceType type, String subject, int targetClass, String exam, String fileUrl, User uploadedBy, Long downloads, Long views, Double rating, Boolean isPublished, Date createdAt, Date updatedAt) {
         this.id = id;
         this.title = title;
@@ -78,132 +80,53 @@ public class Resource {
     }
 
     // -----------------------------------------------------------------
-    // Getters and Setters (Replacing @Data)
+    // Getters and Setters
     // -----------------------------------------------------------------
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public ResourceType getType() { return type; }
+    public void setType(ResourceType type) { this.type = type; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getSubject() { return subject; }
+    public void setSubject(String subject) { this.subject = subject; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public int getTargetClass() { return targetClass; }
+    public void setTargetClass(int targetClass) { this.targetClass = targetClass; }
 
-    public ResourceType getType() {
-        return type;
-    }
+    public String getExam() { return exam; }
+    public void setExam(String exam) { this.exam = exam; }
 
-    public void setType(ResourceType type) {
-        this.type = type;
-    }
+    public String getFileUrl() { return fileUrl; }
+    public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
 
-    public String getSubject() {
-        return subject;
-    }
+    public User getUploadedBy() { return uploadedBy; }
+    public void setUploadedBy(User uploadedBy) { this.uploadedBy = uploadedBy; }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
+    public Long getDownloads() { return downloads; }
+    public void setDownloads(Long downloads) { this.downloads = downloads; }
 
-    public int getTargetClass() {
-        return targetClass;
-    }
+    public Long getViews() { return views; }
+    public void setViews(Long views) { this.views = views; }
 
-    public void setTargetClass(int targetClass) {
-        this.targetClass = targetClass;
-    }
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
 
-    public String getExam() {
-        return exam;
-    }
+    public Boolean getIsPublished() { return isPublished; }
+    public void setIsPublished(Boolean isPublished) { this.isPublished = isPublished; }
 
-    public void setExam(String exam) {
-        this.exam = exam;
-    }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
-    }
-
-    public User getUploadedBy() {
-        return uploadedBy;
-    }
-
-    public void setUploadedBy(User uploadedBy) {
-        this.uploadedBy = uploadedBy;
-    }
-
-    public Long getDownloads() {
-        return downloads;
-    }
-
-    public void setDownloads(Long downloads) {
-        this.downloads = downloads;
-    }
-
-    public Long getViews() {
-        return views;
-    }
-
-    public void setViews(Long views) {
-        this.views = views;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    public Boolean getIsPublished() {
-        return isPublished;
-    }
-
-    public void setIsPublished(Boolean isPublished) {
-        this.isPublished = isPublished;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    // -----------------------------------------------------------------
-    // Entity Lifecycle Methods and Enum
-    // -----------------------------------------------------------------
+    public Date getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 
     @PreUpdate
     protected void onUpdate() {

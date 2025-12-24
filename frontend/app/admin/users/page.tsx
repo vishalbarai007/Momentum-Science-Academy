@@ -5,17 +5,13 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AdminSidebar } from "@/components/shared/admin-sidebar"
 import { Input } from "@/components/ui/input"
-import { UserPlus, Search, Edit, Trash2, Eye, CheckCircle, GraduationCap, Users, Shield, Loader2, Tag, ChevronDown, ChevronUp, Save, Lock, Mail } from "lucide-react"
+import { UserPlus, Search, Edit, Trash2, Eye, CheckCircle, GraduationCap, Users, Shield, Loader2, Save, Lock, Mail } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Types matching Backend User
 interface User {
@@ -24,23 +20,13 @@ interface User {
   email: string
   phone: string
   role: string
-  // Student fields
   studentClass?: string
   program?: string
-  // Teacher fields
   expertise?: string[]
   experience?: number
   qualifications?: string[]
-  // Access Control
   accessTags?: string[] 
   status?: string
-}
-
-// Configuration for Access Tags
-const ACCESS_CATEGORIES = {
-  "Classes": ["9", "10", "11", "12"],
-  "Exams": ["JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation"],
-  "Subjects": ["Mathematics", "Physics", "Chemistry", "Biology"]
 }
 
 export default function AdminUsersPage() {
@@ -61,27 +47,20 @@ export default function AdminUsersPage() {
   
   // Form States
   const [formData, setFormData] = useState({
-    fullName: "", 
-    email: "", 
-    phone: "", 
-    password: "", 
-    studentClass: "", 
-    program: "", 
-    experience: "", 
-    expertise: "",
-    qualifications: "",
-    accessTags: [] as string[]
+    fullName: "", email: "", phone: "", password: "", 
+    studentClass: "", program: "", experience: "", 
+    expertise: "", qualifications: "", accessTags: [] as string[]
   })
+
+  // Advanced Student Form State
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   
   // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false) // NEW: State for delete loading
-
-  // Access Management State
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
   const [loadingAccess, setLoadingAccess] = useState(false)
   const [savingAccess, setSavingAccess] = useState(false)
-  const [resourceSearch, setResourceSearch] = useState("") 
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   useEffect(() => {
     fetchUsers()
@@ -89,31 +68,72 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      // 1. Trigger both fetch requests in parallel
       const [studentsRes, teachersRes] = await Promise.all([
         fetch("http://localhost:8080/api/auth/students"),
         fetch("http://localhost:8080/api/auth/teachers")
       ])
 
-      // 2. Handle Students Response
-      if (studentsRes.ok) {
-        const studentsData = await studentsRes.json()
-        setStudents(studentsData)
-      } else {
-        console.error("Failed to fetch students")
-      }
-
-      // 3. Handle Teachers Response
-      if (teachersRes.ok) {
-        const teachersData = await teachersRes.json()
-        setTeachers(teachersData)
-      } else {
-        console.error("Failed to fetch teachers")
-      }
+      if (studentsRes.ok) setStudents(await studentsRes.json())
+      if (teachersRes.ok) setTeachers(await teachersRes.json())
 
     } catch (error) {
       console.error("Error fetching users:", error)
     }
+  }
+
+  // --- LOGIC: Auto-calculate Access Tags ---
+  const calculateAccessTags = (cls: string, prog: string, subs: string[]) => {
+    const tags = new Set<string>()
+    
+    // Class Tags
+    if (cls === "11 & 12") {
+        tags.add("11"); tags.add("12");
+    } else if (cls) {
+        tags.add(cls);
+    }
+
+    // Program Tags
+    if (["9", "10"].includes(cls)) {
+        tags.add("Foundation"); 
+    } else if (prog) {
+        tags.add(prog);
+        if (prog === "JEE") { tags.add("JEE Main"); tags.add("JEE Advanced"); }
+    }
+
+    // Subject Tags
+    subs.forEach(s => tags.add(s));
+
+    return Array.from(tags);
+  }
+
+  const handleClassChange = (val: string) => {
+    setFormData(prev => ({ ...prev, studentClass: val, program: "" }))
+    setSelectedSubjects([])
+  }
+
+  const handleProgramChange = (val: string) => {
+    setFormData(prev => ({ ...prev, program: val }))
+    
+    // Auto-select subjects based on Exam
+    if (val === "JEE") {
+        setSelectedSubjects(["Physics", "Chemistry", "Mathematics"])
+    } else if (val === "NEET") {
+        setSelectedSubjects(["Physics", "Chemistry", "Biology"])
+    } else {
+        // Reset for manual selection (MHT-CET / Board)
+        // For Board, we might want to default to English + PCMB to save clicks
+        if (val === "Board") {
+            setSelectedSubjects(["English", "Physics", "Chemistry", "Mathematics", "Biology"])
+        } else {
+            setSelectedSubjects([]) 
+        }
+    }
+  }
+
+  const toggleSubject = (subject: string) => {
+    setSelectedSubjects(prev => 
+        prev.includes(subject) ? prev.filter(s => s !== subject) : [...prev, subject]
+    )
   }
 
   // --- 2. Add User Logic ---
@@ -121,12 +141,9 @@ export default function AdminUsersPage() {
     setIsSubmitting(true)
     try {
       const role = activeTab === "students" ? "student" : "teacher"
-      
-      // Determine Access Tags
       let finalTags: string[] = [...formData.accessTags]
-      if (role === "student" && finalTags.length === 0) {
-        if (formData.studentClass) finalTags.push(formData.studentClass)
-        if (formData.program) finalTags.push(formData.program)
+      if (role === "student") {
+         finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
       }
 
       const payload = {
@@ -137,7 +154,7 @@ export default function AdminUsersPage() {
         phone: formData.phone,
         ...(role === "student" ? {
           studentClass: formData.studentClass,
-          program: formData.program,
+          program: formData.program || "Foundation",
           accessTags: finalTags
         } : {
           experience: parseInt(formData.experience) || 0,
@@ -183,6 +200,16 @@ export default function AdminUsersPage() {
       qualifications: user.qualifications?.[0] || "",
       accessTags: user.accessTags || []
     })
+
+    // Populate Subjects from tags
+    if (user.role === 'student' && user.accessTags) {
+        // Filter out class/exam tags to get just subjects
+        const subjects = user.accessTags.filter(t => 
+            !["9", "10", "11", "12", "JEE", "NEET", "MHT-CET", "Board", "Foundation", "JEE Main", "JEE Advanced"].includes(t)
+        )
+        setSelectedSubjects(subjects)
+    }
+
     setEditModal({ open: true, user })
   }
 
@@ -191,16 +218,20 @@ export default function AdminUsersPage() {
     setIsSubmitting(true)
     try {
         const role = editModal.user.role 
-        
+        let finalTags = editModal.user.accessTags
+        if (role === "student") {
+            finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
+        }
+
         const payload = {
             fullName: formData.fullName,
             email: formData.email, 
             phone: formData.phone,
             password: formData.password || null, 
-            
             ...(role === "student" ? {
                 studentClass: formData.studentClass,
                 program: formData.program,
+                accessTags: finalTags 
             } : {
                 experience: parseInt(formData.experience) || 0,
                 expertise: formData.expertise ? [formData.expertise] : [],
@@ -235,7 +266,6 @@ export default function AdminUsersPage() {
     }
   }
 
-  // --- 4. Delete User Logic (IMPLEMENTED) ---
   const confirmDelete = async () => {
     if (!deleteModal.userId) return
     setIsDeleting(true)
@@ -250,14 +280,12 @@ export default function AdminUsersPage() {
         setSuccessMessage("User deleted successfully!")
         setTimeout(() => setSuccessMessage(""), 3000)
         setDeleteModal({ open: false, userId: null })
-        // Refresh the list to remove the deleted user
         fetchUsers()
       } else {
-        alert("Failed to delete user. Please try again.")
+        alert("Failed to delete user.")
       }
     } catch (err) {
       console.error(err)
-      alert("An error occurred while deleting the user.")
     } finally {
       setIsDeleting(false)
     }
@@ -269,18 +297,10 @@ export default function AdminUsersPage() {
       studentClass: "", program: "", experience: "", 
       expertise: "", qualifications: "", accessTags: [] 
     })
+    setSelectedSubjects([])
   }
 
-  const toggleFormTag = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      accessTags: prev.accessTags.includes(tag) 
-        ? prev.accessTags.filter(t => t !== tag) 
-        : [...prev.accessTags, tag]
-    }))
-  }
-
-  // --- 5. Manage Access Logic ---
+  // --- 5. Manage Access Logic (Direct Tag Manipulation) ---
   const handleManageAccess = async (user: User) => {
     setAccessModal({ open: true, user })
     setLoadingAccess(true)
@@ -333,16 +353,120 @@ export default function AdminUsersPage() {
     }
   }
 
-  // Filter Logic
   const currentList = activeTab === "students" ? students : teachers
   const filteredList = currentList.filter(user => 
     user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  // --- UI HELPER: Student Form Content ---
+  const renderStudentForm = () => {
+    const isHigherClass = ["11", "12", "11 & 12"].includes(formData.studentClass)
+    const showSubjects = isHigherClass && formData.program
+    
+    // Define available subjects based on exam/board
+    // Scraped data for Maharashtra Board includes specific languages and vocational subjects
+    let availableSubjects: string[] = []
+
+    if (formData.program === "JEE") {
+        availableSubjects = ["Physics", "Chemistry", "Mathematics"]
+    } else if (formData.program === "NEET") {
+        availableSubjects = ["Physics", "Chemistry", "Biology"]
+    } else if (formData.program === "MHT-CET") {
+        availableSubjects = ["Physics", "Chemistry", "Mathematics", "Biology"]
+    } else if (formData.program === "Board") {
+        availableSubjects = [
+            "English", "Hindi", "Marathi", "Physics", "Chemistry", "Mathematics", "Biology", 
+            "Geography", "Information Technology", "Computer Science", "Electronics", 
+            "Environmental Science", "Psychology"
+        ]
+    }
+
+    const isAutoLocked = formData.program === "JEE" || formData.program === "NEET"
+
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Class / Grade</Label>
+                    <Select value={formData.studentClass} onValueChange={handleClassChange}>
+                        <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="9">Class 9 (Foundation)</SelectItem>
+                            <SelectItem value="10">Class 10 (Foundation)</SelectItem>
+                            <SelectItem value="11">Class 11</SelectItem>
+                            <SelectItem value="12">Class 12</SelectItem>
+                            <SelectItem value="11 & 12">Class 11 & 12 (Integrated)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {isHigherClass && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <Label>Target Exam / Stream</Label>
+                        <Select value={formData.program} onValueChange={handleProgramChange}>
+                            <SelectTrigger><SelectValue placeholder="Select Exam" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="JEE">JEE (Mains & Adv)</SelectItem>
+                                <SelectItem value="NEET">NEET (Medical)</SelectItem>
+                                <SelectItem value="MHT-CET">MHT-CET (Engg/Pharm)</SelectItem>
+                                <SelectItem value="Board">Board / HSC (General Science)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+            </div>
+
+            {/* Subject Selection (Only for 11/12) */}
+            {showSubjects && (
+                <div className="space-y-2 p-3 bg-muted/30 rounded-lg animate-in fade-in">
+                    <div className="flex justify-between items-center mb-2">
+                        <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                            {formData.program} Subjects 
+                            {isAutoLocked && " (Fixed)"}
+                        </Label>
+                        {!isAutoLocked && (
+                            <span className="text-[10px] text-muted-foreground">Select all that apply</span>
+                        )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                        {availableSubjects.map(sub => (
+                            <div 
+                                key={sub}
+                                onClick={() => {
+                                    if (isAutoLocked) return;
+                                    toggleSubject(sub)
+                                }}
+                                className={`
+                                    flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-all
+                                    ${selectedSubjects.includes(sub) ? 'bg-primary/10 border-primary text-primary font-medium' : 'bg-background border-input hover:bg-muted cursor-pointer'}
+                                    ${isAutoLocked ? 'opacity-80 cursor-not-allowed' : ''}
+                                `}
+                            >
+                                <Checkbox 
+                                    checked={selectedSubjects.includes(sub)} 
+                                    disabled={isAutoLocked}
+                                    className="pointer-events-none"
+                                />
+                                {sub}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Preview Generated Tags */}
+            <div className="text-xs text-muted-foreground pt-2">
+                <span className="font-semibold">Generated Permissions: </span> 
+                {calculateAccessTags(formData.studentClass, formData.program, selectedSubjects).join(", ") || "No permissions generated yet."}
+            </div>
+        </div>
+    )
+  }
+
   return (
     <AdminSidebar>
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
@@ -427,7 +551,7 @@ export default function AdminUsersPage() {
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       {activeTab === "students" && (
-                        <Button size="sm" variant="outline" onClick={() => handleManageAccess(user)} className="text-blue-600 border-blue-200 hover:bg-blue-50 h-8 px-2">
+                        <Button size="sm" variant="outline" onClick={() => handleManageAccess(user)} className="text-blue-600 border-blue-200 hover:bg-blue-50 h-8 px-2" title="Manage Specific Permissions">
                             <Shield className="w-4 h-4" />
                         </Button>
                       )}
@@ -449,9 +573,7 @@ export default function AdminUsersPage() {
         </div>
       </Card>
 
-      {/* --- MODALS --- */}
-
-      {/* 1. Add User Modal */}
+      {/* --- ADD MODAL --- */}
       <Dialog open={addModal} onOpenChange={setAddModal}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -460,100 +582,35 @@ export default function AdminUsersPage() {
             <div className="space-y-4 py-2">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="text-sm font-medium">Full Name</label>
+                    <Label>Full Name</Label>
                     <Input placeholder="John Doe" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Email</label>
+                    <Label>Email</Label>
                     <Input placeholder="john@example.com" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Phone</label>
+                    <Label>Phone</Label>
                     <Input placeholder="+91 9876543210" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                   </div>
                   <div className="col-span-2">
-                    <label className="text-sm font-medium">Temporary Password</label>
+                    <Label>Temporary Password</Label>
                     <Input placeholder="SecurePassword123" type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                   </div>
                 </div>
                 
-                {activeTab === "students" ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">Class</label>
-                            <select 
-                              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                              value={formData.studentClass} 
-                              onChange={e => setFormData({...formData, studentClass: e.target.value})}
-                            >
-                                <option value="">Select Class</option>
-                                <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium">Program</label>
-                            <select 
-                              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm" 
-                              value={formData.program} 
-                              onChange={e => setFormData({...formData, program: e.target.value})}
-                            >
-                                <option value="">Select Program</option>
-                                <option value="JEE">JEE</option><option value="NEET">NEET</option><option value="MHT-CET">MHT-CET</option><option value="Foundation">Foundation</option>
-                            </select>
-                          </div>
-                      </div>
-
-                      <div className="border rounded-md p-3 bg-muted/20">
-                        <Accordion type="single" collapsible>
-                          <AccordionItem value="item-1" className="border-b-0">
-                            <AccordionTrigger className="py-2 hover:no-underline">
-                              <span className="text-sm font-medium flex items-center gap-2">
-                                <Shield className="w-4 h-4 text-emerald-600" />
-                                Initial Access Permissions
-                                <Badge variant="secondary" className="ml-2">{formData.accessTags.length} selected</Badge>
-                              </span>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="space-y-4 pt-2">
-                                {Object.entries(ACCESS_CATEGORIES).map(([category, tags]) => (
-                                    <div key={category} className="space-y-2">
-                                        <h4 className="text-xs font-bold uppercase text-muted-foreground">{category}</h4>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {tags.map((tag) => (
-                                                <div 
-                                                    key={tag}
-                                                    onClick={() => toggleFormTag(tag)}
-                                                    className={`
-                                                        flex items-center space-x-2 p-1.5 rounded border cursor-pointer text-xs transition-all
-                                                        ${formData.accessTags.includes(tag) ? 'bg-primary/10 border-primary text-primary font-medium' : 'bg-background hover:bg-muted border-input'}
-                                                    `}
-                                                >
-                                                    <Checkbox checked={formData.accessTags.includes(tag)} className="h-3 w-3" />
-                                                    <span>{tag}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      </div>
-                    </>
-                ) : (
+                {activeTab === "students" ? renderStudentForm() : (
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium">Experience (Years)</label>
+                          <Label>Experience (Years)</Label>
                           <Input placeholder="e.g. 5" value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Subject/Expertise</label>
+                          <Label>Subject/Expertise</Label>
                           <Input placeholder="Mathematics" value={formData.expertise} onChange={e => setFormData({...formData, expertise: e.target.value})} />
                         </div>
                         <div className="col-span-2">
-                          <label className="text-sm font-medium">Qualifications</label>
+                          <Label>Qualifications</Label>
                           <Input placeholder="M.Sc Physics, B.Ed" value={formData.qualifications} onChange={e => setFormData({...formData, qualifications: e.target.value})} />
                         </div>
                     </div>
@@ -566,33 +623,31 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 2. Edit User Modal */}
+      {/* --- EDIT MODAL --- */}
       <Dialog open={editModal.open} onOpenChange={(open) => setEditModal({ ...editModal, open })}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit User: {editModal.user?.fullName}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-                
-                {/* Personal Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="text-sm font-medium">Full Name</label>
+                    <Label>Full Name</Label>
                     <Input value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-2"><Mail className="w-3 h-3" /> Email</label>
+                    <Label className="flex items-center gap-2"><Mail className="w-3 h-3" /> Email</Label>
                     <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Phone</label>
+                    <Label>Phone</Label>
                     <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                   </div>
                 </div>
 
                 {/* Password Section */}
                 <div className="p-3 border rounded-md bg-muted/20">
-                    <label className="text-sm font-medium flex items-center gap-2 mb-2">
+                    <Label className="flex items-center gap-2 mb-2">
                         <Lock className="w-3 h-3" /> Change Password
-                    </label>
+                    </Label>
                     <Input 
                         type="password" 
                         placeholder="Enter new password to reset..." 
@@ -603,33 +658,18 @@ export default function AdminUsersPage() {
                     <p className="text-[10px] text-muted-foreground mt-1 ml-1">Leave blank to keep current password.</p>
                 </div>
                 
-                {editModal.user?.role === "student" ? (
+                {editModal.user?.role === "student" ? renderStudentForm() : (
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium">Class</label>
-                          <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.studentClass} onChange={e => setFormData({...formData, studentClass: e.target.value})}>
-                              <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Program</label>
-                          <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.program} onChange={e => setFormData({...formData, program: e.target.value})}>
-                              <option value="JEE">JEE</option><option value="NEET">NEET</option><option value="MHT-CET">MHT-CET</option><option value="Foundation">Foundation</option>
-                          </select>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium">Experience (Years)</label>
+                          <Label>Experience (Years)</Label>
                           <Input value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
                         </div>
                         <div>
-                          <label className="text-sm font-medium">Subject</label>
+                          <Label>Subject</Label>
                           <Input value={formData.expertise} onChange={e => setFormData({...formData, expertise: e.target.value})} />
                         </div>
                         <div className="col-span-2">
-                          <label className="text-sm font-medium">Qualifications</label>
+                          <Label>Qualifications</Label>
                           <Input value={formData.qualifications} onChange={e => setFormData({...formData, qualifications: e.target.value})} />
                         </div>
                     </div>
@@ -642,7 +682,7 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 3. View User Modal */}
+      {/* --- VIEW MODAL --- */}
       <Dialog open={viewModal.open} onOpenChange={(open) => setViewModal({ open, user: null })}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -715,7 +755,7 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 4. Delete User Modal */}
+      {/* --- DELETE MODAL --- */}
       <Dialog open={deleteModal.open} onOpenChange={(open) => setDeleteModal({ open, userId: null })}>
         <DialogContent>
           <DialogHeader>
@@ -740,7 +780,7 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 5. Access Management Modal */}
+      {/* --- MANAGE ACCESS MODAL (Manual Override) --- */}
       <Dialog open={accessModal.open} onOpenChange={(open) => setAccessModal({ ...accessModal, open })}>
         <DialogContent className="max-w-xl">
             <DialogHeader>
@@ -757,29 +797,30 @@ export default function AdminUsersPage() {
             ) : (
                 <ScrollArea className="max-h-[60vh] pr-4">
                     <div className="space-y-6">
-                        {Object.entries(ACCESS_CATEGORIES).map(([category, tags]) => (
-                            <div key={category} className="space-y-2">
-                                <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">{category}</h3>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {tags.map((tag) => {
-                                        const isSelected = selectedTags.includes(tag)
-                                        return (
-                                            <div 
-                                                key={tag}
-                                                onClick={() => toggleTagAccess(tag)}
-                                                className={`
-                                                    flex items-center space-x-2 p-2 rounded-md border cursor-pointer text-sm transition-all
-                                                    ${isSelected ? 'bg-primary/10 border-primary text-primary font-medium' : 'hover:bg-muted border-border'}
-                                                `}
-                                            >
-                                                <Checkbox checked={isSelected} className="pointer-events-none" />
-                                                <span>{tag}</span>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                            Note: These settings override the automated permissions. Use only for exceptions.
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Manual Selection</h3>
+                            <div className="grid grid-cols-3 gap-2">
+                                {["9", "10", "11", "12", "JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation", "Board", "Physics", "Chemistry", "Mathematics", "Biology", "English", "Hindi", "Marathi", "Geography", "Information Technology", "Computer Science", "Electronics"].map((tag) => {
+                                    const isSelected = selectedTags.includes(tag)
+                                    return (
+                                        <div 
+                                            key={tag}
+                                            onClick={() => toggleTagAccess(tag)}
+                                            className={`
+                                                flex items-center space-x-2 p-2 rounded-md border cursor-pointer text-sm transition-all
+                                                ${isSelected ? 'bg-primary/10 border-primary text-primary font-medium' : 'hover:bg-muted border-border'}
+                                            `}
+                                        >
+                                            <Checkbox checked={isSelected} className="pointer-events-none" />
+                                            <span>{tag}</span>
+                                        </div>
+                                    )
+                                })}
                             </div>
-                        ))}
+                        </div>
                     </div>
                 </ScrollArea>
             )}

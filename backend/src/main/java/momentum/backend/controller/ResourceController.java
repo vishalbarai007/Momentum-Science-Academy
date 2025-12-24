@@ -64,7 +64,21 @@ public class ResourceController {
     }
 
     // ==========================================
-    // 3. GET ALL (Filtered by Role & Tags)
+    // 3. TRACK DOWNLOAD (NEW ENDPOINT)
+    // ==========================================
+    @PostMapping("/{id}/track-download")
+    public ResponseEntity<?> trackDownload(@PathVariable Long id) {
+        try {
+            // Calls the service method to increment the counter
+            resourceService.incrementDownload(id);
+            return ResponseEntity.ok().body("{\"success\": true}");
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ==========================================
+    // 4. GET ALL (Filtered by Role & Tags)
     // ==========================================
     @GetMapping
     public ResponseEntity<List<ResourceResponseDTO>> getAllResources() {
@@ -106,7 +120,7 @@ public class ResourceController {
     }
 
     // ==========================================
-    // 4. GET STUDENT ASSIGNMENTS (Filtered)
+    // 5. GET STUDENT ASSIGNMENTS (Filtered)
     // ==========================================
     @GetMapping("/assignments")
     public ResponseEntity<List<ResourceResponseDTO>> getStudentAssignments() {
@@ -140,7 +154,7 @@ public class ResourceController {
     }
 
     // ==========================================
-    // 5. GET MY UPLOADS
+    // 6. GET MY UPLOADS
     // ==========================================
     @GetMapping("/my-uploads")
     public ResponseEntity<List<ResourceResponseDTO>> getMyUploads() {
@@ -155,7 +169,7 @@ public class ResourceController {
     }
 
     // ==========================================
-    // 6. DELETE
+    // 7. DELETE
     // ==========================================
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteResource(@PathVariable Long id) {

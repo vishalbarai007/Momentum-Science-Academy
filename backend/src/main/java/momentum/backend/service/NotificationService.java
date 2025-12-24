@@ -7,10 +7,12 @@ import momentum.backend.model.User;
 import momentum.backend.repository.NotificationRepository;
 import momentum.backend.repository.PushSubscriptionRepository;
 import nl.martijndwars.webpush.PushService;
+import org.bouncycastle.jce.provider.BouncyCastleProvider; // Import Bouncy Castle
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.security.Security; // Import Security
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,11 @@ public class NotificationService {
 
     @PostConstruct
     public void init() throws Exception {
+        // Fix: Register Bouncy Castle Provider explicitly
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+
         if (publicKey != null && !publicKey.isEmpty()) {
             this.pushService = new PushService(publicKey, privateKey, subject);
         }
@@ -57,7 +64,7 @@ public class NotificationService {
                 payload.put("body", message);
                 payload.put("url", url);
 
-                // ✅ FIX: Use fully qualified name to avoid conflict with model.Notification
+                // Send push notification
                 nl.martijndwars.webpush.Notification push = new nl.martijndwars.webpush.Notification(
                         sub.getEndpoint(),
                         sub.getP256dh(),

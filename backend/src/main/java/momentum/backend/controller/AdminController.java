@@ -15,15 +15,14 @@ import java.util.Set;
 public class AdminController {
 
     private final UsersRepository usersRepository;
-    private final UserService userService; // 1. Add Service Field
+    private final UserService userService;
 
-    // 2. Inject both Repository and Service in Constructor
     public AdminController(UsersRepository usersRepository, UserService userService) {
         this.usersRepository = usersRepository;
         this.userService = userService;
     }
 
-    // ---------- Access Tags Management (From previous steps) ----------
+    // ---------- Access Tags Management ----------
 
     @GetMapping("/users/{id}/access-tags")
     public ResponseEntity<Set<String>> getUserAccessTags(@PathVariable Long id) {
@@ -42,12 +41,12 @@ public class AdminController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // ---------- User Update Management (The Fix) ----------
+    // ---------- User Update Management ----------
 
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest req) {
         try {
-            // FIX: Use 'this.userService' (the instance), NOT 'UserService' (the class)
+            // Pass accessTags to the service
             User updatedUser = userService.updateUser(
                     id,
                     req.getFullName(),
@@ -58,13 +57,15 @@ public class AdminController {
                     req.getProgram(),
                     req.getExperience(),
                     req.getExpertise(),
-                    req.getQualifications()
+                    req.getQualifications(),
+                    req.getAccessTags() // <--- NEW: Passed accessTags
             );
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         if (!usersRepository.existsById(id)) {
@@ -87,6 +88,7 @@ public class AdminController {
         private Integer experience;
         private List<String> expertise;
         private List<String> qualifications;
+        private Set<String> accessTags; // <--- NEW FIELD
 
         // Getters
         public String getFullName() { return fullName; }
@@ -98,6 +100,7 @@ public class AdminController {
         public Integer getExperience() { return experience; }
         public List<String> getExpertise() { return expertise; }
         public List<String> getQualifications() { return qualifications; }
+        public Set<String> getAccessTags() { return accessTags; } // <--- NEW GETTER
 
         // Setters
         public void setFullName(String fullName) { this.fullName = fullName; }
@@ -109,5 +112,6 @@ public class AdminController {
         public void setExperience(Integer experience) { this.experience = experience; }
         public void setExpertise(List<String> expertise) { this.expertise = expertise; }
         public void setQualifications(List<String> qualifications) { this.qualifications = qualifications; }
+        public void setAccessTags(Set<String> accessTags) { this.accessTags = accessTags; } // <--- NEW SETTER
     }
 }
