@@ -45,7 +45,7 @@ export default function FacultyPage() {
       subject: "Biology",
       experience: "4+ years",
       qualifications: "MBBS from JJ Hospital, Mumbai",
-      specialization: "Trigonometry, Algebra",
+      specialization: "Human Physiology, Botany",
       toppers: 4,
       students: "800+",
       image: "/professional-indian-male-teacher-mathematics.jpg",
@@ -61,7 +61,7 @@ export default function FacultyPage() {
       image: "/professional-indian-female-teacher-biology.jpg",
     },
     {
-      name: "Jittu Kanauja",
+      name: "Prof. Jittu Kanauja",
       subject: "Physics",
       experience: "5+ years",
       qualifications: "B.Ed (Mumbai Univ)",
@@ -71,7 +71,7 @@ export default function FacultyPage() {
       image: "/professional-indian-male-professor-physics-mechani.jpg",
     },
     {
-      name: "Rahul Maurya",
+      name: "Prof. Rahul Maurya",
       subject: "Mathematics",
       experience: "12+ years",
       qualifications: "B.Tech (Mumbai Univ)",
@@ -81,17 +81,17 @@ export default function FacultyPage() {
       image: "/professional-indian-male-professor-physics-mechani.jpg",
     },
     {
-      name: "Siddhart ",
+      name: "Prof. Siddhart ",
       subject: "Chemistry",
       experience: "3+ years",
       qualifications: "B.Tech (Mumbai Univ)",
-      specialization: "Calculus, Coordinate Geometry",
+      specialization: "Organic Chemistry, Physical Chemistry",
       toppers: 5,
       students: "1500+",
       image: "/professional-indian-male-professor-physics-mechani.jpg",
     },
     {
-      name: "Rohit Gotpagar ",
+      name: "Prof. Rohit Gotpagar ",
       subject: "Chemistry",
       experience: "10+ years",
       qualifications: "M.Sc (Mumbai Univ)",
@@ -103,8 +103,8 @@ export default function FacultyPage() {
   ]
 
   const stats = [
-    { icon: GraduationCap, value: "10+", label: "Expert Faculty" },
-    { icon: Award, value: "35+", label: "Top Rankers Produced" },
+    { icon: GraduationCap, value: "20+", label: "Expert Faculty" },
+    { icon: Award, value: "500+", label: "Top Rankers Produced" },
     { icon: BookOpen, value: "10+", label: "Years Avg Experience" },
     { icon: Users, value: "5,000+", label: "Students Taught" },
   ]

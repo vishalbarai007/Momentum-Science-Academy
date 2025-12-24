@@ -10,8 +10,10 @@ import {
   ArrowRight,
   Instagram,
   Linkedin,
+  Import,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -47,8 +49,8 @@ export function Footer() {
           {/* About */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-6 h-6" />
+              <div className="relative  rounded-full flex items-center justify-center shadow-lg group-hover:shadow-2xl">
+                <Image src="/Logo/logo1.png" alt={"logo"} width={50} height={50} className=" rounded-full" />
               </div>
               <div>
                 <div className="font-bold text-lg">Momentum</div>
@@ -60,7 +62,7 @@ export function Footer() {
               and board exam success.
             </p>
             <div className="flex gap-3">
-              {[Instagram, Linkedin, ].map((Icon, i) => (
+              {[Instagram, Linkedin,].map((Icon, i) => (
                 <a
                   key={i}
                   href="#"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import { Menu, X, GraduationCap, ChevronDown } from "lucide-react"
 
 export function Navbar() {
@@ -24,7 +25,7 @@ export function Navbar() {
     { href: "/faculty", label: "Faculty" },
     { href: "/rankers", label: "Rankers" },
     { href: "/gallery", label: "Gallery" },
-    { href: "/blog", label: "Blog" },
+    // { href: "/blog", label: "Blog" },
     { href: "/contact", label: "Contact" },
   ]
 
@@ -41,11 +42,11 @@ export function Navbar() {
           <a href="/" className="flex items-center gap-3 group cursor-pointer relative">
             <div className="relative">
               {/* Animated background glow */}
-              <div className="absolute -inset-2 bg-[#0e266d] rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500 animate-pulse" />
+              {/* <div className="absolute -inset-2 bg-[#0e266d] rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-all duration-500 animate-pulse" /> */}
 
               {/* Logo container */}
-              <div className="relative w-12 h-12 bg-[#0e266d] rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <GraduationCap className="w-7 h-7 text-white" strokeWidth={2.5} />
+              <div className="relative  rounded-full flex items-center justify-center shadow-lg group-hover:shadow-2xl">
+                <Image src="/Logo/logo1.png" alt={"logo"} width={50} height={50} className=" rounded-full" /> 
               </div>
             </div>
 

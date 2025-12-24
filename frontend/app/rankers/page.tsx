@@ -156,17 +156,17 @@ export default function RankersPage() {
             {/* Stats */}
             <div className="flex items-center justify-center gap-8 mt-10">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">150+</div>
+                <div className="text-3xl font-bold text-primary">500+</div>
                 <div className="text-sm text-slate-600 mt-1">Top Rankers</div>
               </div>
               <div className="w-px h-12 bg-slate-200" />
               <div className="text-center">
-                <div className="text-3xl font-bold text-secondary">95%</div>
+                <div className="text-3xl font-bold text-secondary">99.9%</div>
                 <div className="text-sm text-slate-600 mt-1">Success Rate</div>
               </div>
               <div className="w-px h-12 bg-slate-200" />
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary">5+</div>
+                <div className="text-3xl font-bold text-primary">9+</div>
                 <div className="text-sm text-slate-600 mt-1">Years Excellence</div>
               </div>
             </div>

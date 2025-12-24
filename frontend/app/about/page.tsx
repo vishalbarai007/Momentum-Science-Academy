@@ -107,7 +107,7 @@ export default function AboutPage() {
   const stats = [
     { value: "9+", label: "Years of Excellence", icon: Award },
     { value: "3000+", label: "Students Mentored", icon: Users },
-    { value: "99.5%", label: "Success Rate", icon: TrendingUp },
+    { value: "99.9%", label: "Success Rate", icon: TrendingUp },
     { value: "20+", label: "Expert Faculty", icon: BookOpen },
   ]
 

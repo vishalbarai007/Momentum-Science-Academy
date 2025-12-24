@@ -242,7 +242,7 @@ export default function ContactPage() {
 
                       <div className="grid sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
-                          <label className="block text-sm font-semibold text-foreground">Phone Number</label>
+                          <label id="callus" className="block text-sm font-semibold text-foreground">Phone Number</label>
                           <Input
                             type="tel"
                             placeholder="+91 98237 88328"
@@ -396,12 +396,12 @@ export default function ContactPage() {
             Check out our FAQ section or schedule a free consultation call with our academic advisors.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href={"/programs/#FAQ"}>
+            <Link href={"/programs#FAQ"}>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-12 shadow-lg">
                 View FAQ
               </Button>
             </Link>
-            <Link href={"#"}>
+            <Link href={"/contact#callus"}>
             <Button variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 h-12">
               Schedule a Call
             </Button>
