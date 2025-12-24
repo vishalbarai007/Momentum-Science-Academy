@@ -13,8 +13,8 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
     // Find resources uploaded by a specific teacher
     List<Resource> findByUploadedBy(User user);
 
-    // Find resources with filters (basic example)
-    List<Resource> findByTargetClassAndSubject(String targetClass, String subject);
+    // ✅ FIXED: Changed 'String' to 'Integer' (or 'int') to match your Entity
+    List<Resource> findByTargetClassAndSubject(Integer targetClass, String subject);
 
     // Find by type
     List<Resource> findByType(Resource.ResourceType type);

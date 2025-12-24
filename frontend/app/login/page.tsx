@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { GraduationCap, User, BookOpen, Shield, Eye, EyeOff, ArrowRight, Mail, Lock, ChevronRight } from "lucide-react"
+import { loginUser, subscribeToPushNotifications } from "@/lib/api"
 
 type UserRole = "student" | "teacher" | "admin" | null
 
@@ -53,9 +54,28 @@ function LoginForm() {
     },
   ]
 
+
+
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault()
   if (!selectedRole) return
+
+  const data = await loginUser(credentials);
+   
+   // Save token
+   localStorage.setItem("token", data.token);
+   
+   // --- NEW: Ask for Notification Permission ---
+   if (data.role === 'admin') {
+      // Trigger the subscription function we created in Step 2
+      subscribeToPushNotifications(data.token); 
+   }
+   // -------------------------------------------
+
+   router.push('/admin/dashboard');
+
+
+
 
   setIsLoading(true)
   setError("")

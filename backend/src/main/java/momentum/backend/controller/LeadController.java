@@ -4,6 +4,9 @@ import momentum.backend.model.Lead;
 import momentum.backend.repository.LeadRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import momentum.backend.model.User;
+import momentum.backend.repository.UsersRepository;
+import momentum.backend.service.NotificationService;
 
 import java.util.List;
 import java.util.Map;
@@ -14,9 +17,13 @@ import java.util.Map;
 public class LeadController {
 
     private final LeadRepository leadRepository;
+    private final NotificationService notificationService; // Add this
+    private final UsersRepository usersRepository;         // Add this
 
-    public LeadController(LeadRepository leadRepository) {
+    public LeadController(LeadRepository leadRepository, NotificationService notificationService, UsersRepository usersRepository) {
         this.leadRepository = leadRepository;
+        this.notificationService = notificationService;
+        this.usersRepository = usersRepository;
     }
 
     // Public Endpoint: Submit Contact Form
@@ -26,9 +33,22 @@ public class LeadController {
         if (lead.getProgram() == null || lead.getProgram().isEmpty()) {
             lead.setProgram("General Inquiry");
         }
-        leadRepository.save(lead);
+        Lead savedLead = leadRepository.save(lead);
+
+        // --- NEW CODE: NOTIFY ADMINS ---
+        List<User> admins = usersRepository.findByRole(User.Role.admin);
+        for (User admin : admins) {
+            notificationService.sendNotification(
+                    admin,
+                    "New Inquiry from " + savedLead.getName(),
+                    "/admin/leads" // Link to redirect
+            );
+        }
+        // -------------------------------
+
         return ResponseEntity.ok(Map.of("message", "Message sent successfully"));
     }
+
 
     // Public Endpoint: Submit Enrollment
     @PostMapping("/enroll")

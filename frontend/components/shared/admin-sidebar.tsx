@@ -20,6 +20,8 @@ import {
   GraduationCap,
   Bell,
 } from "lucide-react"
+import { toast } from "sonner"
+// import { toast } from "../ui/use-toast"
 
 interface AdminSidebarProps {
   children: React.ReactNode
@@ -29,9 +31,33 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   // State for dynamic admin details
   const [adminName, setAdminName] = useState("Admin User")
-  
+
   const pathname = usePathname()
   const router = useRouter()
+
+
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    // Poll every 30 seconds for new in-app messages
+    const checkNotifications = async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8080/api/notifications/unread-count", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json(); // returns { count: 5 }
+
+      if (data.count > unreadCount) {
+        toast("You have new notifications!");
+      }
+      setUnreadCount(data.count);
+    };
+
+    const interval = setInterval(checkNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [unreadCount]);
+
+
 
   // Fetch admin name on component mount
   useEffect(() => {
@@ -102,11 +128,10 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-lg"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
@@ -155,12 +180,16 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
             </button>
 
             <div className="flex items-center gap-4 ml-auto">
-              <button className="relative p-2 rounded-lg hover:bg-muted">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              <button className="relative">
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
               <Link href="/admin/profile">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
                   {adminName.charAt(0)} {/* Dynamic Initial */}
                 </div>
               </Link>

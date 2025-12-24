@@ -77,3 +77,48 @@ export async function updateLeadStatus(id: number, status: string) {
   if (!res.ok) throw new Error("Failed to update status");
   return res.json();
 }
+
+
+// Add this to your api.ts file
+
+const PUBLIC_VAPID_KEY = "BFAV77TAOueW7pEucmzQLwMrrfKTfcjVSN4u_KVejTOHmwL7iRzb_jqPy2MF_0sZ54_q1u3MO5LRqZ5RDztEZtc"; 
+
+// Helper to convert key
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export async function subscribeToPushNotifications(token: string) {
+  if ('serviceWorker' in navigator) {
+    try {
+      const register = await navigator.serviceWorker.register('/sw.js');
+      
+      const subscription = await register.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+      });
+
+      // Send subscription to backend
+      await fetch("http://localhost:8080/api/notifications/subscribe", {
+        method: "POST",
+        body: JSON.stringify(subscription),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      console.log("Push Notification Subscribed!");
+    } catch (e) {
+      console.error("Failed to subscribe to push", e);
+    }
+  }
+}
