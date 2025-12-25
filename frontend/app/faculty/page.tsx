@@ -18,7 +18,7 @@ export default function FacultyPage() {
       specialization: "JEE Advanced, Problem Solving",
       toppers: 5,
       students: "2500+",
-      image: "/professional-indian-male-professor-mathematics.jpg",
+      image: "/Faculty/RP-Singh.jpeg",
     },
     {
       name: "Prof. P.V. Shukla",
@@ -28,7 +28,7 @@ export default function FacultyPage() {
       specialization: "Oraganic Chemistry, JEE Main",
       toppers: 8,
       students: "5000+",
-      image: "/professional-indian-male-professor-physics.jpg",
+      image: "/Faculty/PV-Shukla.jpeg",
     },
     {
       name: "Prof. Rishi Singh",
@@ -38,7 +38,7 @@ export default function FacultyPage() {
       specialization: "NEET Biology, Genetics",
       toppers: 6,
       students: "3000+",
-      image: "/professional-indian-female-professor-chemistry.jpg",
+      image: "/Faculty/Rishi-Singh.jpeg",
     },
     {
       name: "Prof. Deepak Pal",
@@ -98,7 +98,17 @@ export default function FacultyPage() {
       specialization: "Inorganic Chemistry, Physical Chemistry",
       toppers: 5,
       students: "4000+",
-      image: "/professional-indian-male-professor-physics-mechani.jpg",
+      image: "/Faculty/RohitGotpagar.jpeg",
+    },
+    {
+      name: "Prof. Tushar angre ",
+      subject: "Physics and Mathematics",
+      experience: "15+ years",
+      qualifications: "B. tech, M. tech (Mumbai Univ)",
+      specialization: "Mechanics, Thermodynamics, Calculus",
+      toppers: 5,
+      students: "3000+",
+      image: "/Faculty/TusharAngre.jpeg",
     },
   ]
 
@@ -163,7 +173,7 @@ export default function FacultyPage() {
                   className="group overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
-                  <div className="relative h-64 overflow-hidden">
+                  <div className="relative h-96 overflow-hidden">
                     <img
                       src={prof.image || "/placeholder.svg"}
                       alt={prof.name}

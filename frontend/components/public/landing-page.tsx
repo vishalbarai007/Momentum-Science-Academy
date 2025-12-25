@@ -223,6 +223,8 @@ export function LandingPage() {
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <FacultyPreview />
+
+          
         </div>
       </section>
 
