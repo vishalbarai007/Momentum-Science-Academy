@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import Image from "next/image"
 import { GraduationCap, User, BookOpen, Shield, Eye, EyeOff, ArrowRight, Mail, Lock, ChevronRight } from "lucide-react"
 import { loginUser, subscribeToPushNotifications } from "@/lib/api"
 
@@ -84,7 +85,7 @@ function LoginForm() {
 
       // 4. Redirect based on the returned role
       const roleConfig = roles.find((r) => r.id === data.role)
-      
+
       if (roleConfig) {
         router.push(roleConfig.redirect)
       } else {
@@ -112,8 +113,8 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary to-secondary text-primary-foreground rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-              <GraduationCap className="w-7 h-7" />
+            <div className="relative  rounded-full flex items-center justify-center shadow-lg group-hover:shadow-2xl">
+              <Image src="/Logo/logo1.png" alt={"logo"} width={50} height={50} className=" rounded-full" />
             </div>
             <div className="text-left">
               <div className="font-bold text-2xl tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">

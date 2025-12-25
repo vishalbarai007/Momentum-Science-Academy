@@ -115,7 +115,7 @@ export default function FacultyPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative py-20 bg-linear-to-br from-primary/10 via-background to-secondary/10 overflow-hidden">
+        <section className="relative mt-20 py-20 bg-linear-to-br from-primary/10 via-background to-secondary/10 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />

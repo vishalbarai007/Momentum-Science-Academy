@@ -3,19 +3,51 @@
 import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-// Define the shape of the API response
-interface AdminLoginResponse {
-  token: string;
-  email: string;
-  role: string;
-}
+import { useRouter } from "next/navigation";
+import { loginUser, subscribeToPushNotifications } from "@/lib/api"; // Import logic
+import { toast } from "sonner";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // 1. Login
+      const data = await loginUser({ email, password });
+
+      if (data.role !== "admin") {
+        setError("Access Denied: You are not an admin.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Store Token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userRole", data.role);
+      localStorage.setItem("isAuthenticated", "true");
+
+      // 3. Subscribe to Notifications (The critical part!)
+      await subscribeToPushNotifications(data.token);
+
+      toast.success("Welcome back, Admin!");
+      
+      // 4. Redirect
+      router.push("/admin/dashboard");
+
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center p-4">
@@ -25,7 +57,7 @@ export default function AdminLoginPage() {
           <p className="text-muted-foreground text-sm mt-2">Restricted Access - Admin Users Only</p>
         </div>
 
-        <form className="space-y-4 mb-6">
+        <form onSubmit={handleLogin} className="space-y-4 mb-6">
           <input
             type="email"
             value={email}
@@ -46,8 +78,12 @@ export default function AdminLoginPage() {
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-            Login
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
       </Card>
