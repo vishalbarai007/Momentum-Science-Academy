@@ -98,16 +98,21 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export async function subscribeToPushNotifications(token: string) {
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
     try {
-      const register = await navigator.serviceWorker.register('/sw.js');
+      // 1. Register the Service Worker
+      await navigator.serviceWorker.register('/sw.js');
       
-      const subscription = await register.pushManager.subscribe({
+      // 2. [FIX] Wait for the Service Worker to be ACTIVE
+      const registration = await navigator.serviceWorker.ready; 
+      
+      // 3. Attempt to subscribe
+      const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
       });
 
-      // Send subscription to backend
+      // 4. Send subscription to backend
       await fetch("http://localhost:8080/api/notifications/subscribe", {
         method: "POST",
         body: JSON.stringify(subscription),
@@ -116,9 +121,12 @@ export async function subscribeToPushNotifications(token: string) {
           "Authorization": `Bearer ${token}`
         }
       });
+      
       console.log("Push Notification Subscribed!");
     } catch (e) {
       console.error("Failed to subscribe to push", e);
     }
+  } else {
+    console.warn("Push notifications are not supported in this browser.");
   }
 }

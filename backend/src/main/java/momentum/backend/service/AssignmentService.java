@@ -26,11 +26,16 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final SubmissionRepository submissionRepository;
     private final UsersRepository usersRepository;
+    private final NotificationService notificationService;
 
-    public AssignmentService(AssignmentRepository assignmentRepository, SubmissionRepository submissionRepository, UsersRepository usersRepository) {
+    public AssignmentService(AssignmentRepository assignmentRepository,
+                             SubmissionRepository submissionRepository,
+                             UsersRepository usersRepository,
+                             NotificationService notificationService) {
         this.assignmentRepository = assignmentRepository;
         this.submissionRepository = submissionRepository;
         this.usersRepository = usersRepository;
+        this.notificationService = notificationService;
     }
 
     // --- 1. Create Assignment ---
@@ -46,7 +51,26 @@ public class AssignmentService {
         assignment.setTeacher(teacher);
         assignment.setCreatedAt(new Date());
 
-        return assignmentRepository.save(assignment);
+        Assignment saved = assignmentRepository.save(assignment);
+
+        // Notify Students if Published
+        if (Boolean.TRUE.equals(saved.getIsPublished())) {
+            notifyRelevantStudents(saved);
+        }
+        return saved;
+    }
+
+    private void notifyRelevantStudents(Assignment a) {
+        String target = a.getTargetClass() != null ? a.getTargetClass() : a.getTargetExam();
+        List<User> students = usersRepository.findStudentsByResourceCriteria(a.getTargetClass(), a.getTargetExam());
+
+        for (User student : students) {
+            notificationService.sendNotification(
+                    student,
+                    "New Assignment: " + a.getTitle() + " for " + a.getSubject(),
+                    "/student/assignments"
+            );
+        }
     }
 
     // --- 2. Update Assignment ---

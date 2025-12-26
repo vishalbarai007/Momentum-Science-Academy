@@ -23,12 +23,10 @@ public class AdminController {
     }
 
     // ---------- Access Tags Management ----------
-
     @GetMapping("/users/{id}/access-tags")
     public ResponseEntity<Set<String>> getUserAccessTags(@PathVariable Long id) {
         return usersRepository.findById(id)
-                .map(User::getAccessTags)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(user.getAccessTags())) // Explicitly use user object
                 .orElse(ResponseEntity.notFound().build());
     }
 

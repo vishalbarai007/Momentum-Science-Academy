@@ -18,13 +18,17 @@ public class ResourceService {
 
     private final ResourceRepository resourceRepository;
     private final UsersRepository usersRepository;
+    private final NotificationService notificationService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public ResourceService(ResourceRepository resourceRepository, UsersRepository usersRepository) {
+    public ResourceService(ResourceRepository resourceRepository,
+                           UsersRepository usersRepository,
+                           NotificationService notificationService) {
         this.resourceRepository = resourceRepository;
         this.usersRepository = usersRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -70,20 +74,18 @@ public class ResourceService {
 
         Resource savedResource = resourceRepository.save(resource);
 
-        // Convert targetClass int to String to match User accessTags
-        String classTag = String.valueOf(savedResource.getTargetClass());
-        String examTag = savedResource.getExam();
+        if (savedResource.getIsPublished()) {
+            String classTag = String.valueOf(savedResource.getTargetClass());
+            List<User> studentsToNotify = usersRepository.findStudentsByResourceCriteria(classTag, savedResource.getExam());
 
-        // Find students who have access to this class or exam
-        List<User> studentsToNotify = usersRepository.findStudentsByResourceCriteria(classTag, examTag);
-
-        // Send notification to each student
-        for (User student : studentsToNotify) {
-            messagingTemplate.convertAndSendToUser(
-                    student.getEmail(),
-                    "/queue/notifications",
-                    "New " + savedResource.getType() + " added for " + savedResource.getSubject() + " (Class " + classTag + ")"
-            );
+            for (User student : studentsToNotify) {
+                // Persistent and Push Notification
+                notificationService.sendNotification(
+                        student,
+                        "New " + savedResource.getType() + " available: " + savedResource.getTitle(),
+                        "/student/resources"
+                );
+            }
         }
         return savedResource;
     }
@@ -138,7 +140,7 @@ public class ResourceService {
     }
     // ----------------------------
 
-    @Cacheable("resources")
+//    @Cacheable("resources")
     public List<Resource> getAllResources() {
         return resourceRepository.findAll();
     }

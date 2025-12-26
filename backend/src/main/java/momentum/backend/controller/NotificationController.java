@@ -32,10 +32,14 @@ public class NotificationController {
     // 1. Subscribe Endpoint (Connects Browser to Backend)
     @PostMapping("/subscribe")
     public ResponseEntity<?> subscribe(@RequestBody PushSubscription subscription) {
-        // Get currently logged-in user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User user = usersRepository.findByEmail(email).setRole(() -> new RuntimeException("User not found"));
+
+        // FIX: Standardize how you fetch the user
+        User user = usersRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
 
         notificationService.subscribe(user, subscription.getEndpoint(), subscription.getP256dh(), subscription.getAuth());
         return ResponseEntity.ok(Map.of("message", "Subscribed to notifications"));
@@ -46,7 +50,12 @@ public class NotificationController {
     public ResponseEntity<?> getUnreadCount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User user = usersRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // FIX: Removed .orElseThrow() as it is not supported on the User object
+        User user = usersRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(404).body("User not found");
+        }
 
         List<Notification> unread = notificationRepository.findByRecipientAndIsReadFalseOrderByCreatedAtDesc(user);
         return ResponseEntity.ok(Map.of("count", unread.size()));
