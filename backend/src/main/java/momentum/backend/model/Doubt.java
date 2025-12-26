@@ -51,4 +51,8 @@ public class Doubt {
     public void setAnswer(String answer) { this.answer = answer; }
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public String getSubject() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getSubject'");
+    }
 }

@@ -20,6 +20,7 @@ import {
   FilePlus,
   FileCheck,
 } from "lucide-react"
+import { NotificationBell } from "./NotificationBell"
 
 interface TeacherSidebarProps {
   children: React.ReactNode
@@ -119,8 +120,8 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                      ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -168,10 +169,10 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
             </button>
 
             <div className="flex items-center gap-4 ml-auto">
-              <button className="relative p-2 rounded-lg hover:bg-muted">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
+              {/* <button className="relative p-2 rounded-lg hover:bg-muted"> */}
+                <NotificationBell />
+                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
+              {/* </button> */}
               <Link href="/teacher/profile">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
                   {avatar}

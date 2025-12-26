@@ -1,7 +1,11 @@
 package momentum.backend.controller;
 
 import momentum.backend.model.Assignment;
+import momentum.backend.model.User;
+import momentum.backend.repository.AssignmentRepository; // 1. Import
+import momentum.backend.repository.UsersRepository;      // 1. Import
 import momentum.backend.service.AssignmentService;
+import momentum.backend.service.NotificationService;     // 1. Import
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,8 +20,20 @@ public class AssignmentController {
 
     private final AssignmentService assignmentService;
 
-    public AssignmentController(AssignmentService assignmentService) {
+    // 2. Add Notification Dependencies
+    private final NotificationService notificationService;
+    private final UsersRepository usersRepository;
+    private final AssignmentRepository assignmentRepository;
+
+    // 3. Update Constructor
+    public AssignmentController(AssignmentService assignmentService,
+                                NotificationService notificationService,
+                                UsersRepository usersRepository,
+                                AssignmentRepository assignmentRepository) {
         this.assignmentService = assignmentService;
+        this.notificationService = notificationService;
+        this.usersRepository = usersRepository;
+        this.assignmentRepository = assignmentRepository;
     }
 
     // ==========================================
@@ -37,6 +53,27 @@ public class AssignmentController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Assignment createdAssignment = assignmentService.createAssignment(request, auth.getName());
+
+            // --- 4. NOTIFICATION LOGIC (Teacher -> Students) ---
+            try {
+                // Convert class Integer to String (e.g. 11 -> "11")
+                String targetClassStr = String.valueOf(createdAssignment.getTargetClass());
+
+                // Find all students in this class
+                List<User> students = usersRepository.findStudentsByClass(targetClassStr);
+
+                for (User student : students) {
+                    notificationService.sendNotification(
+                            student,
+                            "New Assignment: " + createdAssignment.getTitle(),
+                            "/student/assignments" // Redirect link for student
+                    );
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to send assignment notifications: " + e.getMessage());
+            }
+            // ---------------------------------------------------
+
             return ResponseEntity.ok(createdAssignment);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -73,7 +110,6 @@ public class AssignmentController {
     public ResponseEntity<?> getAssignmentSubmissions(@PathVariable Long id) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            // Service will now return the updated SubmissionDTO with ID, Grade, and Feedback
             List<SubmissionDTO> submissions = assignmentService.getSubmissionsForAssignment(id, auth.getName());
             return ResponseEntity.ok(submissions);
         } catch (RuntimeException e) {
@@ -87,7 +123,6 @@ public class AssignmentController {
 
     /**
      * 5. Get Assignments for the Logged-in Student
-     * (Filtered by Access Tags & Published Status)
      */
     @GetMapping
     public ResponseEntity<List<StudentAssignmentDTO>> getStudentAssignments() {
@@ -102,11 +137,31 @@ public class AssignmentController {
     public ResponseEntity<?> submitAssignment(@PathVariable Long id, @RequestBody SubmissionRequest req) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         assignmentService.submitAssignment(id, req.getFileUrl(), auth.getName());
+
+        // --- 5. NOTIFICATION LOGIC (Student -> Teacher) ---
+        try {
+            // Find the assignment to know WHICH teacher created it
+            Assignment assignment = assignmentRepository.findById(id).orElse(null);
+
+            if (assignment != null && assignment.getTeacher() != null) {
+                User teacher = assignment.getTeacher();
+                String studentName = auth.getName(); // Currently returns email, but sufficient for now
+
+                notificationService.sendNotification(
+                        teacher,
+                        "New Submission: " + assignment.getTitle(),
+                        "/teacher/submissions" // Redirect link for teacher
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to notify teacher of submission: " + e.getMessage());
+        }
+        // --------------------------------------------------
+
         return ResponseEntity.ok("Assignment submitted successfully");
     }
 
     // --- 7. TEACHER: Grade a specific submission ---
-    // Note: The {id} here is the SUBMISSION ID, not the Assignment ID
     @PostMapping("/submissions/{id}/grade")
     public ResponseEntity<?> gradeSubmission(@PathVariable Long id, @RequestBody GradeRequest req) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -142,11 +197,9 @@ public class AssignmentController {
     // DTOs
     // ==========================================
 
-    // --- DTO for Grading ---
     public static class GradeRequest {
         private String grade;
         private String feedback;
-
         public String getGrade() { return grade; }
         public void setGrade(String grade) { this.grade = grade; }
         public String getFeedback() { return feedback; }
@@ -158,13 +211,12 @@ public class AssignmentController {
         private String description;
         private String subject;
         private Integer targetClass;
-        private String examType;   // Maps to targetExam
+        private String examType;
         private String fileLink;
-        private String dueDate;    // YYYY-MM-DD
-        private String difficulty; // Easy, Medium, Hard
-        private String visibility; // publish, draft
+        private String dueDate;
+        private String difficulty;
+        private String visibility;
 
-        // Getters
         public String getTitle() { return title; }
         public String getDescription() { return description; }
         public String getSubject() { return subject; }
@@ -204,16 +256,15 @@ public class AssignmentController {
         }
     }
 
-    // --- UPDATED SUBMISSION DTO ---
     public static class SubmissionDTO {
-        private Long id; // Added Submission ID
+        private Long id;
         private String studentName;
         private String studentEmail;
         private String submittedAt;
         private String fileUrl;
         private String status;
-        private String grade;    // Added Grade
-        private String feedback; // Added Feedback
+        private String grade;
+        private String feedback;
 
         public SubmissionDTO(Long id, String studentName, String studentEmail, String submittedAt,
                              String fileUrl, String status, String grade, String feedback) {

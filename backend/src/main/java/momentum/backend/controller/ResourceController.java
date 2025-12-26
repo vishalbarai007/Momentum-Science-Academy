@@ -2,6 +2,8 @@ package momentum.backend.controller;
 
 import momentum.backend.model.Resource;
 import momentum.backend.model.User;
+import momentum.backend.repository.UsersRepository; // 1. Added Import
+import momentum.backend.service.NotificationService; // 1. Added Import
 import momentum.backend.service.ResourceService;
 import momentum.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +24,16 @@ public class ResourceController {
     private final ResourceService resourceService;
     private final UserService userService;
 
-    public ResourceController(ResourceService resourceService, UserService userService) {
+    // 2. Add New Dependencies
+    private final NotificationService notificationService;
+    private final UsersRepository usersRepository;
+
+    // 3. Update Constructor to include new dependencies
+    public ResourceController(ResourceService resourceService, UserService userService, NotificationService notificationService, UsersRepository usersRepository) {
         this.resourceService = resourceService;
         this.userService = userService;
+        this.notificationService = notificationService;
+        this.usersRepository = usersRepository;
     }
 
     // ==========================================
@@ -39,6 +48,28 @@ public class ResourceController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             Resource createdResource = resourceService.uploadResource(request, auth.getName());
+
+            // --- 4. START NOTIFICATION LOGIC ---
+            try {
+                // Convert class int to string (e.g. 11 -> "11")
+                String targetClassStr = String.valueOf(createdResource.getTargetClass());
+
+                // Find students in this class
+                List<User> students = usersRepository.findStudentsByClass(targetClassStr);
+
+                // Send notification to each student
+                for (User student : students) {
+                    notificationService.sendNotification(
+                            student,
+                            "New Resource: " + createdResource.getTitle(),
+                            "/student/resources" // Where the student should go when clicking
+                    );
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the upload if notifications fail
+                System.err.println("Failed to send notifications: " + e.getMessage());
+            }
+            // --- END NOTIFICATION LOGIC ---
 
             // Map Entity -> DTO (Fixes React Error)
             return ResponseEntity.status(201).body(mapToDTO(createdResource));
@@ -64,12 +95,11 @@ public class ResourceController {
     }
 
     // ==========================================
-    // 3. TRACK DOWNLOAD (NEW ENDPOINT)
+    // 3. TRACK DOWNLOAD
     // ==========================================
     @PostMapping("/{id}/track-download")
     public ResponseEntity<?> trackDownload(@PathVariable Long id) {
         try {
-            // Calls the service method to increment the counter
             resourceService.incrementDownload(id);
             return ResponseEntity.ok().body("{\"success\": true}");
         } catch (RuntimeException e) {
@@ -88,7 +118,6 @@ public class ResourceController {
         List<Resource> allResources = resourceService.getAllResources();
         List<Resource> filteredList;
 
-        // Filter Logic
         if (user != null && user.getRole() == User.Role.student) {
             Set<String> accessTags = user.getAccessTags();
 
@@ -98,9 +127,8 @@ public class ResourceController {
 
             // Student: Only show published + matching tags
             filteredList = allResources.stream()
-                    .filter(r -> Boolean.TRUE.equals(r.getIsPublished())) // Must be published
+                    .filter(r -> Boolean.TRUE.equals(r.getIsPublished()))
                     .filter(resource ->
-                            // Your Access Tag Logic
                             accessTags.contains(String.valueOf(resource.getTargetClass())) &&
                                     accessTags.contains(resource.getExam()) &&
                                     accessTags.contains(resource.getSubject())
@@ -111,7 +139,6 @@ public class ResourceController {
             filteredList = allResources;
         }
 
-        // Convert to DTOs for response
         List<ResourceResponseDTO> response = filteredList.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -133,11 +160,8 @@ public class ResourceController {
         Set<String> accessTags = student.getAccessTags();
 
         List<Resource> assignments = allResources.stream()
-                // Type Check: Must be an Assignment
                 .filter(r -> r.getType() == Resource.ResourceType.assignment)
-                // Visibility Check: Must be Published
                 .filter(r -> Boolean.TRUE.equals(r.getIsPublished()))
-                // Access Check: Must match student's tags
                 .filter(r -> accessTags != null && (
                         accessTags.contains(String.valueOf(r.getTargetClass())) &&
                                 accessTags.contains(r.getExam()) &&
@@ -145,7 +169,6 @@ public class ResourceController {
                 ))
                 .collect(Collectors.toList());
 
-        // Convert to DTOs
         List<ResourceResponseDTO> response = assignments.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -194,7 +217,6 @@ public class ResourceController {
         dto.setCreatedAt(resource.getCreatedAt());
         dto.setIsPublished(resource.getIsPublished());
 
-        // CRITICAL FIX: Extract String Name to prevent React Error
         if (resource.getUploadedBy() != null) {
             dto.setUploadedBy(resource.getUploadedBy().getFullName());
         } else {
@@ -213,7 +235,7 @@ public class ResourceController {
         private String description;
         private String resourceType;
         private String subject;
-        private Integer targetClass; // Kept as Integer per your code
+        private Integer targetClass;
         private String examType;
         private String fileLink;
         private String visibility;
@@ -236,7 +258,6 @@ public class ResourceController {
         public void setVisibility(String visibility) { this.visibility = visibility; }
     }
 
-    // The Safe Response Object
     public static class ResourceResponseDTO {
         private Long id;
         private String title;
@@ -248,7 +269,7 @@ public class ResourceController {
         private Long downloads;
         private String fileUrl;
         private Date createdAt;
-        private String uploadedBy; // String only!
+        private String uploadedBy;
         private Boolean isPublished;
 
         public Long getId() { return id; }

@@ -28,7 +28,7 @@ public class DoubtService {
         this.resourceRepository = resourceRepository;
     }
 
-    public void createDoubt(String studentEmail, String contextType, Long contextId, String question) {
+    public Doubt createDoubt(String studentEmail, String contextType, Long contextId, String question) {
         User student = usersRepository.findByEmail(studentEmail);
         User teacher = null;
         String title = "";
@@ -64,7 +64,7 @@ public class DoubtService {
         doubtRepository.save(doubt);
     }
 
-    public void replyToDoubt(Long doubtId, String answer, String teacherEmail) {
+    public Doubt replyToDoubt(Long doubtId, String answer, String teacherEmail) {
         Doubt doubt = doubtRepository.findById(doubtId)
                 .orElseThrow(() -> new RuntimeException("Doubt not found"));
 

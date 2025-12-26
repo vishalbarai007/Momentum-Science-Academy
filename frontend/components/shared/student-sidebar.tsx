@@ -10,6 +10,7 @@ import {
   BookOpen, Home, FileText, Settings, User, LogOut, Menu, X,
   GraduationCap, BarChart3, Bell, MessageSquare // Added MessageSquare
 } from "lucide-react"
+import { NotificationBell } from "./NotificationBell"
 
 interface StudentSidebarProps {
   children: React.ReactNode
@@ -166,10 +167,10 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
             </button>
 
             <div className="flex items-center gap-4 ml-auto">
-              <button className="relative p-2 rounded-lg hover:bg-muted">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
+              {/* <button className="relative p-2 rounded-lg hover:bg-muted"> */}
+                <NotificationBell />               
+                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
+              {/* </button> */}
               <Link href="/student/profile">
                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
                   {studentData?.avatar || "S"}
