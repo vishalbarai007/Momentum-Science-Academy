@@ -54,7 +54,19 @@ public class LeadController {
     @PostMapping("/enroll")
     public ResponseEntity<?> submitEnrollment(@RequestBody Lead lead) {
         lead.setSource("ENROLLMENT");
-        leadRepository.save(lead);
+        Lead savedLead = leadRepository.save(lead); // Capture saved lead
+
+        // --- ADD THIS BLOCK (Copied from contact) ---
+        List<User> admins = usersRepository.findByRole(User.Role.admin);
+        for (User admin : admins) {
+            notificationService.sendNotification(
+                    admin,
+                    "New Enrollment: " + savedLead.getName(),
+                    "/admin/leads"
+            );
+        }
+        // --------------------------------------------
+
         return ResponseEntity.ok(Map.of("message", "Enrollment request submitted successfully"));
     }
 

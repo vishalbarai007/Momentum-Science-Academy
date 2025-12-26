@@ -1,4 +1,3 @@
-// frontend/public/sw.js
 self.addEventListener('push', function(event) {
   const data = event.data.json();
   const options = {
@@ -11,14 +10,9 @@ self.addEventListener('push', function(event) {
   );
 });
 
+// Keep only one of these listeners
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url));
-});
-
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  // Open the specific URL sent from backend
   event.waitUntil(
     clients.openWindow(event.notification.data.url)
   );

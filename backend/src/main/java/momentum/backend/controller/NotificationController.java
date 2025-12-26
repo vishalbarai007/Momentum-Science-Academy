@@ -29,35 +29,47 @@ public class NotificationController {
         this.usersRepository = usersRepository;
     }
 
-    // 1. Subscribe Endpoint (Connects Browser to Backend)
+    // 1. Subscribe (Existing)
     @PostMapping("/subscribe")
     public ResponseEntity<?> subscribe(@RequestBody PushSubscription subscription) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-
-        // FIX: Standardize how you fetch the user
-        User user = usersRepository.findByEmail(email);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
+        User user = usersRepository.findByEmail(auth.getName());
+        if (user == null) throw new RuntimeException("User not found");
 
         notificationService.subscribe(user, subscription.getEndpoint(), subscription.getP256dh(), subscription.getAuth());
-        return ResponseEntity.ok(Map.of("message", "Subscribed to notifications"));
+        return ResponseEntity.ok(Map.of("message", "Subscribed"));
     }
 
-    // 2. Unread Count Endpoint (For the Bell Icon)
+    // 2. Unread Count (Existing - Keep this)
     @GetMapping("/unread-count")
     public ResponseEntity<?> getUnreadCount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-
-        // FIX: Removed .orElseThrow() as it is not supported on the User object
-        User user = usersRepository.findByEmail(email);
-        if (user == null) {
-            return ResponseEntity.status(404).body("User not found");
-        }
+        User user = usersRepository.findByEmail(auth.getName());
+        if (user == null) return ResponseEntity.status(404).body("User not found");
 
         List<Notification> unread = notificationRepository.findByRecipientAndIsReadFalseOrderByCreatedAtDesc(user);
         return ResponseEntity.ok(Map.of("count", unread.size()));
+    }
+
+    // --- NEW ENDPOINT: Get All Notifications (For the Bell Dropdown) ---
+    @GetMapping
+    public ResponseEntity<List<Notification>> getUserNotifications() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = usersRepository.findByEmail(auth.getName());
+
+        // Fetch last 20 notifications (read or unread)
+        List<Notification> notes = notificationRepository.findByRecipientOrderByCreatedAtDesc(user);
+        // Limit to 20 to prevent overload (optional logic)
+        return ResponseEntity.ok(notes);
+    }
+
+    // --- NEW ENDPOINT: Mark as Read (To clear the Red Dot) ---
+    @PutMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
+        return notificationRepository.findById(id).map(note -> {
+            note.setRead(true);
+            notificationRepository.save(note);
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 }
