@@ -61,7 +61,7 @@ public class DoubtService {
         doubt.setQuestion(question);
         doubt.setCreatedAt(new Date());
 
-        doubtRepository.save(doubt);
+        return doubtRepository.save(doubt);
     }
 
     public Doubt replyToDoubt(Long doubtId, String answer, String teacherEmail) {
@@ -73,7 +73,7 @@ public class DoubtService {
         }
 
         doubt.setAnswer(answer);
-        doubtRepository.save(doubt);
+        return doubtRepository.save(doubt);
     }
 
     public List<Doubt> getStudentDoubts(String email) {
