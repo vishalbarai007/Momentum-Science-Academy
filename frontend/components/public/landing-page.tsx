@@ -209,7 +209,7 @@ export function LandingPage() {
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-primary">500+</div>
+                    <div className="text-3xl font-bold text-primary">2000+</div>
                     <div className="text-sm text-muted-foreground">Students Ranked JEE/NEET/MHT-CET</div>
                   </div>
                 </div>
@@ -270,12 +270,12 @@ export function LandingPage() {
                 {[
                   { icon: MapPin, title: "Visit Us", desc: "Rashmi Divya Complex 6, Vasai East", link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
                   { icon: Phone, title: "Call Us", desc: "+91 98237 88328", link: "tel:+919823788328" },
-                  { icon: Mail, title: "Email Us", desc: "momentumscienceacademy@gmail.com", link: "mailto:momentumscienceacademy@gmail.com" },
+                  { icon: Mail, title: "Email Us", desc: "momentumscienceacademy", link: "mailto:momentumscienceacademy@gmail.com" },
                   { icon: Clock, title: "Timings", desc: "Mon-Sat: 9AM - 9PM", link: "#" },
                 ].map((item, i) => {
                   const Icon = item.icon
                   return (
-                    <Card key={i} className="p-4 border-0 shadow-lg hover-lift">
+                    <Card key={i} className="p-4 border-0  shadow-lg hover-lift">
                       <Link href={item.link}>
                         <Icon className="w-6 h-6 text-primary mb-2" />
                         <h4 className="font-semibold text-sm">{item.title}</h4>
