@@ -145,7 +145,6 @@ export default function ProgramsPage() {
     setIsSubmitting(true)
 
     try {
-      // 1. Submit to Database
       await submitEnrollment({
         name: formData.name,
         email: formData.email,
@@ -155,7 +154,6 @@ export default function ProgramsPage() {
         message: formData.message,
       })
 
-      // 2. Append to specific Google Sheet
       await appendLeadToSheet(formData.school, formData.name, formData.phone)
 
       setIsSubmitted(true)
@@ -175,28 +173,27 @@ export default function ProgramsPage() {
       {/* Hero Section */}
       <section className="pt-32 pb-16 bg-gradient-to-br from-primary/5 via-background to-secondary/5 relative overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center max-w-3xl mx-auto animate-fade-in">
+          <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full text-accent text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
               <span>6 Specialized Programs</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Choose Your Path to{" "}
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Success</span>
+              Choose Your Path to <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Success</span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              Comprehensive coaching programs tailored for every student's aspirations
+              Comprehensive coaching programs tailored for every student's aspirations and academic level
             </p>
           </div>
         </div>
       </section>
 
-      {/* Programs Grid */}
+      {/* Programs Grid - RESTORED RICH CONTENT */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {programs.map((program) => (
-              <Card key={program.id} className="group relative overflow-hidden border-0 shadow-lg transition-all hover:-translate-y-1">
+              <Card key={program.id} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                 {program.badge && (
                   <div className="absolute top-4 right-4 z-10">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${program.color}`}>
@@ -207,7 +204,7 @@ export default function ProgramsPage() {
                 <div className={`h-2 bg-gradient-to-r ${program.color}`} />
                 <div className="p-6">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${program.color} flex items-center justify-center text-2xl shadow-lg`}>
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${program.color} flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 transition-transform`}>
                       {program.icon}
                     </div>
                     <div>
@@ -215,12 +212,44 @@ export default function ProgramsPage() {
                       <p className="text-sm text-muted-foreground">{program.tagline}</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <p className="text-lg font-bold text-primary"> Demo lecture </p>
-                    <Button
-                      onClick={() => handleEnroll(program)}
-                      className={`bg-gradient-to-r ${program.color} text-white shadow-lg`}
-                    >
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                    <Clock className="w-4 h-4" /> {program.duration}
+                  </div>
+
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2 italic">
+                      <BookOpen className="w-4 h-4 text-primary" /> Subjects
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {program.subjects.map((subject) => (
+                        <span key={subject} className="px-3 py-1 bg-muted rounded-full text-xs font-medium">
+                          {subject}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center gap-2 italic">
+                      <Award className="w-4 h-4 text-primary" /> Highlights
+                    </h4>
+                    <ul className="space-y-1">
+                      {program.highlights.map((highlight) => (
+                        <li key={highlight} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                          {highlight}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Book your</p>
+                      <p className="text-lg font-bold text-primary"> Demo lecture </p>
+                    </div>
+                    <Button onClick={() => handleEnroll(program)} className={`bg-gradient-to-r ${program.color} text-white hover:opacity-90 shadow-lg`}>
                       Enroll Now <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
@@ -281,7 +310,7 @@ export default function ProgramsPage() {
                           </label>
                           <select
                             required
-                            className="w-full h-10 px-3 border rounded-md bg-background"
+                            className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             value={formData.school}
                             onChange={(e) => setFormData({...formData, school: e.target.value})}
                           >
@@ -294,7 +323,7 @@ export default function ProgramsPage() {
                         <label className="text-sm font-medium">Current Class *</label>
                         <select
                             required
-                            className="w-full h-10 px-3 border rounded-md bg-background"
+                            className="w-full h-10 px-3 border rounded-md bg-background text-sm"
                             value={formData.class}
                             onChange={(e) => setFormData({...formData, class: e.target.value})}
                         >
@@ -303,10 +332,11 @@ export default function ProgramsPage() {
                             <option value="10">10th Standard</option>
                             <option value="11">11th Standard</option>
                             <option value="12">12th Standard</option>
+                            <option value="dropper">Dropper</option>
                         </select>
                       </div>
 
-                      <Button type="submit" disabled={isSubmitting} className={`w-full py-6 bg-gradient-to-r ${selectedProgram.color} text-white`}>
+                      <Button type="submit" disabled={isSubmitting} className={`w-full py-6 bg-gradient-to-r ${selectedProgram.color} text-white font-bold`}>
                         {isSubmitting ? "Submitting..." : "Submit Enrollment Request"}
                       </Button>
                     </form>
