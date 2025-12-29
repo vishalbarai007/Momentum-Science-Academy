@@ -11,6 +11,7 @@ import {
   GraduationCap, BarChart3, Bell, MessageSquare // Added MessageSquare
 } from "lucide-react"
 import { NotificationBell } from "./NotificationBell"
+import Image from "next/image"
 
 interface StudentSidebarProps {
   children: React.ReactNode
@@ -97,8 +98,8 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-primary to-secondary rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
+              <div className="relative rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Image src="/Logo/logo1.png" alt="Momentum Logo" width={50} height={50} className="rounded-full" />
               </div>
               <div>
                 <div className="font-bold text-lg">Momentum</div>
@@ -168,8 +169,8 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
 
             <div className="flex items-center gap-4 ml-auto">
               {/* <button className="relative p-2 rounded-lg hover:bg-muted"> */}
-                <NotificationBell />               
-                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
+              <NotificationBell />
+              {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
               {/* </button> */}
               <Link href="/student/profile">
                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">

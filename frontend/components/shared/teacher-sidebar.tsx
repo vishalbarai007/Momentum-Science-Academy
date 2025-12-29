@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {
   BookOpen,
@@ -99,8 +100,8 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
+              <div className="relative rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                <Image src="/Logo/logo1.png" alt="Momentum Logo" width={50} height={50} className="rounded-full" />
               </div>
               <div>
                 <div className="font-bold text-lg">Momentum</div>
@@ -170,8 +171,8 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
 
             <div className="flex items-center gap-4 ml-auto">
               {/* <button className="relative p-2 rounded-lg hover:bg-muted"> */}
-                <NotificationBell />
-                {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
+              <NotificationBell />
+              {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" /> */}
               {/* </button> */}
               <Link href="/teacher/profile">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
