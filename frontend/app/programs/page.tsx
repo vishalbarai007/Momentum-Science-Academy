@@ -41,7 +41,7 @@ type Program = {
 const SCHOOL_OPTIONS = [
   "SVM", "Vidyavikasini", "Holy-Family", "J.B.S", "SKC", "St. Joseph-Vasai",
   "Mother Mary - East", "J.B.Ludhani", "Kapol", "Kalindi", "Mother Teresa",
-  "St Joseph-Nallasopara", "St Aloysius", "Mother Mary-West"
+  "St Joseph-Nallasopara", "St Aloysius", "Mother Mary-West", "Other"
 ];
 
 const programs: Program[] = [
@@ -112,11 +112,43 @@ const programs: Program[] = [
 const faqs = [
   {
     question: "What makes Momentum different from other coaching institutes?",
-    answer: "Momentum stands apart with our 15+ years of proven results, small batch sizes (max 25 students), personalized attention, and a track record that includes AIR 329 in JEE and 635/720 in NEET.",
+    answer:
+      "Momentum stands apart with our 15+ years of proven results, small batch sizes (max 25 students), personalized attention, and a track record that includes AIR 329 in JEE and 635/720 in NEET. Our faculty includes IITians, doctors, and PhD holders who bring real-world expertise to the classroom.",
   },
   {
-    question: "Do you offer study materials?",
-    answer: "Every enrolled student receives comprehensive study packages including topic-wise notes, practice worksheets, and previous year question papers.",
+    question: "Do you offer online classes?",
+    answer:
+      "Yes! We offer a hybrid learning model with both offline and online options. Our digital platform includes live interactive classes, recorded lectures for revision, online tests with instant results, and 24/7 doubt resolution support. Students can switch between modes based on their convenience.",
+  },
+  {
+    question: "What is the batch size and timing?",
+    answer:
+      "We maintain small batch sizes of maximum 20-25 students to ensure personalized attention. Batches are available in morning (7 AM - 10 AM), afternoon (2 PM - 5 PM), and evening (5 PM - 8 PM) slots. Weekend-only batches are also available for school students.",
+  },
+  {
+    question: "Do you provide study materials?",
+    answer:
+      "Every enrolled student receives comprehensive study packages including topic-wise notes, practice worksheets, previous year question papers (PYQs), important questions compilations, formula sheets, and access to our digital resource library with 1000+ solved examples.",
+  },
+  {
+    question: "What is the fee structure and are there scholarships?",
+    answer:
+      "Our fees vary by program and are designed to be affordable. We offer up to 100% scholarships based on entrance test performance. EMI options and sibling discounts (10%) are also available. Contact us for a detailed fee breakdown specific to your chosen program.",
+  },
+  {
+    question: "How do I enroll and what's the admission process?",
+    answer:
+      "Enrollment is simple: 1) Fill the inquiry form or visit our center, 2) Appear for a diagnostic test (free), 3) Counseling session with faculty, 4) Complete registration with documents. You can start attending classes immediately after registration.",
+  },
+  {
+    question: "Is there a refund policy?",
+    answer:
+      "Yes, we have a transparent refund policy. If you're not satisfied within the first 7 days of joining, you can get a full refund (minus processing charges). After that, pro-rata refunds are available based on the duration attended. Terms apply.",
+  },
+  {
+    question: "What support is available for doubt clearing?",
+    answer:
+      "We offer multiple doubt-clearing channels: daily doubt sessions after regular classes, dedicated WhatsApp groups monitored by faculty, weekly one-on-one sessions with subject experts, and our online platform's 24/7 query system with response within 4 hours.",
   },
 ]
 
