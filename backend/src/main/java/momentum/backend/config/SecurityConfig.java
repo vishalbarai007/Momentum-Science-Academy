@@ -13,7 +13,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -34,30 +33,46 @@ public class SecurityConfig {
         http
                 // Disable CSRF since we are using JWT tokens (stateless)
                 .csrf(csrf -> csrf.disable())
-                // Configure CORS with allowed origins, methods, headers
+                // Configure CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Configure endpoint authorization
+                // Configure Endpoint Authorization
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll()  // Allow unauthenticated access to auth endpoints
-                        .anyRequest().authenticated()  // All other endpoints require authentication
+                        // 1. Public Endpoints (Login/Register)
+                        .requestMatchers("/api/auth/**", "/error").permitAll()
+
+                        // 2. Super Admin Exclusive Routes
+                        // Only the "super_admin" can access endpoints specifically for managing other admins
+                        .requestMatchers("/api/v1/super-admin/**").hasAuthority("super_admin")
+
+                        // 3. Admin Routes (Shared Access)
+                        // Both "admin" AND "super_admin" can access general admin features (Dashboard, Users, Resources)
+                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority("admin", "super_admin")
+
+                        // 4. Role-Specific Routes (Optional protection)
+                        // You can add specific locks for student/teacher routes here if needed
+                        // .requestMatchers("/api/v1/teacher/**").hasAuthority("teacher")
+
+                        // 5. Default: All other requests require at least a valid token
+                        .anyRequest().authenticated()
                 )
-                // Add JWT filter before UsernamePasswordAuthenticationFilter
+                // Add JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
-    // Define CORS configuration source (adjust origins and allowed methods as per your frontend)
+    // Define CORS configuration source
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allowed origins, modify as needed (e.g., your frontend URI)
-        configuration.setAllowedOriginPatterns(List.of("*")); // or List.of("http://localhost:3000")
+        // Allowed origins
+        configuration.setAllowedOriginPatterns(List.of("*"));
 
         // Allowed HTTP methods
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        // Allowed headers (Authorization header needed)
+        // Allowed headers
         configuration.setAllowedHeaders(List.of("*"));
 
         // Allow cookies / credentials
@@ -67,7 +82,6 @@ public class SecurityConfig {
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Apply to all endpoints
         source.registerCorsConfiguration("/**", configuration);
 
         return source;

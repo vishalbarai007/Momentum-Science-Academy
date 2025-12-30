@@ -67,7 +67,8 @@ public class User {
     public enum Role {
         student,
         teacher,
-        admin
+        admin,
+        super_admin
     }
 
     // ---------- Constructors ----------

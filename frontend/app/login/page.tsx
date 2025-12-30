@@ -10,12 +10,15 @@ import Image from "next/image"
 import { GraduationCap, User, BookOpen, Shield, Eye, EyeOff, ArrowRight, Mail, Lock, ChevronRight } from "lucide-react"
 import { loginUser, subscribeToPushNotifications } from "@/lib/api"
 
-type UserRole = "student" | "teacher" | "admin" | null
+// --- 1. Updated Type Definition ---
+type UserRole = "student" | "teacher" | "admin" | "super_admin" | null
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialRole = searchParams.get("role") as UserRole
+  
+  // State for Role Selection (Super Admin selects "Administrator" card)
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -25,6 +28,8 @@ function LoginForm() {
     password: "",
   })
 
+  // --- 2. Roles Configuration (UI Only) ---
+  // Note: "super_admin" is not a separate card. They click "Administrator".
   const roles = [
     {
       id: "student" as const,
@@ -55,8 +60,6 @@ function LoginForm() {
     },
   ]
 
-
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedRole) return
@@ -65,32 +68,43 @@ function LoginForm() {
     setError("")
 
     try {
-      // 1. Use the API helper with the correct state variable (formData)
+      // 1. API Login
       const data = await loginUser(formData)
 
-      // 2. Save Session Data
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("email", data.email)
-      localStorage.setItem("role", data.role)
-      localStorage.setItem("isAuthenticated", "true")
-
-      // 3. Subscribe to Notifications (Safe execution)
-      try {
-        // You can enable this for all roles or just specific ones
-        await subscribeToPushNotifications(data.token)
-      } catch (subError) {
-        console.warn("Notification subscription failed/skipped:", subError)
-        // We don't block login if notifications fail
+      // 2. Validate Role Matches Selection
+      // If user selected "admin" card, allow both "admin" and "super_admin" roles
+      if (selectedRole === "admin") {
+        if (data.role !== "admin" && data.role !== "super_admin") {
+            throw new Error("Access Denied: You are not an administrator.")
+        }
+      } else if (data.role !== selectedRole) {
+         // Strict check for Student/Teacher
+         throw new Error(`Access Denied: Your account is not a ${selectedRole}.`)
       }
 
-      // 4. Redirect based on the returned role
-      const roleConfig = roles.find((r) => r.id === data.role)
+      // 3. Save Session Data
+      localStorage.setItem("token", data.token)
+      localStorage.setItem("email", data.email)
+      localStorage.setItem("userRole", data.role) // Store actual backend role
+      localStorage.setItem("isAuthenticated", "true")
 
-      if (roleConfig) {
-        router.push(roleConfig.redirect)
+      // 4. Subscribe to Notifications
+      try {
+        await subscribeToPushNotifications(data.token)
+      } catch (subError) {
+        console.warn("Notification subscription failed:", subError)
+      }
+
+      // 5. Redirect Logic
+      if (data.role === "super_admin") {
+        router.push("/admin/dashboard") // Super Admin goes to same dashboard
       } else {
-        // Fallback if role doesn't match frontend config
-        router.push("/dashboard")
+        const roleConfig = roles.find((r) => r.id === data.role)
+        if (roleConfig) {
+            router.push(roleConfig.redirect)
+        } else {
+            router.push("/dashboard")
+        }
       }
 
     } catch (err: any) {

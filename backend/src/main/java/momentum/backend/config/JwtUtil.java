@@ -31,20 +31,20 @@ public class JwtUtil {
 
     public String generateToken(String email, User.Role role) {
         return Jwts.builder()
-                .subject(email)                  // Changed from setSubject
-                .claim("role", role.name())
-                .issuedAt(new Date())            // Changed from setIssuedAt
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION)) // Changed from setExpiration
-                .signWith(key, Jwts.SIG.HS512)   // Updated signing method
+                .subject(email)
+                .claim("role", role.name()) // Role is stored in the token here
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .signWith(key, Jwts.SIG.HS512)
                 .compact();
     }
 
     public String validateToken(String token) {
-        return Jwts.parser()                     // Changed from parserBuilder()
-                .verifyWith(key)                 // Changed from setSigningKey()
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseSignedClaims(token)        // Changed from parseClaimsJws()
-                .getPayload()                    // Changed from getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject();
     }
 
@@ -58,6 +58,20 @@ public class JwtUtil {
 
             return claims.getSubject();
         } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    // --- NEW METHOD: Extract Role from Token ---
+    public String extractRole(String token) {
+        try {
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("role", String.class);
+        } catch (Exception e) {
             return null;
         }
     }

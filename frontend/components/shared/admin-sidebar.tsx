@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
-  Users, BookOpen, Mail, Gift, BarChart3, Settings, LogOut, Menu, X, Home, FileText, GraduationCap, Bell, Check
+  Users, BookOpen, Mail, Gift, BarChart3, Settings, LogOut, Menu, X, Home, FileText, GraduationCap, Bell, Check, ShieldAlert
 } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
@@ -32,72 +32,21 @@ interface Notification {
 export function AdminSidebar({ children }: AdminSidebarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminName, setAdminName] = useState("Admin User")
+  const [userRole, setUserRole] = useState<string | null>(null) // NEW: Store Role
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   const pathname = usePathname()
   const router = useRouter()
 
-  // 1. Poll for Unread Count
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const token = localStorage.getItem("token")
-        if (!token) return;
-
-        const res = await fetch("http://localhost:8080/api/notifications/unread-count", {
-          headers: { "Authorization": `Bearer ${token}` }
-        })
-        const data = await res.json()
-
-        // Toast only if count increased
-        if (data.count > unreadCount) {
-          toast.info("New Notification Received", {
-            description: "Click the bell icon to view details."
-          });
-        }
-        setUnreadCount(data.count)
-      } catch (e) {
-        console.error("Polling error", e)
-      }
-    }
-
-    const interval = setInterval(fetchCount, 15000) // Poll every 15s (faster than 30s)
-    fetchCount(); // Initial fetch
-    return () => clearInterval(interval)
-  }, [unreadCount])
-
-  // 2. Fetch Notifications List (When Bell is clicked)
-  const fetchNotificationsList = async () => {
-    const token = localStorage.getItem("token")
-    const res = await fetch("http://localhost:8080/api/notifications", {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-    if (res.ok) {
-      setNotifications(await res.json())
-    }
-  }
-
-  // 3. Mark as Read Function
-  const handleNotificationClick = async (id: number, url: string) => {
-    const token = localStorage.getItem("token")
-    await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-
-    // Decrease local count immediately for better UX
-    setUnreadCount(prev => Math.max(0, prev - 1))
-
-    // Redirect
-    router.push(url)
-  }
-
-  // ... (Keep existing fetchAdminProfile useEffect and navItems) ...
+  // 1. Fetch Admin Profile & Role on Mount
   useEffect(() => {
     const fetchAdminProfile = async () => {
       try {
         const token = localStorage.getItem("token")
+        const role = localStorage.getItem("userRole") // Get Role
+        setUserRole(role)
+
         const response = await fetch("http://localhost:8080/api/auth/me", {
           headers: { "Authorization": `Bearer ${token}` }
         })
@@ -112,21 +61,19 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
     fetchAdminProfile()
   }, [])
 
-  // Inside AdminSidebar component...
-
+  // 2. Poll for Unread Count
   useEffect(() => {
     const fetchCount = async () => {
       try {
         const token = localStorage.getItem("token")
         if (!token) return;
 
-        // 1. Check count
         const countRes = await fetch("http://localhost:8080/api/notifications/unread-count", {
           headers: { "Authorization": `Bearer ${token}` }
         })
         const countData = await countRes.json()
 
-        // 2. If count increased, fetch the LATEST notification to show in toast
+        // Toast only if count increased
         if (countData.count > unreadCount) {
           const listRes = await fetch("http://localhost:8080/api/notifications", {
             headers: { "Authorization": `Bearer ${token}` }
@@ -134,34 +81,58 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
           const listData = await listRes.json();
 
           if (listData.length > 0) {
-            const latestNote = listData[0]; // Get the newest one
-
-            // ✅ Show actual message in bottom-right toast
+            const latestNote = listData[0];
             toast.info("New Notification", {
-              description: latestNote.message, // e.g. "New Inquiry from Vishal"
+              description: latestNote.message,
               action: {
                 label: "View",
-                onClick: () => router.push(latestNote.redirectUrl) // Click redirects user
+                onClick: () => router.push(latestNote.redirectUrl)
               }
             });
           }
         }
-
         setUnreadCount(countData.count)
       } catch (e) {
         console.error("Polling error", e)
       }
     }
 
-    const interval = setInterval(fetchCount, 15000)
-    fetchCount();
+    const interval = setInterval(fetchCount, 15000) 
+    fetchCount(); 
     return () => clearInterval(interval)
-  }, [unreadCount]) // Dependency on unreadCount ensures we compare correctly
+  }, [unreadCount])
 
+  // 3. Fetch Notifications List (When Bell is clicked)
+  const fetchNotificationsList = async () => {
+    const token = localStorage.getItem("token")
+    const res = await fetch("http://localhost:8080/api/notifications", {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+    if (res.ok) {
+      setNotifications(await res.json())
+    }
+  }
 
+  // 4. Mark as Read Function
+  const handleNotificationClick = async (id: number, url: string) => {
+    const token = localStorage.getItem("token")
+    await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+    setUnreadCount(prev => Math.max(0, prev - 1))
+    router.push(url)
+  }
 
+  // --- NAVIGATION ITEMS CONFIGURATION ---
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/admin/dashboard" },
+    
+    // NEW: Conditionally render Manage Admins for Super Admin
+    ...(userRole === "super_admin" ? [
+      { icon: ShieldAlert, label: "Manage Admins", href: "/admin/manage-admins" }
+    ] : []),
+
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: Mail, label: "Leads", href: "/admin/leads" },
     { icon: BookOpen, label: "Resources", href: "/admin/resources" },
@@ -180,7 +151,6 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ... (Keep Sidebar Aside code exactly as is) ... */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -226,7 +196,9 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{adminName}</p>
-                  <p className="text-xs text-muted-foreground">Super Admin</p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {userRole === "super_admin" ? "Super Admin" : "Administrator"}
+                  </p>
                 </div>
               </div>
             </Link>
@@ -256,7 +228,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
 
             <div className="flex items-center gap-4 ml-auto">
 
-              {/* --- MODIFIED BELL ICON WITH POPOVER --- */}
+              {/* --- NOTIFICATION BELL --- */}
               <Popover onOpenChange={(open) => open && fetchNotificationsList()}>
                 <PopoverTrigger asChild>
                   <button className="relative p-2 hover:bg-muted rounded-full transition-colors">
@@ -301,7 +273,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
                   </ScrollArea>
                 </PopoverContent>
               </Popover>
-              {/* --------------------------------------- */}
+              {/* ------------------------- */}
 
               <Link href="/admin/profile">
                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-secondary flex items-center justify-center text-white font-bold cursor-pointer hover:opacity-90 transition-opacity">
