@@ -48,7 +48,7 @@ export default function FacultyPage() {
       specialization: "Human Physiology, Botany",
       toppers: 4,
       students: "800+",
-      image: "/professional-indian-male-teacher-mathematics.jpg",
+      image: "/Faculty/deepak.jpeg",
     },
     {
       name: "Prof. Avinash Mishra",
