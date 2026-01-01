@@ -38,7 +38,17 @@ public class SecurityConfig {
                 // Configure Endpoint Authorization
                 .authorizeHttpRequests(auth -> auth
                         // 1. Public Endpoints (Login/Register)
-                        .requestMatchers("/api/auth/**", "/error").permitAll()
+                        .requestMatchers("/_next/**", "/static/**", "/*.html", "/*.ico", "/*.png").permitAll()
+
+                        // 2. Public Routes
+                        .requestMatchers("/", "/index.html", "/about", "/blog", "/contact", "/faculty", "/gallery", "/privacy", "/programs", "/rankers", "/terms", "/test-sheets").permitAll()
+
+                        // 3. Auth & Error Routes
+                        .requestMatchers("/api/auth/**", "/error", "/login", "/student/login", "/student/signup", "/admin/login").permitAll()
+
+                        // 4. Student/Teacher/Admin Dashboards
+                        // Note: If you want Spring Boot to secure these, use .authenticated() instead of .permitAll()
+                        .requestMatchers("/student/**", "/teacher/**", "/admin/**").permitAll()
 
                         // 2. Super Admin Exclusive Routes
                         // Only the "super_admin" can access endpoints specifically for managing other admins
