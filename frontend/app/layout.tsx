@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Poppins, Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+// import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 // import CircleCursor from "@/components/ui/CircleCursor"
 
@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://momentum-science-academy.vercel.app'), // Replace with actual domain
+  metadataBase: new URL('https://momentum-science-academy.vercel.app'),
   title: {
     default: "Momentum Science Academy - JEE, NEET & ICSE Coaching",
     template: "%s | Momentum Science Academy"
@@ -48,22 +48,10 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
+
 }
 
 export const viewport: Viewport = {
@@ -81,7 +69,7 @@ export default function RootLayout({
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased">
         {children}
-        <Toaster /> 
+        <Toaster />
         <Analytics />
       </body>
     </html>

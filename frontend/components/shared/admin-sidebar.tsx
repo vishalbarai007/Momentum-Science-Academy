@@ -136,8 +136,8 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: Mail, label: "Leads", href: "/admin/leads" },
     { icon: BookOpen, label: "Resources", href: "/admin/resources" },
-    { icon: Gift, label: "Referrals", href: "/admin/referrals" },
-    { icon: FileText, label: "Blog", href: "/admin/blog" },
+    // { icon: Gift, label: "Referrals", href: "/admin/referrals" },
+    // { icon: FileText, label: "Blog", href: "/admin/blog" },
     { icon: BarChart3, label: "Analytics", href: "/admin/analytics" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
   ]
