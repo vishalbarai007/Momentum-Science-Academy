@@ -101,7 +101,7 @@ export function Navbar() {
             <a href="/login">
               <Button
                 variant="ghost"
-                className="font-semibold text-white bg-[#0e266d] hover:bg-[#163a9c] dark:text-white transition-all duration-300"
+                className="font-semibold text-white bg-[#0e266d] hover:bg-[#163a9c] hover:text-white transition-all duration-300"
               >
                 Login
               </Button>

@@ -58,7 +58,7 @@ export default function FacultyPage() {
       specialization: "Inorganic Chemistry, Physical Chemistry",
       toppers: 7,
       students: "3000+",
-      image: "/professional-indian-female-teacher-biology.jpg",
+      image: "/Logo/Dummy.jpeg",
     },
     {
       name: "Prof. Jittu Kanauja",
@@ -68,7 +68,7 @@ export default function FacultyPage() {
       specialization: "Mechanics, Thermodynamics",
       toppers: 5,
       students: "2000+",
-      image: "/professional-indian-male-professor-physics-mechani.jpg",
+      image: "/Logo/Dummy.jpeg",
     },
     {
       name: "Prof. Rahul Maurya",
@@ -78,7 +78,7 @@ export default function FacultyPage() {
       specialization: "Calculus, Coordinate Geometry",
       toppers: 5,
       students: "1500+",
-      image: "/professional-indian-male-professor-physics-mechani.jpg",
+      image: "/Logo/Dummy.jpeg",
     },
     {
       name: "Prof. Siddhart ",
@@ -88,7 +88,7 @@ export default function FacultyPage() {
       specialization: "Organic Chemistry, Physical Chemistry",
       toppers: 5,
       students: "1500+",
-      image: "/professional-indian-male-professor-physics-mechani.jpg",
+      image: "/Logo/Dummy.jpeg",
     },
     {
       name: "Prof. Rohit Gotpagar ",

@@ -208,7 +208,7 @@ export default function GalleryPage() {
       </section>
 
       {/* Filters */}
-      <section className="py-8 border-b border-border sticky top-20 bg-background/95 backdrop-blur-lg z-30">
+      <section className="py-8 border-b border-border top-20 bg-background/95 backdrop-blur-lg z-30">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             {/* Year Filter */}

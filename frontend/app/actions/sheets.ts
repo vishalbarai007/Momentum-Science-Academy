@@ -1,3 +1,5 @@
+"use server"
+
 import { google } from 'googleapis';
 
 async function getSheetsInstance() {

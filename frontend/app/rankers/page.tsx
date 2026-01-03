@@ -21,44 +21,21 @@ type rankerItem = {
 }
 
 const rankerData: rankerItem[] = [
+  // ===== NEET (Highest → Lowest) =====
   {
-    id: 8,
-    studentName: "Deepak Pal",
+    id: 1,
+    studentName: "Vasu Rajawat",
     exam: "NEET",
     rank: "",
-    score: "624/720",
-    year: "2021",
+    score: "645/720",
+    year: "2024",
     category: "NEET",
-    image: "/Rankers/deepak-neet.jpeg",
-    description: "Achieved 624/720 in NEET 2021, demonstrating strong academic performance.",
+    image: "/Rankers/vasu-neet.png",
+    description: "Achieved 645/720 in NEET 2024, demonstrating strong academic performance.",
     location: "Mumbai",
   },
   {
-    id: 9,
-    studentName: "Vikas Prajapati ",
-    exam: "NEET",
-    rank: "",
-    score: "597/720",
-    year: "2020",
-    category: "NEET",
-    image: "/Rankers/vikas-neet.jpeg",
-    description: "Achieved 597/720 in NEET 2020, demonstrating strong academic performance.",
-    location: "Mumbai",
-  },
-  {
-    id: 10,
-    studentName: "Pragati Sahani",
-    exam: "NEET",
-    rank: "",
-    score: "485/720",
-    year: "2025",
-    category: "NEET",
-    image: "/Rankers/pragati-neet.png",
-    description: "Achieved 626/720 in NEET 2025, demonstrating strong academic performance.",
-    location: "Mumbai",
-  },
-  {
-    id: 11,
+    id: 2,
     studentName: "Abhinav Thakur",
     exam: "NEET",
     rank: "",
@@ -70,7 +47,47 @@ const rankerData: rankerItem[] = [
     location: "Mumbai",
   },
   {
-    id: 12,
+    id: 3,
+    studentName: "Deepak Pal",
+    exam: "NEET",
+    rank: "",
+    score: "624/720",
+    year: "2021",
+    category: "NEET",
+    image: "/Rankers/deepak-neet.jpeg",
+    description: "Achieved 624/720 in NEET 2021, demonstrating strong academic performance.",
+    location: "Mumbai",
+  },
+  {
+    id: 4,
+    studentName: "Vikas Prajapati",
+    exam: "NEET",
+    rank: "",
+    score: "597/720",
+    year: "2020",
+    category: "NEET",
+    // image: "/Rankers/vikas-neet.jpeg",
+    image: "/Logo/Dummy.jpeg",
+
+    description: "Achieved 597/720 in NEET 2020, demonstrating strong academic performance.",
+    location: "Mumbai",
+  },
+  {
+    id: 5,
+    studentName: "Pragati Sahani",
+    exam: "NEET",
+    rank: "",
+    score: "485/720",
+    year: "2025",
+    category: "NEET",
+    image: "/Rankers/pragati-neet.png",
+    description: "Achieved 626/720 in NEET 2025, demonstrating strong academic performance.",
+    location: "Mumbai",
+  },
+
+  // ===== JEE (Highest → Lowest) =====
+  {
+    id: 6,
     studentName: "Lakshin Nagpal",
     exam: "JEE",
     rank: "",
@@ -81,8 +98,22 @@ const rankerData: rankerItem[] = [
     description: "Achieved 99%ile in JEE 2022, demonstrating strong academic performance.",
     location: "Mumbai",
   },
+
+  // ===== MHT-CET (Highest → Lowest) =====
   {
-    id: 1,
+    id: 7,
+    studentName: "Dhruv Shah",
+    exam: "MHT CET",
+    rank: "",
+    score: "99.54%ile",
+    year: "2022",
+    category: "MHT-CET",
+    image: "/Logo/Dummy.jpeg",
+    description: "Achieved an exceptional 99.54 percentile in MHT-CET 2022, highlighting his academic excellence and commitment.",
+    location: "Mumbai",
+  },
+  {
+    id: 8,
     studentName: "Raj Vishwakarma",
     exam: "MHT CET",
     rank: "",
@@ -94,7 +125,7 @@ const rankerData: rankerItem[] = [
     location: "Mumbai",
   },
   {
-    id: 2,
+    id: 9,
     studentName: "Vishal Barai",
     exam: "MHT CET",
     rank: "",
@@ -106,7 +137,7 @@ const rankerData: rankerItem[] = [
     location: "Mumbai",
   },
   {
-    id: 3,
+    id: 10,
     studentName: "Nitesh Varma",
     exam: "MHT CET",
     rank: "",
@@ -118,56 +149,31 @@ const rankerData: rankerItem[] = [
     location: "Mumbai",
   },
   {
-    id: 4,
-    studentName: "Dhruv Shah",
-    exam: "MHT CET",
-    rank: "",
-    score: "99.54%ile",
-    year: "2022",
-    category: "MHT-CET",
-    image: "/Rankers/dhruv-cet.png",
-    description: "Achieved an exceptional 99.54 percentile in MHT-CET 2022, highlighting his academic excellence and commitment.",
-    location: "Mumbai",
-  },
-  {
-    id: 5,
-    studentName: "Avani Bhatt",
-    exam: "MHT CET",
-    rank: "",
-    score: "94.88%ile",
-    year: "2022",
-    category: "MHT-CET",
-    image: "/Rankers/avani-cet.png",
-    description: "Secured 94.88%ile in MHT-CET 2022, demonstrating strong academic performance.",
-    location: "Mumbai",
-  },
-  {
-    id: 6,
+    id: 11,
     studentName: "Nishtha Chitalia",
     exam: "MHT CET",
     rank: "",
     score: "96.56%ile",
     year: "2022",
     category: "MHT-CET",
-    image: "/Rankers/nishtha-cet.png",
+    image: "/Logo/Dummy.jpeg",
     description: "Achieved 96.56%ile in MHT-CET 2022, demonstrating strong academic performance.",
     location: "Mumbai",
   },
   {
-    id: 7,
-    studentName: "Vasu Rajawat",
-    exam: "NEET",
+    id: 12,
+    studentName: "Avani Bhatt",
+    exam: "MHT CET",
     rank: "",
-    score: "645/720",
-    year: "2024",
-    category: "NEET",
-    image: "/Rankers/vasu-neet.png",
-    description: "Achieved 645/720 in NEET 2024, demonstrating strong academic performance.",
+    score: "94.88%ile",
+    year: "2022",
+    category: "MHT-CET",
+    image: "/Logo/Dummy.jpeg",
+    description: "Secured 94.88%ile in MHT-CET 2022, demonstrating strong academic performance.",
     location: "Mumbai",
   },
-  
+];
 
-]
 
 const years = ["All", "2024", "2023", "2022"]
 const categories = ["All", "JEE", "NEET", "MHT-CET", "Boards(10th)", "Boards(12th)"]
@@ -206,14 +212,14 @@ export default function RankersPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
       {/* Navbar Placeholder */}
-     <Navbar/>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-secondary/5 to-transparent" />
         <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
@@ -226,7 +232,7 @@ export default function RankersPage() {
             <p className="text-lg text-slate-600 leading-relaxed">
               Celebrating the outstanding achievements of Momentum Science Academy students across board & competitive exams. Their success is our pride.
             </p>
-            
+
             {/* Stats */}
             <div className="flex items-center justify-center gap-8 mt-10">
               <div className="text-center">
@@ -249,13 +255,13 @@ export default function RankersPage() {
       </section>
 
       {/* Filters Section */}
-      <section className="sticky top-20 bg-white/80 backdrop-blur-md z-30 border-y border-slate-200 shadow-sm">
+      <section className="top-20 bg-white/80 backdrop-blur-md z-30 border-y border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-slate-600" />
             <span className="text-sm font-semibold text-slate-700">Filter Results</span>
           </div>
-          
+
           <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm font-medium text-slate-600 min-w-[60px]">Year:</span>
@@ -266,11 +272,10 @@ export default function RankersPage() {
                     size="sm"
                     variant={selectedYear === y ? "default" : "outline"}
                     onClick={() => setSelectedYear(y)}
-                    className={`rounded-full px-5 transition-all duration-300 ${
-                      selectedYear === y 
-                        ? "bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25" 
+                    className={`rounded-full px-5 transition-all duration-300 ${selectedYear === y
+                        ? "bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25"
                         : "bg-white border-slate-200 hover:border-primary hover:bg-primary/5 text-slate-700"
-                    }`}
+                      }`}
                   >
                     {y}
                   </Button>
@@ -289,11 +294,10 @@ export default function RankersPage() {
                     size="sm"
                     variant={selectedCategory === c ? "default" : "outline"}
                     onClick={() => setSelectedCategory(c)}
-                    className={`rounded-full px-5 transition-all duration-300 ${
-                      selectedCategory === c 
-                        ? "bg-secondary hover:bg-secondary/90 text-white shadow-md shadow-secondary/25" 
+                    className={`rounded-full px-5 transition-all duration-300 ${selectedCategory === c
+                        ? "bg-secondary hover:bg-secondary/90 text-white shadow-md shadow-secondary/25"
                         : "bg-white border-slate-200 hover:border-secondary hover:bg-secondary/5 text-slate-700"
-                    }`}
+                      }`}
                   >
                     {c}
                   </Button>
@@ -353,7 +357,7 @@ export default function RankersPage() {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      
+
                       {/* Category Badge */}
                       <div className="absolute top-3 left-3">
                         <span className="inline-block px-3 py-1.5 bg-white/95 backdrop-blur-sm text-xs font-semibold rounded-full shadow-lg border border-slate-200">
@@ -448,16 +452,16 @@ export default function RankersPage() {
                 alt={filteredItems[currentImage].studentName}
                 className="w-full max-h-[60vh] object-contain bg-black/20"
               />
-              
+
               <div className="p-8 text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/20 text-primary rounded-full text-sm font-semibold mb-4">
                   {filteredItems[currentImage].category}
                 </div>
-                
+
                 <h3 className="text-3xl font-bold text-white mb-2">
                   {filteredItems[currentImage].studentName}
                 </h3>
-                
+
                 <div className="flex items-center justify-center gap-3 text-white/80 mb-6">
                   <span className="font-semibold">{filteredItems[currentImage].exam}</span>
                   <span className="text-white/40">•</span>
@@ -507,7 +511,7 @@ export default function RankersPage() {
         </div>
       )}
 
-     <Footer  />
+      <Footer />
     </div>
   )
 }
