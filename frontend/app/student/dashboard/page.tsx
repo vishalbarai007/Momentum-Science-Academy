@@ -181,7 +181,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <RoleGuard allowedRole="student">
+    <RoleGuard allowedRoles="student">
       <StudentSidebar>
         {/* Welcome Section */}
         <div className="mb-8">

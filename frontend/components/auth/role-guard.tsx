@@ -7,7 +7,7 @@ import { toast } from "sonner"
 interface RoleGuardProps {
   children: React.ReactNode
   // Change allowedRole to accept a single string OR an array of strings
-  allowedRoles: string[] 
+  allowedRoles: string[] | string; 
 }
 
 export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {

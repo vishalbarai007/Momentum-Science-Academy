@@ -23,28 +23,6 @@ export function Footer() {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 pt-16 pb-8">
-        {/* Newsletter Section */}
-        <div className="rounded-2xl p-8 mb-12 bg-primary/10 border border-white/10">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
-              <p className="text-primary-foreground/80">
-                Subscribe to our newsletter for exam tips, study materials, and academy updates.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-secondary"
-              />
-              <Button className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-6 rounded-xl">
-                Subscribe
-              </Button>
-            </div>
-          </div>
-        </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* About */}
           <div>

@@ -142,7 +142,7 @@ export default function TeacherDashboard() {
     }
 
     return (
-        <RoleGuard allowedRole="teacher">
+        <RoleGuard allowedRoles="teacher">
             <TeacherSidebar>
                 {/* Welcome Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
