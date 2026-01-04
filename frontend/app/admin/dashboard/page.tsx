@@ -149,7 +149,7 @@ export default function AdminDashboard() {
   }, [])
 
   return (
-    <RoleGuard allowedRole="admin">
+    <RoleGuard allowedRoles={["admin", "super_admin"]}>
       <AdminSidebar>
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

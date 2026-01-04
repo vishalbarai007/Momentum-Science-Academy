@@ -2,40 +2,40 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner" // Assuming you use sonner
+import { toast } from "sonner"
 
 interface RoleGuardProps {
   children: React.ReactNode
-  allowedRole: "admin" | "teacher" | "student"
+  // Change allowedRole to accept a single string OR an array of strings
+  allowedRoles: string[] 
 }
 
-export default function RoleGuard({ children, allowedRole }: RoleGuardProps) {
+export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   const router = useRouter()
   const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
-    // 1. Get data from LocalStorage
     const token = localStorage.getItem("token")
     const userRole = localStorage.getItem("userRole")
 
-    // 2. No Token? Redirect to Login
     if (!token) {
-      router.replace(`/${allowedRole}/login`) // 'replace' prevents going back
+      // Default redirect to login if not authenticated
+      router.replace("/login") 
       return
     }
 
-    // 3. Wrong Role? Redirect to their specific dashboard or home
-    if (userRole !== allowedRole) {
+    // Check if the user's role is in the allowed list
+    if (userRole && allowedRoles.includes(userRole)) {
+      setAuthorized(true)
+    } else {
       toast.error("Unauthorized Access")
-      router.replace("/") 
-      return
+      // Redirect based on their actual role to prevent infinite loops
+      if (userRole === "student") router.replace("/student/dashboard")
+      else if (userRole === "teacher") router.replace("/teacher/dashboard")
+      else router.replace("/")
     }
+  }, [router, allowedRoles])
 
-    // 4. Authorized
-    setAuthorized(true)
-  }, [router, allowedRole])
-
-  // 5. Show nothing while checking (prevents flashing sensitive content)
   if (!authorized) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50">
