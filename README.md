@@ -1,224 +1,234 @@
-
 # Momentum Science Academy Platform
 
-A comprehensive, production-ready digital education platform designed to bridge the gap between students, teachers, and administrators. This monorepo contains the source code for the public-facing website, student learning portal, teacher management interface, and administrative dashboard.
+A comprehensive, production-ready Learning Management System (LMS) designed to bridge the gap between students, teachers, and administrators. This monorepo contains the source code for the public-facing website, student learning portal, teacher management interface, and administrative dashboard.
+
+![Status](https://img.shields.io/badge/Status-Phase_1_Complete-success)
+![Stack](https://img.shields.io/badge/Stack-Next.js_16_%2B_Spring_Boot_3.4-blue)
+![Deployment](https://img.shields.io/badge/Deployment-Docker_Ready-2496ED)
 
 ## 📋 Table of Contents
 
-  - [Executive Summary](https://www.google.com/search?q=%23-executive-summary)
-  - [Key Features](https://www.google.com/search?q=%23-key-features)
-  - [Technology Stack](https://www.google.com/search?q=%23-technology-stack)
-  - [System Architecture](https://www.google.com/search?q=%23-system-architecture)
-  - [Getting Started](https://www.google.com/search?q=%23-getting-started)
-  - [Configuration](https://www.google.com/search?q=%23-configuration)
-  - [Project Structure](https://www.google.com/search?q=%23-project-structure)
-  - [API Documentation](https://www.google.com/search?q=%23-api-documentation)
-  - [License](https://www.google.com/search?q=%23-license)
+- [Executive Summary](#-executive-summary)
+- [Key Features](#-key-features)
+- [Technology Stack](#-technology-stack)
+- [System Architecture](#-system-architecture)
+- [Getting Started (Local)](#-getting-started-local)
+- [Deployment (Docker/VPS)](#-deployment-dockervps)
+- [Configuration](#-configuration)
+- [Project Structure](#-project-structure)
+- [License](#-license)
 
------
+---
 
 ## 🚀 Executive Summary
 
-Momentum Science Academy is a robust LMS (Learning Management System) featuring a **Role-Based Access Control (RBAC)** architecture. It provides a seamless experience for:
+Momentum Science Academy is a robust LMS featuring a **Role-Based Access Control (RBAC)** architecture. It provides a seamless experience for:
 
-  * **Public Visitors:** To explore programs, faculty, and submit inquiries.
-  * **Students:** To access study resources, track performance, and download materials.
-  * **Teachers:** To upload resources, track student engagement, and manage content.
-  * **Admins:** To oversee users, manage leads, and view platform analytics.
+* **Public Visitors:** To explore programs, faculty, and submit inquiries.
+* **Students:** To access study resources, submit assignments, ask doubts, and track performance.
+* **Teachers:** To upload resources, create assignments, resolve doubts, and grade submissions.
+* **Admins:** To oversee users, manage leads, send notifications, and view platform analytics.
 
-**Current Phase:** Phase 1 (Core Platform & Resource Management) is complete and deployment-ready.
+**Current State:** Phase 1 (Core Platform, Assignments, Doubt Resolution & Notifications) is complete.
 
------
+---
 
 ## ✨ Key Features
 
-### 🎓 For Students
+### 🔔 Hybrid Notification System (New)
+* **Dual Delivery:** Notifications are delivered via **In-App Toast/Bell** (when online) and **Web Push** (when offline/browser closed).
+* **Smart Targeting:** * *Teacher Uploads Resource* -> Notifies only Students of that Class.
+    * *Student Asks Doubt* -> Notifies only Teachers of that Subject.
+    * *New Lead* -> Notifies all Admins immediately.
 
-  * **Interactive Dashboard:** Personalized view with quick stats, recent resources, and performance tracking.
-  * **Resource Library:** Advanced filtering for Past Year Questions (PYQs), Notes, and Assignments by class and exam (JEE/NEET).
-  * **Secure Access:** JWT-based authentication with profile management.
-  * **Learning Tracking:** Visual progress bars and download history.
+### 🎓 For Students
+* **Interactive Dashboard:** Personalized view with pending tasks, recent resources, and performance stats.
+* **Assignment Portal:** View due dates, upload submissions (PDF/Link), and receive graded feedback.
+* **Doubt Resolution:** Ask subject-specific doubts linked to assignments/resources and get answers from faculty.
+* **Resource Library:** Filter content by Class (11/12), Exam (JEE/NEET), and Type (Notes/PYQ).
 
 ### 👨‍🏫 For Teachers
-
-  * **Resource Management:** Drag-and-drop upload interface for educational materials.
-  * **Analytics:** Track download counts and student engagement with uploaded content.
-  * **Profile Management:** Showcase qualifications and expertise.
+* **Content Management:** Drag-and-drop upload for Resources and Assignments.
+* **Submission Grading:** View student submissions, assign grades, and provide specific feedback.
+* **Doubt Hub:** Centralized dashboard to view and answer incoming doubts from students.
+* **Analytics:** Track who downloaded your notes.
 
 ### 🛡️ For Administrators
+* **Lead CRM:** Track website inquiries from "New" to "Enrolled".
+* **User Management:** Full CRUD operations for Students, Teachers, and Admins.
+* **System Analytics:** High-level metrics on growth, lead conversion, and platform usage.
 
-  * **Analytics Dashboard:** High-level metrics on leads, students, teachers, and resource utilization.
-  * **User Management:** Full CRUD operations for all user roles, including blocking/unblocking accounts.
-  * **Lead Conversion:** CRM-like features to track website inquiries from "New" to "Converted".
-  * **Referral System:** Generate and track referral codes to monitor growth.
-
-### 🌐 Public Website
-
-  * **Modern UI:** Responsive Landing, About, Programs, and Faculty pages.
-  * **Blog System:** SEO-friendly blog listings with categorization.
-  * **Inquiry System:** Integrated contact forms that feed directly into the Admin Lead system.
-
------
+---
 
 ## 🛠 Technology Stack
 
 ### Frontend (`/frontend`)
-
-  * **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
-  * **Language:** TypeScript
-  * **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-  * **UI Library:** [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
-  * **Animations:** Framer Motion (`motion`), GSAP
-  * **State/Forms:** React Hook Form, Zod (Validation), Sonner (Toasts)
-  * **Theme:** `next-themes` (Dark/Light mode support)
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+* **Language:** TypeScript
+* **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+* **State & Forms:** React Hook Form, Zod, Sonner (Toasts)
+* **PWA:** Service Workers for Push Notifications.
 
 ### Backend (`/backend`)
+* **Framework:** Spring Boot 3.4.1 (Java 17)
+* **Security:** Spring Security + JWT (Stateless Auth)
+* **Database:** MySQL 8.0 (Spring Data JPA)
+* **Notifications:** `web-push` library with BouncyCastle crypto.
+* **Build Tool:** Maven
 
-  * **Framework:** Spring Boot (Java 17+)
-  * **Security:** Spring Security + JWT (JSON Web Tokens)
-  * **Database Integration:** Spring Data JPA / MySQL (Configured in `pom.xml`)
-  * **Utilities:**
-      * **Lombok:** Boilerplate reduction.
-      * **iText:** PDF generation for reports.
-      * **Apache POI:** Excel report generation.
-      * **WebSocket:** Real-time updates (configured).
-
------
+---
 
 ## 🏗 System Architecture
 
-The platform follows a monolithic repository structure with a decoupled Frontend and Backend.
+The platform follows a monolithic repository structure with a decoupled architecture, fully containerized via Docker.
 
 ```mermaid
 graph TD
-    User[Client Browser] -->|HTTPS| NextJS[Next.js Frontend]
+    User[Client Browser] -->|HTTPS/JSON| NextJS[Next.js Frontend]
     NextJS -->|REST API| Spring[Spring Boot Backend]
     Spring -->|Auth| Security[Spring Security / JWT]
-    Spring -->|Data| DB[(Database MySQL/Mongo)]
-    Spring -->|Cache| Redis[Redis Session Store]
-    Spring -->|Files| S3[AWS S3 Storage]
+    Spring -->|Data| DB[(MySQL Database)]
+    Spring -->|Push| VAPID[Google/Mozilla Push Service]
+
 ```
 
-*Note: The documentation references MongoDB, while the current `pom.xml` includes MySQL dependencies. Ensure your database configuration matches your deployment plan.*
+---
 
------
-
-## 🏁 Getting Started
+## 🏁 Getting Started (Local)
 
 ### Prerequisites
 
-  * **Node.js** v18+
-  * **Java Development Kit (JDK)** 17+
-  * **Maven** 3.8+
-  * **Database:** MySQL 8.0+ (or MongoDB if following the alternative architecture doc)
-  * **Redis** (Optional, for session caching)
+* **Node.js** v18+
+* **Java JDK** 17+
+* **MySQL** 8.0+ (Running on port 3306)
+* **Maven** 3.8+
 
-### 1\. Clone the Repository
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/vishalbarai007/momentum-science-academy.git
+git clone [https://github.com/vishalbarai007/momentum-science-academy.git](https://github.com/vishalbarai007/momentum-science-academy.git)
 cd momentum-science-academy
+
 ```
 
-### 2\. Frontend Setup
+### 2. Database Setup
 
-```bash
-cd frontend
+Create a MySQL database named `momentum`:
 
-# Install dependencies
-npm install
+```sql
+CREATE DATABASE momentum;
 
-# Run development server
-npm run dev
 ```
 
-*The frontend will run on `http://localhost:3000`.*
-
-### 3\. Backend Setup
+### 3. Backend Setup
 
 ```bash
 cd backend
-
-# Clean and install dependencies
+# Configure src/main/resources/application.properties with your DB creds
 mvn clean install
-
-# Run the Spring Boot application
 mvn spring-boot:run
+
 ```
 
-*The backend API will run on `http://localhost:8080`.*
+*Backend runs on: `http://localhost:8080*`
 
------
+### 4. Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+
+```
+
+*Frontend runs on: `http://localhost:3000*`
+
+---
+
+## 🐳 Deployment (Docker/VPS)
+
+This project is optimized for deployment on VPS (Hostinger/Hetzner/AWS EC2) using Docker Compose.
+
+### 1. Server Prerequisites
+
+* Ubuntu 22.04 / 24.04
+* Docker & Docker Compose installed
+
+### 2. Environment Variables (.env)
+
+Create a `.env` file in the project root on your server:
+
+```env
+DB_PASSWORD=your_secure_db_password
+JWT_SECRET=your_generated_jwt_secret_key
+VPS_IP=your.server.ip.address
+# Generate VAPID keys using: npx web-push generate-vapid-keys
+VAPID_PUBLIC_KEY=your_public_key
+VAPID_PRIVATE_KEY=your_private_key
+
+```
+
+### 3. Deploy
+
+```bash
+docker compose up -d --build
+
+```
+
+This command spins up **MySQL**, **Backend**, and **Frontend** containers automatically.
+
+---
 
 ## ⚙️ Configuration
 
-### Frontend (`frontend/.env.local`)
+### Backend (`application.properties`)
 
-Create a `.env.local` file in the `frontend` directory:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
-```
-
-### Backend (`backend/src/main/resources/application.properties`)
-
-Configure your database and JWT settings:
+Key settings to configure in `backend/src/main/resources/application.properties`:
 
 ```properties
-server.port=8080
+# Database
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
 
-# Database Configuration (Match your DB choice)
-spring.datasource.url=jdbc:mysql://localhost:3306/momentum_db
-spring.datasource.username=root
-spring.datasource.password=yourpassword
+# JWT
+app.jwt.secret=${APP_JWT_SECRET}
+app.jwt.expiration-ms=86400000
 
-# JWT Security
-jwt.secret=YOUR_SECURE_SECRET_KEY_MUST_BE_LONG
-jwt.expiration=604800000
+# Push Notifications (VAPID)
+vapid.public.key=${VAPID_PUBLIC_KEY}
+vapid.private.key=${VAPID_PRIVATE_KEY}
+vapid.subject=mailto:admin@momentum.edu
 
-# File Upload Limits
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
 ```
 
------
+---
 
 ## 📂 Project Structure
 
 ```bash
 momentum-academy/
 ├── backend/                  # Spring Boot Application
-│   ├── src/main/java/        # Controllers, Services, Repositories
-│   └── src/main/resources/   # Config, Static resources
+│   ├── src/main/java/        # Controllers, Services, Repositories, Models
+│   ├── src/main/resources/   # Config, Static resources
+│   └── Dockerfile            # Java Container Config
 ├── frontend/                 # Next.js Application
-│   ├── app/                  # App Router (Pages & Layouts)
-│   ├── components/           # Reusable UI Components (shadcn)
-│   ├── lib/                  # Utilities (API client, helpers)
-│   ├── public/               # Static assets (images, icons)
-│   └── documentation/        # Detailed project docs
+│   ├── app/                  # App Router (Admin, Student, Teacher, Public)
+│   ├── components/           # Reusable UI Components
+│   ├── lib/                  # API Clients & Utils
+│   ├── public/               # Service Worker (sw.js) & Assets
+│   └── Dockerfile            # Node Container Config
+├── docker-compose.yml        # Production Deployment Config
 └── README.md                 # This file
+
 ```
 
------
-
-## 📖 API Documentation
-
-The backend provides a RESTful API. Full endpoint documentation is available in `frontend/API_ENDPOINTS_COMPLETE.md`.
-
-**Common Endpoints:**
-
-  * `POST /api/v1/auth/login` - User authentication
-  * `POST /api/v1/auth/register` - Student registration
-  * `GET /api/v1/resources` - Fetch filtered resources
-  * `POST /api/v1/teacher/upload` - Upload new materials (Multipart)
-  * `GET /api/v1/admin/analytics` - System statistics
-
------
+---
 
 ## 📄 License
 
 This project is proprietary software developed for Momentum Science Academy. Unauthorized copying, modification, or distribution is strictly prohibited.
 
------
+---
 
 **Developed with ❤️ for Momentum Science Academy**
