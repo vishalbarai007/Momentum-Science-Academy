@@ -22,6 +22,7 @@ public class Doubt {
     private String contextType; // "ASSIGNMENT" or "RESOURCE"
     private Long contextId;     // The ID of the specific assignment/resource
     private String contextTitle; // Store title for easy display
+    private String subject;      // Store subject for easy filtering/notifications
 
     @Column(length = 1000)
     private String question;
@@ -35,24 +36,31 @@ public class Doubt {
     // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public User getStudent() { return student; }
     public void setStudent(User student) { this.student = student; }
+
     public User getTeacher() { return teacher; }
     public void setTeacher(User teacher) { this.teacher = teacher; }
+
     public String getContextType() { return contextType; }
     public void setContextType(String contextType) { this.contextType = contextType; }
+
     public Long getContextId() { return contextId; }
     public void setContextId(Long contextId) { this.contextId = contextId; }
+
     public String getContextTitle() { return contextTitle; }
     public void setContextTitle(String contextTitle) { this.contextTitle = contextTitle; }
+
+    public String getSubject() { return subject; }
+    public void setSubject(String subject) { this.subject = subject; }
+
     public String getQuestion() { return question; }
     public void setQuestion(String question) { this.question = question; }
+
     public String getAnswer() { return answer; }
     public void setAnswer(String answer) { this.answer = answer; }
+
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
-    public String getSubject() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getSubject'");
-    }
 }

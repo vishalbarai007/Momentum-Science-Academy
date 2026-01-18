@@ -1,5 +1,6 @@
 package momentum.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.HashSet;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Prevents serialization errors with Hibernate proxies
 public class User {
 
     @Id
@@ -35,7 +37,7 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt = new Date();
 
-    // --- NEW FIELD: Track Last Login for Analytics ---
+    // --- FIELD: Track Last Login for Analytics ---
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLoginDate;
 
@@ -170,7 +172,6 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    // --- New Getter/Setter for Last Login ---
     public Date getLastLoginDate() {
         return lastLoginDate;
     }
@@ -178,7 +179,6 @@ public class User {
     public void setLastLoginDate(Date lastLoginDate) {
         this.lastLoginDate = lastLoginDate;
     }
-    // ----------------------------------------
 
     public Set<String> getAccessTags() {
         return accessTags;

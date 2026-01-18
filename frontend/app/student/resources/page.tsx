@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -36,7 +35,7 @@ interface Resource {
   downloads: number
   fileUrl: string
   createdAt: string
-  uploadedBy?: string
+  uploadedBy?: any // Can be string or User object
 }
 
 interface Doubt {
@@ -51,7 +50,6 @@ interface Doubt {
 export default function StudentResourcesPage() {
   const [loading, setLoading] = useState(true)
   const [resources, setResources] = useState<Resource[]>([])
-  const [accessTags, setAccessTags] = useState<string[]>([])
   
   // Page Filters
   const [filters, setFilters] = useState({
@@ -67,18 +65,16 @@ export default function StudentResourcesPage() {
     open: false, resource: null,
   })
   
-  // --- DOUBT MODAL STATE ---
   const [doubtModal, setDoubtModal] = useState<{ open: boolean; resource: Resource | null }>({
     open: false, resource: null,
   })
   const [resourceDoubts, setResourceDoubts] = useState<Doubt[]>([])
   const [loadingDoubts, setLoadingDoubts] = useState(false)
   
-  // Doubt Form & Filters
   const [doubtMessage, setDoubtMessage] = useState("")
   const [isSendingDoubt, setIsSendingDoubt] = useState(false)
   const [doubtSearch, setDoubtSearch] = useState("")
-  const [doubtFilter, setDoubtFilter] = useState("all") // all, pending, resolved
+  const [doubtFilter, setDoubtFilter] = useState("all") 
 
   // 1. Fetch Resources
   useEffect(() => {
@@ -92,7 +88,6 @@ export default function StudentResourcesPage() {
             })
             if (response.ok) {
                 const data = await response.json()
-                // Sort by newest
                 setResources(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
             }
         } catch (error) {
@@ -109,7 +104,6 @@ export default function StudentResourcesPage() {
     if (doubtModal.open && doubtModal.resource) {
         fetchDoubtsForResource(doubtModal.resource.id)
     } else {
-        // Reset states on close
         setResourceDoubts([])
         setDoubtMessage("")
         setDoubtSearch("")
@@ -121,14 +115,11 @@ export default function StudentResourcesPage() {
     setLoadingDoubts(true)
     try {
         const token = localStorage.getItem("token")
-        // NOTE: Ideally backend should have /api/v1/doubts/resource/{id}
-        // For now, we fetch all user doubts and filter client-side as per previous implementation pattern
         const res = await fetch("http://localhost:8080/api/v1/doubts/my-doubts", {
             headers: { "Authorization": `Bearer ${token}` }
         })
         if (res.ok) {
             const allDoubts: Doubt[] = await res.json()
-            // Filter for current resource
             const filtered = allDoubts.filter(d => 
                 d.contextType === "RESOURCE" && d.contextId === resourceId
             ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -142,39 +133,51 @@ export default function StudentResourcesPage() {
     }
   }
 
-  // 3. Submit New Doubt
+  // 3. Submit New Doubt (Aligned with Fixed Backend)
   const handleDoubtSubmit = async () => {
     if (!doubtModal.resource || !doubtMessage.trim()) return
     setIsSendingDoubt(true)
+    
     try {
-        const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:8080/api/v1/doubts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-            body: JSON.stringify({
-                contextType: "RESOURCE",
-                contextId: doubtModal.resource.id,
-                question: doubtMessage
-            })
+      const token = localStorage.getItem("token")
+      if (!token) {
+        alert("Session expired. Please log in again.")
+        return
+      }
+
+      const res = await fetch("http://localhost:8080/api/v1/doubts", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          contextType: "RESOURCE", 
+          contextId: doubtModal.resource.id,
+          question: doubtMessage.trim()
         })
-        if (res.ok) {
-            setDoubtMessage("")
-            // Refresh list
-            fetchDoubtsForResource(doubtModal.resource.id)
-        } else {
-            alert("Failed to send doubt.")
-        }
+      })
+
+      if (res.ok) {
+        setDoubtMessage("")
+        await fetchDoubtsForResource(doubtModal.resource.id)
+      } else {
+        const errorText = await res.text()
+        console.error("Backend Error:", errorText)
+        alert(`Failed to send doubt. Server returned error.`)
+      }
     } catch (error) {
-        console.error("Error sending doubt:", error)
+      console.error("Network Error:", error)
+      alert("Network error. Please check your connection.")
     } finally {
-        setIsSendingDoubt(false)
+      setIsSendingDoubt(false)
     }
   }
 
   // 4. Page Filters
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
-      const matchesClass = filters.class === "all" || resource.targetClass === filters.class
+      const matchesClass = filters.class === "all" || String(resource.targetClass).includes(filters.class)
       const matchesSubject = filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
       const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
       const matchesExam = filters.exam === "all" || resource.exam === filters.exam
@@ -196,30 +199,40 @@ export default function StudentResourcesPage() {
     })
   }, [resourceDoubts, doubtSearch, doubtFilter])
 
-  // Helpers
-
-  const resetFilters = () => { // <--- ADDED MISSING FUNCTION
+  const resetFilters = () => {
     setFilters({ class: "all", subject: "all", type: "all", exam: "all", search: "" })
   }
   
   const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
     if (fileUrl && fileUrl.startsWith("http")) {
-        setTimeout(() => { window.open(fileUrl, "_blank"); setDownloadingId(null) }, 1000)
+        window.open(fileUrl, "_blank")
+        setDownloadingId(null)
     } else {
-        alert("Downloading..."); setDownloadingId(null)
+        alert("Download link not available."); setDownloadingId(null)
     }
   }
 
   const getTypeIcon = (type: string) => {
     switch (type?.toLowerCase()) {
-      case "pyq": return FileText; case "notes": return BookOpen; case "assignment": return ClipboardList; case "imp": return Star; default: return FileText
+      case "pyq": case "pq": return FileText; 
+      case "notes": return BookOpen; 
+      case "assignment": return ClipboardList; 
+      case "imp": return Star; 
+      default: return FileText
     }
   }
+
   const formatResourceType = (type: string) => {
-    const map: any = { 'pq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }; return map[type?.toLowerCase()] || type
+    const map: any = { 'pq': 'PYQ', 'pyq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }; 
+    return map[type?.toLowerCase()] || type
   }
-  const getUploaderName = (uploader: any) => typeof uploader === "string" ? uploader : uploader?.fullName || "Teacher"
+
+  const getUploaderName = (uploader: any) => {
+    if (!uploader) return "Teacher"
+    return typeof uploader === "string" ? uploader : uploader.fullName || "Teacher"
+  }
+
   const activeFiltersCount = Object.values(filters).filter((v) => v !== "all" && v !== "").length
 
   return (
@@ -229,7 +242,6 @@ export default function StudentResourcesPage() {
         <p className="text-muted-foreground">Access your personalized study materials</p>
       </div>
 
-      {/* --- Page Filters --- */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -253,15 +265,46 @@ export default function StudentResourcesPage() {
             <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground"><X className="w-4 h-4 mr-1" /> Clear All</Button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div><label className="block text-sm font-medium mb-2">Class</label><select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}><option value="all">All Classes</option><option value="Class 9">Class 9</option><option value="Class 10">Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option></select></div>
-            <div><label className="block text-sm font-medium mb-2">Subject</label><select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}><option value="all">All Subjects</option><option value="Mathematics">Mathematics</option><option value="Physics">Physics</option><option value="Chemistry">Chemistry</option><option value="Biology">Biology</option></select></div>
-            <div><label className="block text-sm font-medium mb-2">Type</label><select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}><option value="all">All Types</option><option value="pq">PYQ</option><option value="notes">Notes</option><option value="assignment">Assignments</option><option value="imp">IMP Topics</option></select></div>
-            <div><label className="block text-sm font-medium mb-2">Exam</label><select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}><option value="all">All Exams</option><option value="JEE Main">JEE Main</option><option value="JEE Advanced">JEE Advanced</option><option value="NEET">NEET</option><option value="MHT-CET">MHT-CET</option><option value="Board Exam">Board Exam</option></select></div>
+            <div><label className="block text-sm font-medium mb-2">Class</label>
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}>
+                <option value="all">All Classes</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+              </select>
+            </div>
+            <div><label className="block text-sm font-medium mb-2">Subject</label>
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
+                <option value="all">All Subjects</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Biology">Biology</option>
+              </select>
+            </div>
+            <div><label className="block text-sm font-medium mb-2">Type</label>
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
+                <option value="all">All Types</option>
+                <option value="pyq">PYQ</option>
+                <option value="notes">Notes</option>
+                <option value="assignment">Assignments</option>
+                <option value="imp">IMP Topics</option>
+              </select>
+            </div>
+            <div><label className="block text-sm font-medium mb-2">Exam</label>
+              <select className="w-full px-3 py-2 border border-border rounded-lg" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}>
+                <option value="all">All Exams</option>
+                <option value="JEE Main">JEE Main</option>
+                <option value="JEE Advanced">JEE Advanced</option>
+                <option value="NEET">NEET</option>
+                <option value="MHT-CET">MHT-CET</option>
+                <option value="Board Exam">Board Exam</option>
+              </select>
+            </div>
           </div>
         </Card>
       )}
-
-      <div className="mb-4 text-sm text-muted-foreground flex justify-between items-center"><span>Showing {filteredResources.length} resources</span></div>
 
       {loading ? (
         <div className="flex justify-center items-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
@@ -283,9 +326,9 @@ export default function StudentResourcesPage() {
                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary shrink-0" onClick={() => setInfoModal({ open: true, resource })}><Info className="w-4 h-4" /></Button>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{resource.subject}</span>
-                <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{resource.targetClass}</span>
-                {resource.exam && <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{resource.exam}</span>}
+                <Badge variant="outline">{resource.subject}</Badge>
+                <Badge variant="outline">Class {resource.targetClass}</Badge>
+                {resource.exam && <Badge variant="outline">{resource.exam}</Badge>}
               </div>
               <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads || 0} downloads</p>
               <div className="flex gap-2">
@@ -308,7 +351,7 @@ export default function StudentResourcesPage() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground"><Badge variant="outline">{infoModal.resource.subject}</Badge><span>•</span><span>{formatResourceType(infoModal.resource.type)}</span></div>
                     <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
-                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Class</span><span className="font-medium">{infoModal.resource.targetClass}</span></div>
+                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Class</span><span className="font-medium">Class {infoModal.resource.targetClass}</span></div>
                         <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Exam</span><span className="font-medium">{infoModal.resource.exam || "N/A"}</span></div>
                         <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Uploaded By</span><span className="font-medium">{getUploaderName(infoModal.resource.uploadedBy)}</span></div>
                         <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Downloads</span><span className="font-medium">{infoModal.resource.downloads}</span></div>
@@ -329,7 +372,6 @@ export default function StudentResourcesPage() {
           </DialogHeader>
           
           <div className="flex flex-col gap-4 flex-1 overflow-hidden">
-            {/* 1. Ask New Doubt Section */}
             <div className="bg-muted/30 p-4 rounded-xl border space-y-3 shrink-0">
                 <Label className="text-sm font-medium">Ask a New Doubt</Label>
                 <div className="flex gap-2">
@@ -350,7 +392,6 @@ export default function StudentResourcesPage() {
                 </div>
             </div>
 
-            {/* 2. Filters & Search */}
             <div className="flex gap-2 shrink-0">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -371,7 +412,6 @@ export default function StudentResourcesPage() {
                 </Select>
             </div>
 
-            {/* 3. Doubts List */}
             <ScrollArea className="flex-1 -mr-4 pr-4">
                 {loadingDoubts ? (
                     <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>

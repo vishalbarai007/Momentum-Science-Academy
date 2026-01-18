@@ -35,7 +35,7 @@ interface Resource {
 
 interface Doubt {
   id: number
-  student: any // Can be object or string depending on DTO
+  student: any 
   question: string
   answer: string | null
   createdAt: string
@@ -87,7 +87,7 @@ export default function TeacherResourcesPage() {
   const [replyText, setReplyText] = useState("")
   const [replyingId, setReplyingId] = useState<number | null>(null)
   const [doubtSearch, setDoubtSearch] = useState("")
-  const [doubtFilter, setDoubtFilter] = useState("all") // "all", "pending", "replied"
+  const [doubtFilter, setDoubtFilter] = useState("all") 
 
   const [isSaving, setIsSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
@@ -97,7 +97,6 @@ export default function TeacherResourcesPage() {
     fetchDoubts()
   }, [])
 
-  // Reset doubt filters when modal opens/closes
   useEffect(() => {
     if (doubtsModal.open) {
       setDoubtSearch("")
@@ -105,12 +104,10 @@ export default function TeacherResourcesPage() {
     }
   }, [doubtsModal.open])
 
-  // --- Filter Logic (Resources) ---
+  // --- Filter Logic ---
   const filteredResources = useMemo(() => {
     return resources.filter((resource) => {
-      const resourceClass = resource.targetClass
-      const filterClass = filters.class.replace("Class ", "")
-      const matchesClass = filters.class === "all" || resourceClass === filterClass
+      const matchesClass = filters.class === "all" || resource.targetClass === filters.class
       const matchesSubject = filters.subject === "all" || resource.subject.toLowerCase() === filters.subject.toLowerCase()
       const matchesType = filters.type === "all" || resource.type.toLowerCase() === filters.type.toLowerCase()
       const matchesExam = filters.exam === "all" || resource.exam === filters.exam
@@ -151,7 +148,7 @@ export default function TeacherResourcesPage() {
           title: item.title,
           type: formatResourceTypeFromBackend(item.type),
           subject: item.subject,
-          targetClass: item.targetClass, 
+          targetClass: String(item.targetClass), 
           exam: item.exam,
           downloads: item.downloads || 0,
           status: item.isPublished ? "Published" : "Draft",
@@ -184,27 +181,22 @@ export default function TeacherResourcesPage() {
     }
   }
 
-  // --- Doubt Helpers ---
+  // --- Doubt Logic ---
   const getResourceDoubtsCount = (resourceId: number) => {
     return doubts.filter(d => d.contextType === "RESOURCE" && d.contextId === resourceId).length
   }
 
   const getStudentName = (student: any) => {
     if (!student) return "Student"
-    if (typeof student === 'string') return student
     return student.fullName || "Student"
   }
 
-  // Filter Logic (Doubts)
   const filteredDoubts = useMemo(() => {
     if (!doubtsModal.resourceId) return []
-    
-    // 1. Filter by specific resource
     let relevantDoubts = doubts
       .filter(d => d.contextType === "RESOURCE" && d.contextId === doubtsModal.resourceId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    // 2. Apply Search
     if (doubtSearch) {
         relevantDoubts = relevantDoubts.filter(d => 
             getStudentName(d.student).toLowerCase().includes(doubtSearch.toLowerCase()) ||
@@ -212,7 +204,6 @@ export default function TeacherResourcesPage() {
         )
     }
 
-    // 3. Apply Status Filter
     if (doubtFilter === "pending") {
         relevantDoubts = relevantDoubts.filter(d => !d.answer)
     } else if (doubtFilter === "replied") {
@@ -239,25 +230,22 @@ export default function TeacherResourcesPage() {
         if (res.ok) {
             setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: replyText } : d))
             setReplyText("")
-        } else {
-            alert("Failed to send reply")
         }
     } catch (err) {
         console.error(err)
-        alert("Error sending reply")
     } finally {
         setReplyingId(null)
     }
   }
 
-  // --- Edit & Delete Handlers ---
+  // --- EDIT & DELETE HANDLERS ---
   const handleEdit = (resource: Resource) => {
     setEditForm({
       title: resource.title,
       description: resource.description || "",
       resourceType: resource.type,
       subject: resource.subject,
-      classLevel: resource.targetClass.replace("Class ", ""),
+      classLevel: resource.targetClass,
       examType: resource.exam || "",
       fileLink: resource.fileUrl || "",
       visibility: resource.status === "Published" ? "publish" : "draft"
@@ -270,28 +258,32 @@ export default function TeacherResourcesPage() {
     setIsSaving(true)
     try {
       const token = localStorage.getItem("token")
+      
       const payload = {
         title: editForm.title,
         description: editForm.description,
         resourceType: editForm.resourceType.toLowerCase() === 'pyq' ? 'pq' : editForm.resourceType.toLowerCase(),
         subject: editForm.subject,
-        classLevel: `Class ${editForm.classLevel}`,
+        targetClass: parseInt(editForm.classLevel), 
         examType: editForm.examType,
         fileLink: editForm.fileLink,
         visibility: editForm.visibility
       }
+
       const response = await fetch(`http://localhost:8080/api/v1/resources/${editModal.resource.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
       })
+
       if (response.ok) {
-        fetchResources()
+        await fetchResources()
         setSuccessMessage("Resource updated successfully!")
         setTimeout(() => setSuccessMessage(""), 3000)
         setEditModal({ open: false, resource: null })
       } else {
-        alert("Failed to update resource.")
+        const errorMsg = await response.text()
+        alert("Failed to update: " + errorMsg)
       }
     } catch (error) {
       console.error("Error updating resource:", error)
@@ -339,20 +331,20 @@ export default function TeacherResourcesPage() {
       </div>
 
       {successMessage && (
-        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-700 animate-fade-in">
+        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-emerald-700">
           <CheckCircle className="w-5 h-5" />
           {successMessage}
         </div>
       )}
 
-      {/* --- Action Bar --- */}
+      {/* Action Bar */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by title or subject..."
-            className="w-full pl-10 pr-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full pl-10 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
             value={filters.search}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />
@@ -366,11 +358,7 @@ export default function TeacherResourcesPage() {
             >
               <Filter className="w-4 h-4" />
               Filters
-              {activeFiltersCount > 0 && (
-                <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center">
-                  {activeFiltersCount}
-                </span>
-              )}
+              {activeFiltersCount > 0 && <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center">{activeFiltersCount}</span>}
             </Button>
 
             <Link href="/teacher/upload">
@@ -382,40 +370,38 @@ export default function TeacherResourcesPage() {
         </div>
       </div>
 
-      {/* --- Filter Panel --- */}
+      {/* Filter Panel */}
       {showFilters && (
-        <Card className="p-4 mb-6 border-0 shadow-lg animate-fade-in bg-muted/20">
+        <Card className="p-4 mb-6 border-0 shadow-lg bg-muted/20">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Filter Resources</h3>
-            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground hover:text-destructive">
-              <X className="w-4 h-4 mr-1" /> Clear All
-            </Button>
+            <h3 className="font-semibold text-sm uppercase text-muted-foreground">Filter Resources</h3>
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground"><X className="w-4 h-4 mr-1" /> Clear All</Button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Class</label>
-              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}>
+              <select className="w-full px-3 py-2 border rounded-lg" value={filters.class} onChange={(e) => setFilters({ ...filters, class: e.target.value })}>
                 <option value="all">All Classes</option>
                 {CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>Class {opt}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Subject</label>
-              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
+              <select className="w-full px-3 py-2 border rounded-lg" value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })}>
                 <option value="all">All Subjects</option>
                 {SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Type</label>
-              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
+              <select className="w-full px-3 py-2 border rounded-lg" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}>
                 <option value="all">All Types</option>
                 {TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Exam</label>
-              <select className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}>
+              <select className="w-full px-3 py-2 border rounded-lg" value={filters.exam} onChange={(e) => setFilters({ ...filters, exam: e.target.value })}>
                 <option value="all">All Exams</option>
                 {EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -424,23 +410,23 @@ export default function TeacherResourcesPage() {
         </Card>
       )}
 
-      {/* --- Table --- */}
+      {/* Table Section */}
       <Card className="overflow-hidden border-0 shadow-lg min-h-[300px]">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-[300px]">
             <Loader2 className="w-10 h-10 animate-spin mb-2 text-emerald-500" />
-            <p>Loading your resources...</p>
+            <p className="text-muted-foreground">Loading your resources...</p>
           </div>
         ) : filteredResources.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-[300px]">
             <Search className="w-12 h-12 mb-4 text-muted-foreground/30" />
-            <p>No resources match your filters.</p>
+            <p className="text-muted-foreground">No resources match your filters.</p>
             <Button variant="link" onClick={resetFilters} className="text-emerald-500">Reset Filters</Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted/50 border-b border-border">
+              <thead className="bg-muted/50 border-b">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Title</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
@@ -453,9 +439,9 @@ export default function TeacherResourcesPage() {
                 {filteredResources.map((resource) => {
                   const doubtsCount = getResourceDoubtsCount(resource.id)
                   return (
-                    <tr key={resource.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <tr key={resource.id} className="border-b hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
-                        <button onClick={() => handleOpenLinkClick(resource)} className="font-medium text-emerald-600 hover:underline flex items-center gap-2 text-left">
+                        <button onClick={() => handleOpenLinkClick(resource)} className="font-medium text-emerald-600 hover:underline flex items-center gap-2">
                           {resource.title}
                           <ExternalLink className="w-3 h-3 text-muted-foreground" />
                         </button>
@@ -464,30 +450,20 @@ export default function TeacherResourcesPage() {
                       <td className="px-6 py-4">
                         <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded font-medium uppercase">{resource.type}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm">{resource.targetClass}</td>
+                      <td className="px-6 py-4 text-sm">Class {resource.targetClass}</td>
                       <td className="px-6 py-4">
-                        <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"}>
+                        <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"}>
                           {resource.status}
                         </Badge>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className={`flex items-center gap-1 ${doubtsCount > 0 ? "text-blue-600 border-blue-200 bg-blue-50" : "text-muted-foreground"}`}
-                            onClick={() => setDoubtsModal({ open: true, resourceTitle: resource.title, resourceId: resource.id })}
-                            title="View Doubts"
-                          >
+                          <Button size="sm" variant="outline" className={`gap-1 ${doubtsCount > 0 ? "text-blue-600 border-blue-200 bg-blue-50" : "text-muted-foreground"}`} onClick={() => setDoubtsModal({ open: true, resourceTitle: resource.title, resourceId: resource.id })}>
                             <MessageSquare className="w-4 h-4" />
                             {doubtsCount > 0 && <span className="text-xs font-bold">{doubtsCount}</span>}
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10 bg-transparent" onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(resource)}><Edit className="w-4 h-4" /></Button>
+                          <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10" onClick={() => setDeleteModal({ open: true, resourceId: resource.id })}><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </td>
                     </tr>
@@ -499,7 +475,7 @@ export default function TeacherResourcesPage() {
         )}
       </Card>
 
-      {/* --- EDIT MODAL --- */}
+      {/* EDIT MODAL */}
       <Dialog open={editModal.open} onOpenChange={(open) => setEditModal({ open, resource: null })}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit Resource</DialogTitle></DialogHeader>
@@ -510,68 +486,48 @@ export default function TeacherResourcesPage() {
               <label className="text-sm font-medium mb-1 block flex items-center gap-2">
                 {editForm.visibility === 'publish' ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />} Visibility Status
               </label>
-              <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.visibility} onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}>
+              <select className="w-full h-10 px-3 rounded-md border text-sm" value={editForm.visibility} onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}>
                 <option value="publish">Published</option><option value="draft">Draft</option>
               </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium mb-1 block">Type</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.resourceType} onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}><option value="">Select Type</option>{TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
-              <div><label className="text-sm font-medium mb-1 block">Subject</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.subject} onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}><option value="">Select Subject</option>{SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Type</label><select className="w-full h-10 px-3 rounded-md border text-sm" value={editForm.resourceType} onChange={(e) => setEditForm({ ...editForm, resourceType: e.target.value })}><option value="">Select Type</option>{TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Subject</label><select className="w-full h-10 px-3 rounded-md border text-sm" value={editForm.subject} onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}><option value="">Select Subject</option>{SUBJECT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-sm font-medium mb-1 block">Class</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.classLevel} onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}><option value="">Select Class</option>{CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
-              <div><label className="text-sm font-medium mb-1 block">Exam</label><select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm" value={editForm.examType} onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}><option value="">Select Exam</option>{EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Class</label><select className="w-full h-10 px-3 rounded-md border text-sm" value={editForm.classLevel} onChange={(e) => setEditForm({ ...editForm, classLevel: e.target.value })}><option value="">Select Class</option>{CLASS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+              <div><label className="text-sm font-medium mb-1 block">Exam</label><select className="w-full h-10 px-3 rounded-md border text-sm" value={editForm.examType} onChange={(e) => setEditForm({ ...editForm, examType: e.target.value })}><option value="">Select Exam</option>{EXAM_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
             </div>
             <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} className="h-24" /></div>
-            <div className="flex gap-2 mt-6"><Button variant="outline" onClick={() => setEditModal({ open: false, resource: null })} className="flex-1" disabled={isSaving}>Cancel</Button><Button onClick={handleSaveEdit} className="flex-1 bg-emerald-500 hover:bg-emerald-600" disabled={isSaving}>{isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}</Button></div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setEditModal({ open: false, resource: null })} className="flex-1" disabled={isSaving}>Cancel</Button>
+              <Button onClick={handleSaveEdit} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white" disabled={isSaving}>{isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}</Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* --- DOUBTS MODAL --- */}
+      {/* DOUBTS MODAL */}
       <Dialog open={doubtsModal.open} onOpenChange={(open) => setDoubtsModal({ ...doubtsModal, open })}>
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Doubts: {doubtsModal.resourceTitle}</DialogTitle>
-            <DialogDescription>Review and reply to student questions regarding this resource.</DialogDescription>
-          </DialogHeader>
-          
-          {/* Doubts Search & Filter */}
+          <DialogHeader><DialogTitle>Doubts: {doubtsModal.resourceTitle}</DialogTitle></DialogHeader>
           <div className="flex gap-2 mb-2">
              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search doubts..." 
-                    className="pl-9 h-9" 
-                    value={doubtSearch}
-                    onChange={(e) => setDoubtSearch(e.target.value)}
-                />
+                <Input placeholder="Search doubts..." className="pl-9 h-9" value={doubtSearch} onChange={(e) => setDoubtSearch(e.target.value)} />
              </div>
              <Select value={doubtFilter} onValueChange={setDoubtFilter}>
                 <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Filter" /></SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="replied">Replied</SelectItem>
-                </SelectContent>
+                <SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="replied">Replied</SelectItem></SelectContent>
              </Select>
           </div>
-
           <ScrollArea className="flex-1 pr-4 -mr-4 mt-2">
             <div className="space-y-6 pb-4">
-              {filteredDoubts.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                  {doubtsModal.resourceId ? "No doubts found matching your filters." : "Loading..."}
-                </div>
-              ) : (
+              {filteredDoubts.length === 0 ? <div className="text-center py-10 text-muted-foreground">No doubts found.</div> : (
                 filteredDoubts.map((doubt) => (
                   <div key={doubt.id} className="border rounded-xl p-4 bg-card shadow-sm">
-                    {/* Student Question */}
                     <div className="flex gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-                        <User className="w-4 h-4" />
-                      </div>
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary"><User className="w-4 h-4" /></div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold text-sm">{getStudentName(doubt.student)}</span>
@@ -580,35 +536,17 @@ export default function TeacherResourcesPage() {
                         <p className="text-sm">{doubt.question}</p>
                       </div>
                     </div>
-
-                    {/* Teacher Reply */}
                     {doubt.answer ? (
                       <div className="ml-11 bg-emerald-50/50 p-3 rounded-lg border border-emerald-100">
-                        <div className="flex items-center gap-2 mb-1 text-emerald-700 font-medium text-xs">
-                          <CornerDownRight className="w-3 h-3" />
-                          You replied:
-                        </div>
+                        <div className="flex items-center gap-2 mb-1 text-emerald-700 font-medium text-xs"><CornerDownRight className="w-3 h-3" /> You replied:</div>
                         <p className="text-sm text-emerald-900">{doubt.answer}</p>
                       </div>
                     ) : (
                       <div className="ml-11 mt-3">
-                        {replyingId === doubt.id ? (
-                          <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                            <Loader2 className="w-3 h-3 animate-spin" /> Sending...
-                          </div>
-                        ) : (
+                        {replyingId === doubt.id ? <div className="text-sm text-muted-foreground">Sending...</div> : (
                           <div className="flex gap-2">
-                            <Input 
-                              placeholder="Type your reply here..." 
-                              className="h-9 text-sm"
-                              value={replyingId === null ? replyText : ""} 
-                              onChange={(e) => {
-                                setReplyText(e.target.value)
-                              }}
-                            />
-                            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 h-9 px-3" onClick={() => handleReplySubmit(doubt.id)}>
-                              <Send className="w-3 h-3" />
-                            </Button>
+                            <Input placeholder="Type your reply..." className="h-9 text-sm" value={replyText} onChange={(e) => setReplyText(e.target.value)} />
+                            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600" onClick={() => handleReplySubmit(doubt.id)}><Send className="w-3 h-3" /></Button>
                           </div>
                         )}
                       </div>
@@ -618,14 +556,10 @@ export default function TeacherResourcesPage() {
               )}
             </div>
           </ScrollArea>
-          
-          <DialogFooter className="mt-2">
-            <Button variant="outline" onClick={() => setDoubtsModal({ open: false, resourceTitle: "", resourceId: null })}>Close</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation */}
       <Dialog open={deleteModal.open} onOpenChange={(open) => setDeleteModal({ open, resourceId: null })}>
         <DialogContent>
           <DialogHeader><DialogTitle>Delete Resource</DialogTitle></DialogHeader>
@@ -636,22 +570,6 @@ export default function TeacherResourcesPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Open Link Modal */}
-      <Dialog open={openLinkModal.open} onOpenChange={(open) => setOpenLinkModal({ ...openLinkModal, open })}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Open Resource</DialogTitle></DialogHeader>
-          <div className="py-4">
-            <p className="text-muted-foreground mb-2">Redirecting to:</p>
-            <div className="bg-muted p-3 rounded border"><p className="font-medium text-emerald-600 break-all text-sm">{openLinkModal.link}</p></div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenLinkModal({ open: false, link: null, title: null })}>Cancel</Button>
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white" onClick={confirmRedirect}>Open Link <ExternalLink className="w-4 h-4 ml-2" /></Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
     </TeacherSidebar>
   )
 }
