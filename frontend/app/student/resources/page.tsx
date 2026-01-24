@@ -4,9 +4,9 @@ import { useState, useMemo, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { StudentSidebar } from "@/components/shared/student-sidebar"
-import { 
-  Download, Search, Filter, X, FileText, BookOpen, 
-  ClipboardList, Star, Loader2, Info, MessageSquare, Send, 
+import {
+  Download, Search, Filter, X, FileText, BookOpen,
+  ClipboardList, Star, Loader2, Info, MessageSquare, Send,
   CheckCircle, Clock, CornerDownRight, User
 } from "lucide-react"
 import {
@@ -50,12 +50,12 @@ interface Doubt {
 export default function StudentResourcesPage() {
   const [loading, setLoading] = useState(true)
   const [resources, setResources] = useState<Resource[]>([])
-  
+
   // Page Filters
   const [filters, setFilters] = useState({
     class: "all", subject: "all", type: "all", exam: "all", search: "",
   })
-  
+
   // UI States
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
@@ -64,37 +64,37 @@ export default function StudentResourcesPage() {
   const [infoModal, setInfoModal] = useState<{ open: boolean; resource: Resource | null }>({
     open: false, resource: null,
   })
-  
+
   const [doubtModal, setDoubtModal] = useState<{ open: boolean; resource: Resource | null }>({
     open: false, resource: null,
   })
   const [resourceDoubts, setResourceDoubts] = useState<Doubt[]>([])
   const [loadingDoubts, setLoadingDoubts] = useState(false)
-  
+
   const [doubtMessage, setDoubtMessage] = useState("")
   const [isSendingDoubt, setIsSendingDoubt] = useState(false)
   const [doubtSearch, setDoubtSearch] = useState("")
-  const [doubtFilter, setDoubtFilter] = useState("all") 
+  const [doubtFilter, setDoubtFilter] = useState("all")
 
   // 1. Fetch Resources
   useEffect(() => {
     const fetchResources = async () => {
-        const token = localStorage.getItem("token")
-        if (!token) { setLoading(false); return }
+      const token = localStorage.getItem("token")
+      if (!token) { setLoading(false); return }
 
-        try {
-            const response = await fetch("http://localhost:8080/api/v1/resources", {
-                headers: { "Authorization": `Bearer ${token}` }
-            })
-            if (response.ok) {
-                const data = await response.json()
-                setResources(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
-            }
-        } catch (error) {
-            console.error("Error loading resources:", error)
-        } finally {
-            setLoading(false)
+      try {
+        const response = await fetch("https://momentumscienceacademy.com/api/v1/resources", {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setResources(data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
         }
+      } catch (error) {
+        console.error("Error loading resources:", error)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchResources()
   }, [])
@@ -102,34 +102,34 @@ export default function StudentResourcesPage() {
   // 2. Fetch Doubts when Modal Opens
   useEffect(() => {
     if (doubtModal.open && doubtModal.resource) {
-        fetchDoubtsForResource(doubtModal.resource.id)
+      fetchDoubtsForResource(doubtModal.resource.id)
     } else {
-        setResourceDoubts([])
-        setDoubtMessage("")
-        setDoubtSearch("")
-        setDoubtFilter("all")
+      setResourceDoubts([])
+      setDoubtMessage("")
+      setDoubtSearch("")
+      setDoubtFilter("all")
     }
   }, [doubtModal.open, doubtModal.resource])
 
   const fetchDoubtsForResource = async (resourceId: number) => {
     setLoadingDoubts(true)
     try {
-        const token = localStorage.getItem("token")
-        const res = await fetch("http://localhost:8080/api/v1/doubts/my-doubts", {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-        if (res.ok) {
-            const allDoubts: Doubt[] = await res.json()
-            const filtered = allDoubts.filter(d => 
-                d.contextType === "RESOURCE" && d.contextId === resourceId
-            ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            
-            setResourceDoubts(filtered)
-        }
+      const token = localStorage.getItem("token")
+      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts/my-doubts", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const allDoubts: Doubt[] = await res.json()
+        const filtered = allDoubts.filter(d =>
+          d.contextType === "RESOURCE" && d.contextId === resourceId
+        ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+        setResourceDoubts(filtered)
+      }
     } catch (error) {
-        console.error("Failed to load doubts", error)
+      console.error("Failed to load doubts", error)
     } finally {
-        setLoadingDoubts(false)
+      setLoadingDoubts(false)
     }
   }
 
@@ -137,7 +137,7 @@ export default function StudentResourcesPage() {
   const handleDoubtSubmit = async () => {
     if (!doubtModal.resource || !doubtMessage.trim()) return
     setIsSendingDoubt(true)
-    
+
     try {
       const token = localStorage.getItem("token")
       if (!token) {
@@ -145,14 +145,14 @@ export default function StudentResourcesPage() {
         return
       }
 
-      const res = await fetch("http://localhost:8080/api/v1/doubts", {
+      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json", 
-          "Authorization": `Bearer ${token}` 
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          contextType: "RESOURCE", 
+          contextType: "RESOURCE",
           contextId: doubtModal.resource.id,
           question: doubtMessage.trim()
         })
@@ -191,40 +191,40 @@ export default function StudentResourcesPage() {
   // 5. Modal Internal Filtering
   const displayedModalDoubts = useMemo(() => {
     return resourceDoubts.filter(d => {
-        const matchesSearch = d.question.toLowerCase().includes(doubtSearch.toLowerCase())
-        let matchesStatus = true
-        if (doubtFilter === "pending") matchesStatus = !d.answer
-        if (doubtFilter === "resolved") matchesStatus = !!d.answer
-        return matchesSearch && matchesStatus
+      const matchesSearch = d.question.toLowerCase().includes(doubtSearch.toLowerCase())
+      let matchesStatus = true
+      if (doubtFilter === "pending") matchesStatus = !d.answer
+      if (doubtFilter === "resolved") matchesStatus = !!d.answer
+      return matchesSearch && matchesStatus
     })
   }, [resourceDoubts, doubtSearch, doubtFilter])
 
   const resetFilters = () => {
     setFilters({ class: "all", subject: "all", type: "all", exam: "all", search: "" })
   }
-  
+
   const handleDownload = async (id: number, fileUrl: string) => {
     setDownloadingId(id)
     if (fileUrl && fileUrl.startsWith("http")) {
-        window.open(fileUrl, "_blank")
-        setDownloadingId(null)
+      window.open(fileUrl, "_blank")
+      setDownloadingId(null)
     } else {
-        alert("Download link not available."); setDownloadingId(null)
+      alert("Download link not available."); setDownloadingId(null)
     }
   }
 
   const getTypeIcon = (type: string) => {
     switch (type?.toLowerCase()) {
-      case "pyq": case "pq": return FileText; 
-      case "notes": return BookOpen; 
-      case "assignment": return ClipboardList; 
-      case "imp": return Star; 
+      case "pyq": case "pq": return FileText;
+      case "notes": return BookOpen;
+      case "assignment": return ClipboardList;
+      case "imp": return Star;
       default: return FileText
     }
   }
 
   const formatResourceType = (type: string) => {
-    const map: any = { 'pq': 'PYQ', 'pyq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' }; 
+    const map: any = { 'pq': 'PYQ', 'pyq': 'PYQ', 'notes': 'Notes', 'assignment': 'Assignment', 'imp': 'IMP' };
     return map[type?.toLowerCase()] || type
   }
 
@@ -309,57 +309,57 @@ export default function StudentResourcesPage() {
       {loading ? (
         <div className="flex justify-center items-center py-20"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>
       ) : (
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredResources.map((resource) => {
-          const TypeIcon = getTypeIcon(resource.type)
-          const displayType = formatResourceType(resource.type)
-          return (
-            <Card key={resource.id} className="p-5 border-0 shadow-lg hover:shadow-xl transition-all flex flex-col">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${displayType === "PYQ" ? "bg-blue-500/10 text-blue-500" : displayType === "Notes" ? "bg-emerald-500/10 text-emerald-500" : "bg-purple-500/10 text-purple-500"}`}>
-                  <TypeIcon className="w-6 h-6" />
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredResources.map((resource) => {
+            const TypeIcon = getTypeIcon(resource.type)
+            const displayType = formatResourceType(resource.type)
+            return (
+              <Card key={resource.id} className="p-5 border-0 shadow-lg hover:shadow-xl transition-all flex flex-col">
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${displayType === "PYQ" ? "bg-blue-500/10 text-blue-500" : displayType === "Notes" ? "bg-emerald-500/10 text-emerald-500" : "bg-purple-500/10 text-purple-500"}`}>
+                    <TypeIcon className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-muted-foreground uppercase">{displayType}</span>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-muted-foreground uppercase">{displayType}</span>
-              </div>
-              <div className="flex items-center gap-2 mb-2">
-                 <h3 className="font-bold text-lg hover:text-primary cursor-pointer line-clamp-1 flex-1" title={resource.title}>{resource.title}</h3>
-                 <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary shrink-0" onClick={() => setInfoModal({ open: true, resource })}><Info className="w-4 h-4" /></Button>
-              </div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant="outline">{resource.subject}</Badge>
-                <Badge variant="outline">Class {resource.targetClass}</Badge>
-                {resource.exam && <Badge variant="outline">{resource.exam}</Badge>}
-              </div>
-              <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads || 0} downloads</p>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setDoubtModal({ open: true, resource })}><MessageSquare className="w-4 h-4 mr-2" /> Doubt</Button>
-                <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleDownload(resource.id, resource.fileUrl)} disabled={downloadingId === resource.id}>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-bold text-lg hover:text-primary cursor-pointer line-clamp-1 flex-1" title={resource.title}>{resource.title}</h3>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary shrink-0" onClick={() => setInfoModal({ open: true, resource })}><Info className="w-4 h-4" /></Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge variant="outline">{resource.subject}</Badge>
+                  <Badge variant="outline">Class {resource.targetClass}</Badge>
+                  {resource.exam && <Badge variant="outline">{resource.exam}</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground mb-4 flex-1">{resource.downloads || 0} downloads</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setDoubtModal({ open: true, resource })}><MessageSquare className="w-4 h-4 mr-2" /> Doubt</Button>
+                  <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => handleDownload(resource.id, resource.fileUrl)} disabled={downloadingId === resource.id}>
                     {downloadingId === resource.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Download className="w-4 h-4 mr-2" /> Download</>}
-                </Button>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
       )}
 
       {/* --- INFO MODAL --- */}
       <Dialog open={infoModal.open} onOpenChange={(open) => setInfoModal({ open, resource: null })}>
         <DialogContent>
-            <DialogHeader><DialogTitle>Resource Details</DialogTitle></DialogHeader>
-            {infoModal.resource && (
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground"><Badge variant="outline">{infoModal.resource.subject}</Badge><span>•</span><span>{formatResourceType(infoModal.resource.type)}</span></div>
-                    <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
-                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Class</span><span className="font-medium">Class {infoModal.resource.targetClass}</span></div>
-                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Exam</span><span className="font-medium">{infoModal.resource.exam || "N/A"}</span></div>
-                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Uploaded By</span><span className="font-medium">{getUploaderName(infoModal.resource.uploadedBy)}</span></div>
-                        <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Downloads</span><span className="font-medium">{infoModal.resource.downloads}</span></div>
-                    </div>
-                    <div className="space-y-1"><Label className="text-muted-foreground">Description</Label><div className="p-4 bg-muted rounded-lg text-sm whitespace-pre-wrap min-h-[100px]">{infoModal.resource.description || "No description provided."}</div></div>
-                    <DialogFooter><Button className="w-full" onClick={() => handleDownload(infoModal.resource!.id, infoModal.resource!.fileUrl)}><Download className="w-4 h-4 mr-2" /> Download File</Button></DialogFooter>
-                </div>
-            )}
+          <DialogHeader><DialogTitle>Resource Details</DialogTitle></DialogHeader>
+          {infoModal.resource && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Badge variant="outline">{infoModal.resource.subject}</Badge><span>•</span><span>{formatResourceType(infoModal.resource.type)}</span></div>
+              <div className="grid grid-cols-2 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
+                <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Class</span><span className="font-medium">Class {infoModal.resource.targetClass}</span></div>
+                <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Exam</span><span className="font-medium">{infoModal.resource.exam || "N/A"}</span></div>
+                <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Uploaded By</span><span className="font-medium">{getUploaderName(infoModal.resource.uploadedBy)}</span></div>
+                <div><span className="text-muted-foreground block text-xs uppercase tracking-wide">Downloads</span><span className="font-medium">{infoModal.resource.downloads}</span></div>
+              </div>
+              <div className="space-y-1"><Label className="text-muted-foreground">Description</Label><div className="p-4 bg-muted rounded-lg text-sm whitespace-pre-wrap min-h-[100px]">{infoModal.resource.description || "No description provided."}</div></div>
+              <DialogFooter><Button className="w-full" onClick={() => handleDownload(infoModal.resource!.id, infoModal.resource!.fileUrl)}><Download className="w-4 h-4 mr-2" /> Download File</Button></DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -370,85 +370,85 @@ export default function StudentResourcesPage() {
             <DialogTitle>Discussion: {doubtModal.resource?.title}</DialogTitle>
             <DialogDescription>Ask a question or browse previous doubts for this resource.</DialogDescription>
           </DialogHeader>
-          
+
           <div className="flex flex-col gap-4 flex-1 overflow-hidden">
             <div className="bg-muted/30 p-4 rounded-xl border space-y-3 shrink-0">
-                <Label className="text-sm font-medium">Ask a New Doubt</Label>
-                <div className="flex gap-2">
-                    <Input 
-                        placeholder="Type your question here..." 
-                        value={doubtMessage}
-                        onChange={(e) => setDoubtMessage(e.target.value)}
-                        className="flex-1"
-                        onKeyDown={(e) => e.key === 'Enter' && handleDoubtSubmit()}
-                    />
-                    <Button 
-                        onClick={handleDoubtSubmit} 
-                        disabled={isSendingDoubt || !doubtMessage.trim()} 
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0"
-                    >
-                        {isSendingDoubt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </Button>
-                </div>
+              <Label className="text-sm font-medium">Ask a New Doubt</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type your question here..."
+                  value={doubtMessage}
+                  onChange={(e) => setDoubtMessage(e.target.value)}
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && handleDoubtSubmit()}
+                />
+                <Button
+                  onClick={handleDoubtSubmit}
+                  disabled={isSendingDoubt || !doubtMessage.trim()}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0"
+                >
+                  {isSendingDoubt ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
 
             <div className="flex gap-2 shrink-0">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search previous questions..." 
-                        className="pl-9 h-9" 
-                        value={doubtSearch}
-                        onChange={(e) => setDoubtSearch(e.target.value)}
-                    />
-                </div>
-                <Select value={doubtFilter} onValueChange={setDoubtFilter}>
-                    <SelectTrigger className="w-[120px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                    </SelectContent>
-                </Select>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search previous questions..."
+                  className="pl-9 h-9"
+                  value={doubtSearch}
+                  onChange={(e) => setDoubtSearch(e.target.value)}
+                />
+              </div>
+              <Select value={doubtFilter} onValueChange={setDoubtFilter}>
+                <SelectTrigger className="w-[120px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="resolved">Resolved</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <ScrollArea className="flex-1 -mr-4 pr-4">
-                {loadingDoubts ? (
-                    <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-                ) : displayedModalDoubts.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
-                        <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-20" />
-                        <p className="text-sm">No doubts found.</p>
-                        {resourceDoubts.length === 0 && <p className="text-xs">Be the first to ask!</p>}
+              {loadingDoubts ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+              ) : displayedModalDoubts.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
+                  <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No doubts found.</p>
+                  {resourceDoubts.length === 0 && <p className="text-xs">Be the first to ask!</p>}
+                </div>
+              ) : (
+                <div className="space-y-3 pb-2">
+                  {displayedModalDoubts.map(doubt => (
+                    <div key={doubt.id} className="border rounded-lg p-3 bg-card text-sm space-y-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs text-muted-foreground">{new Date(doubt.createdAt).toLocaleDateString()}</span>
+                        {doubt.answer ? (
+                          <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px]"><CheckCircle className="w-3 h-3 mr-1" /> Resolved</Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-[10px]"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5"><User className="w-3 h-3" /></div>
+                        <p className="font-medium text-foreground">{doubt.question}</p>
+                      </div>
+                      {doubt.answer && (
+                        <div className="ml-9 bg-emerald-50/50 p-2.5 rounded-md border border-emerald-100">
+                          <div className="flex items-center gap-1.5 mb-1 text-emerald-700 font-semibold text-xs">
+                            <CornerDownRight className="w-3 h-3" /> Teacher's Reply
+                          </div>
+                          <p className="text-emerald-900 leading-relaxed">{doubt.answer}</p>
+                        </div>
+                      )}
                     </div>
-                ) : (
-                    <div className="space-y-3 pb-2">
-                        {displayedModalDoubts.map(doubt => (
-                            <div key={doubt.id} className="border rounded-lg p-3 bg-card text-sm space-y-2">
-                                <div className="flex justify-between items-start">
-                                    <span className="text-xs text-muted-foreground">{new Date(doubt.createdAt).toLocaleDateString()}</span>
-                                    {doubt.answer ? (
-                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px]"><CheckCircle className="w-3 h-3 mr-1"/> Resolved</Badge>
-                                    ) : (
-                                        <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-[10px]"><Clock className="w-3 h-3 mr-1"/> Pending</Badge>
-                                    )}
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5"><User className="w-3 h-3" /></div>
-                                    <p className="font-medium text-foreground">{doubt.question}</p>
-                                </div>
-                                {doubt.answer && (
-                                    <div className="ml-9 bg-emerald-50/50 p-2.5 rounded-md border border-emerald-100">
-                                        <div className="flex items-center gap-1.5 mb-1 text-emerald-700 font-semibold text-xs">
-                                            <CornerDownRight className="w-3 h-3" /> Teacher's Reply
-                                        </div>
-                                        <p className="text-emerald-900 leading-relaxed">{doubt.answer}</p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                  ))}
+                </div>
+              )}
             </ScrollArea>
           </div>
 

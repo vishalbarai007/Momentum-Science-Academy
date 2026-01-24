@@ -5,12 +5,12 @@ import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeacherSidebar } from "@/components/shared/teacher-sidebar"
-import { 
-  Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink, 
-  Save, Eye, EyeOff, Filter, X, MessageSquare, Send, CornerDownRight, User 
+import {
+  Plus, Edit, Trash2, CheckCircle, Search, Loader2, ExternalLink,
+  Save, Eye, EyeOff, Filter, X, MessageSquare, Send, CornerDownRight, User
 } from "lucide-react"
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -22,10 +22,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface Resource {
   id: number
   title: string
-  type: string       
+  type: string
   subject: string
-  targetClass: string 
-  exam: string       
+  targetClass: string
+  exam: string
   downloads: number
   status: string
   date: string
@@ -35,7 +35,7 @@ interface Resource {
 
 interface Doubt {
   id: number
-  student: any 
+  student: any
   question: string
   answer: string | null
   createdAt: string
@@ -87,7 +87,7 @@ export default function TeacherResourcesPage() {
   const [replyText, setReplyText] = useState("")
   const [replyingId, setReplyingId] = useState<number | null>(null)
   const [doubtSearch, setDoubtSearch] = useState("")
-  const [doubtFilter, setDoubtFilter] = useState("all") 
+  const [doubtFilter, setDoubtFilter] = useState("all")
 
   const [isSaving, setIsSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
@@ -137,7 +137,7 @@ export default function TeacherResourcesPage() {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const response = await fetch("http://localhost:8080/api/v1/resources/my-uploads", {
+      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources/my-uploads", {
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -148,7 +148,7 @@ export default function TeacherResourcesPage() {
           title: item.title,
           type: formatResourceTypeFromBackend(item.type),
           subject: item.subject,
-          targetClass: String(item.targetClass), 
+          targetClass: String(item.targetClass),
           exam: item.exam,
           downloads: item.downloads || 0,
           status: item.isPublished ? "Published" : "Draft",
@@ -169,7 +169,7 @@ export default function TeacherResourcesPage() {
     try {
       const token = localStorage.getItem("token")
       if (!token) return
-      const response = await fetch("http://localhost:8080/api/v1/doubts/incoming", {
+      const response = await fetch("https://momentumscienceacademy.com/api/v1/doubts/incoming", {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (response.ok) {
@@ -198,16 +198,16 @@ export default function TeacherResourcesPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     if (doubtSearch) {
-        relevantDoubts = relevantDoubts.filter(d => 
-            getStudentName(d.student).toLowerCase().includes(doubtSearch.toLowerCase()) ||
-            d.question.toLowerCase().includes(doubtSearch.toLowerCase())
-        )
+      relevantDoubts = relevantDoubts.filter(d =>
+        getStudentName(d.student).toLowerCase().includes(doubtSearch.toLowerCase()) ||
+        d.question.toLowerCase().includes(doubtSearch.toLowerCase())
+      )
     }
 
     if (doubtFilter === "pending") {
-        relevantDoubts = relevantDoubts.filter(d => !d.answer)
+      relevantDoubts = relevantDoubts.filter(d => !d.answer)
     } else if (doubtFilter === "replied") {
-        relevantDoubts = relevantDoubts.filter(d => d.answer)
+      relevantDoubts = relevantDoubts.filter(d => d.answer)
     }
 
     return relevantDoubts
@@ -217,24 +217,24 @@ export default function TeacherResourcesPage() {
     if (!replyText.trim()) return
     setReplyingId(doubtId)
     try {
-        const token = localStorage.getItem("token")
-        const res = await fetch(`http://localhost:8080/api/v1/doubts/${doubtId}/reply`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ answer: replyText })
-        })
+      const token = localStorage.getItem("token")
+      const res = await fetch(`https://momentumscienceacademy.com/api/v1/doubts/${doubtId}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ answer: replyText })
+      })
 
-        if (res.ok) {
-            setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: replyText } : d))
-            setReplyText("")
-        }
+      if (res.ok) {
+        setDoubts(prev => prev.map(d => d.id === doubtId ? { ...d, answer: replyText } : d))
+        setReplyText("")
+      }
     } catch (err) {
-        console.error(err)
+      console.error(err)
     } finally {
-        setReplyingId(null)
+      setReplyingId(null)
     }
   }
 
@@ -258,19 +258,19 @@ export default function TeacherResourcesPage() {
     setIsSaving(true)
     try {
       const token = localStorage.getItem("token")
-      
+
       const payload = {
         title: editForm.title,
         description: editForm.description,
         resourceType: editForm.resourceType.toLowerCase() === 'pyq' ? 'pq' : editForm.resourceType.toLowerCase(),
         subject: editForm.subject,
-        targetClass: parseInt(editForm.classLevel), 
+        targetClass: parseInt(editForm.classLevel),
         examType: editForm.examType,
         fileLink: editForm.fileLink,
         visibility: editForm.visibility
       }
 
-      const response = await fetch(`http://localhost:8080/api/v1/resources/${editModal.resource.id}`, {
+      const response = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${editModal.resource.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -295,7 +295,7 @@ export default function TeacherResourcesPage() {
   const handleDelete = async (id: number) => {
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`http://localhost:8080/api/v1/resources/${id}`, {
+      const response = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -349,24 +349,24 @@ export default function TeacherResourcesPage() {
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />
         </div>
-        
-        <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className={`gap-2 h-full ${activeFiltersCount > 0 ? "border-emerald-500 text-emerald-600 bg-emerald-50" : ""}`}
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-              {activeFiltersCount > 0 && <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center">{activeFiltersCount}</span>}
-            </Button>
 
-            <Link href="/teacher/upload">
-              <Button className="bg-emerald-500 text-white hover:bg-emerald-600 h-full">
-                <Plus className="w-4 h-4 mr-2" />
-                Upload
-              </Button>
-            </Link>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`gap-2 h-full ${activeFiltersCount > 0 ? "border-emerald-500 text-emerald-600 bg-emerald-50" : ""}`}
+          >
+            <Filter className="w-4 h-4" />
+            Filters
+            {activeFiltersCount > 0 && <span className="w-5 h-5 bg-emerald-600 text-white rounded-full text-xs flex items-center justify-center">{activeFiltersCount}</span>}
+          </Button>
+
+          <Link href="/teacher/upload">
+            <Button className="bg-emerald-500 text-white hover:bg-emerald-600 h-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Upload
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -512,14 +512,14 @@ export default function TeacherResourcesPage() {
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
           <DialogHeader><DialogTitle>Doubts: {doubtsModal.resourceTitle}</DialogTitle></DialogHeader>
           <div className="flex gap-2 mb-2">
-             <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Search doubts..." className="pl-9 h-9" value={doubtSearch} onChange={(e) => setDoubtSearch(e.target.value)} />
-             </div>
-             <Select value={doubtFilter} onValueChange={setDoubtFilter}>
-                <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Filter" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="replied">Replied</SelectItem></SelectContent>
-             </Select>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Search doubts..." className="pl-9 h-9" value={doubtSearch} onChange={(e) => setDoubtSearch(e.target.value)} />
+            </div>
+            <Select value={doubtFilter} onValueChange={setDoubtFilter}>
+              <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Filter" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">All</SelectItem><SelectItem value="pending">Pending</SelectItem><SelectItem value="replied">Replied</SelectItem></SelectContent>
+            </Select>
           </div>
           <ScrollArea className="flex-1 pr-4 -mr-4 mt-2">
             <div className="space-y-6 pb-4">

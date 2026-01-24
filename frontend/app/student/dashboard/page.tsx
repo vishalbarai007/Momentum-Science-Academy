@@ -83,11 +83,11 @@ export default function StudentDashboard() {
         if (storedUser) setStudent(JSON.parse(storedUser))
 
         // 2. Fetch Performance Stats
-        const perfRes = await fetch("http://localhost:8080/api/v1/performance/stats", { headers })
+        const perfRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/stats", { headers })
         if (perfRes.ok) setPerformance(await perfRes.json())
 
         // 3. Fetch Assignments (Calculate Pending & Deadlines)
-        const assignRes = await fetch("http://localhost:8080/api/v1/assignments", { headers })
+        const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments", { headers })
         if (assignRes.ok) {
           const allAssignments: Assignment[] = await assignRes.json()
 
@@ -105,7 +105,7 @@ export default function StudentDashboard() {
         }
 
         // 4. Fetch Resources
-        const resourcesRes = await fetch("http://localhost:8080/api/v1/resources", { headers })
+        const resourcesRes = await fetch("https://momentumscienceacademy.com/api/v1/resources", { headers })
         if (resourcesRes.ok) {
           const data = await resourcesRes.json()
           const sorted = data.sort((a: any, b: any) =>

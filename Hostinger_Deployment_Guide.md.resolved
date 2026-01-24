@@ -1,0 +1,156 @@
+# Hostinger VPS Deployment Guide
+
+This guide details how to deploy your **Next.js Frontend** and **Java (Spring Boot) Backend** on a Hostinger VPS (Ubuntu 22.04/24.04 recommended).
+
+> [!NOTE]
+> Ensure you have an active Hostinger VPS plan and SSH access.
+
+## 1. Server Setup (First Time Only)
+
+SSH into your server:
+```bash
+ssh root@your_vps_ip
+```
+
+### Install Prerequisites (Node.js, Java, Nginx)
+```bash
+# Update system
+apt update && apt upgrade -y
+
+# Install Java 17 (Required for Backend)
+apt install openjdk-17-jdk -y
+
+# Install Node.js 20 (Required for Frontend)
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# Install Nginx (Web Server / Reverse Proxy)
+apt install nginx -y
+
+# Install PM2 (Process Manager for Node.js)
+npm install -g pm2
+```
+
+---
+
+## 2. Backend Deployment
+
+### Prepare Artifacts
+Upload your built JAR file ([backend/target/backend-0.0.1-SNAPSHOT.jar](file:///c:/Users/DELL/OneDrive/Desktop/Momentum/backend/target/backend-0.0.1-SNAPSHOT.jar)) to the VPS, e.g., `/var/www/momentum-backend/app.jar`.
+
+### Run Backend
+You can run the JAR file directly, but it's better to create a system service or use PM2 (if configured for java, but standard `java -jar` service is cleaner).
+
+**Option A: Run with systemd (Recommended for production)**
+1. Create service file: `nano /etc/systemd/system/backend.service`
+2. Paste content:
+```ini
+[Unit]
+Description=Momentum Backend
+After=network.target
+
+[Service]
+User=root
+# Adjust memory limits as needed
+ExecStart=/usr/bin/java -jar /var/www/momentum-backend/app.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+WorkingDirectory=/var/www/momentum-backend
+
+[Install]
+WantedBy=multi-user.target
+```
+3. Start service:
+```bash
+systemctl daemon-reload
+systemctl enable backend
+systemctl start backend
+```
+
+**Check Status**: `systemctl status backend`
+
+---
+
+## 3. Frontend Deployment
+
+### Prepare Artifacts
+Upload the following files/folders from your local `frontend` directory to `/var/www/momentum-frontend`:
+- `.next/` (folder)
+- `public/` (folder)
+- [package.json](file:///c:/Users/DELL/OneDrive/Desktop/Momentum/frontend/package.json)
+- [next.config.mjs](file:///c:/Users/DELL/OneDrive/Desktop/Momentum/frontend/next.config.mjs)
+- `.env` (Create this file with your production environment variables)
+
+### Install Dependencies
+```bash
+cd /var/www/momentum-frontend
+npm install --production
+```
+
+### Configure Environment (.env)
+Ensure `.env` contains:
+```env
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your_email@...
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----..."
+GOOGLE_SHEET_ID=...
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com # or /api/v1 if using path routing
+```
+
+### Start with PM2
+```bash
+pm2 start npm --name "frontend" -- start
+pm2 save
+pm2 startup
+```
+
+---
+
+## 4. Nginx Configuration (Reverse Proxy)
+
+Configure Nginx to route traffic to the Frontend (Port 3000) and Backend (Port 8080).
+
+Edit config: `nano /etc/nginx/sites-available/default` (or create a new file)
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # Frontend (Next.js)
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Backend (Java API)
+    # Option 1: Map to /api Path
+    location /api/ {
+        proxy_pass http://localhost:8080/; 
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+**Restart Nginx**:
+```bash
+nginx -t
+systemctl restart nginx
+```
+
+> [!TIP]
+> Use **Certbot** to enable HTTPS (SSL):
+> `apt install certbot python3-certbot-nginx -y`
+> `certbot --nginx -d yourdomain.com`
+
+---
+
+## 5. Summary of Ports
+- **Frontend**: Runs on `localhost:3000`
+- **Backend**: Runs on `localhost:8080` (Default Spring Boot port, verify in [application.properties](file:///c:/Users/DELL/OneDrive/Desktop/Momentum/backend/src/main/resources/application.properties))
+- **Nginx**: Listens on `80` (HTTP) / `443` (HTTPS) and forwards traffic.

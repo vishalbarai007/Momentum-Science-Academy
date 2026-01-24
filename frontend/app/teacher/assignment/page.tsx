@@ -17,8 +17,8 @@ interface AssignmentFormData {
   classLevel: number
   examType: string
   fileLink: string
-  dueDate: string 
-  difficulty: string 
+  dueDate: string
+  difficulty: string
   visibility: 'publish' | 'draft'
 }
 
@@ -36,7 +36,7 @@ const initialFormData: AssignmentFormData = {
 
 export default function TeacherAssignmentUploadPage() {
   const router = useRouter()
-  
+
   const [formData, setFormData] = useState<AssignmentFormData>(initialFormData)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
@@ -76,11 +76,11 @@ export default function TeacherAssignmentUploadPage() {
 
     try {
       // UPDATED: Pointing to the new Assignment Controller Endpoint
-      const response = await fetch("http://localhost:8080/api/v1/assignments/upload", {
+      const response = await fetch("https://momentumscienceacademy.com/api/v1/assignments/upload", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, 
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -134,7 +134,7 @@ export default function TeacherAssignmentUploadPage() {
 
         <Card className="p-8 border-0 shadow-lg">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            
+
             {/* Title */}
             <div>
               <label className="block text-sm font-medium mb-2" htmlFor="title">Assignment Title *</label>
@@ -204,51 +204,51 @@ export default function TeacherAssignmentUploadPage() {
 
             {/* Assignment Specifics */}
             <div className="grid md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-xl border border-border">
-                <div className="md:col-span-1">
-                    <label className="block text-sm font-medium mb-2" htmlFor="dueDate">Due Date *</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                            id="dueDate"
-                            name="dueDate"
-                            type="date"
-                            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                            value={formData.dueDate}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
+              <div className="md:col-span-1">
+                <label className="block text-sm font-medium mb-2" htmlFor="dueDate">Due Date *</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    id="dueDate"
+                    name="dueDate"
+                    type="date"
+                    className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    value={formData.dueDate}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-2" htmlFor="difficulty">Difficulty</label>
-                    <select
-                        id="difficulty"
-                        name="difficulty"
-                        className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                        value={formData.difficulty}
-                        onChange={handleInputChange}
-                    >
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium mb-2" htmlFor="examType">Target Exam</label>
-                    <select 
-                        id="examType"
-                        name="examType"
-                        className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                        value={formData.examType}
-                        onChange={handleInputChange}
-                    >
-                        <option value="Not Applicable">Not Applicable</option>
-                        <option value="JEE Main">JEE Main</option>
-                        <option value="JEE Advanced">JEE Advanced</option>
-                        <option value="NEET">NEET</option>
-                        <option value="Board Exam">Board Exam</option>
-                    </select>
-                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="difficulty">Difficulty</label>
+                <select
+                  id="difficulty"
+                  name="difficulty"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.difficulty}
+                  onChange={handleInputChange}
+                >
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="examType">Target Exam</label>
+                <select
+                  id="examType"
+                  name="examType"
+                  className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.examType}
+                  onChange={handleInputChange}
+                >
+                  <option value="Not Applicable">Not Applicable</option>
+                  <option value="JEE Main">JEE Main</option>
+                  <option value="JEE Advanced">JEE Advanced</option>
+                  <option value="NEET">NEET</option>
+                  <option value="Board Exam">Board Exam</option>
+                </select>
+              </div>
             </div>
 
             {/* File Link */}
@@ -257,46 +257,46 @@ export default function TeacherAssignmentUploadPage() {
               <div className="relative">
                 <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
-                    id="fileLink"
-                    name="fileLink"
-                    type="text"
-                    placeholder="Paste Google Drive / Dropbox link"
-                    className="w-full pl-10 pr-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                    value={formData.fileLink}
-                    onChange={handleInputChange}
-                    required
+                  id="fileLink"
+                  name="fileLink"
+                  type="text"
+                  placeholder="Paste Google Drive / Dropbox link"
+                  className="w-full pl-10 pr-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  value={formData.fileLink}
+                  onChange={handleInputChange}
+                  required
                 />
               </div>
             </div>
-            
+
             {/* Visibility Toggle */}
             <div className="flex gap-4">
-                <label className="flex-1 flex items-center gap-3 p-3 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
-                    <input
-                    type="radio"
-                    name="visibility"
-                    value="publish"
-                    checked={formData.visibility === 'publish'}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-emerald-500"
-                    />
-                    <div>
-                    <p className="font-medium text-sm">Publish Immediately</p>
-                    </div>
-                </label>
-                <label className="flex-1 flex items-center gap-3 p-3 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
-                    <input 
-                    type="radio" 
-                    name="visibility" 
-                    value="draft" 
-                    checked={formData.visibility === 'draft'}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-emerald-500" 
-                    />
-                    <div>
-                    <p className="font-medium text-sm">Save as Draft</p>
-                    </div>
-                </label>
+              <label className="flex-1 flex items-center gap-3 p-3 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="publish"
+                  checked={formData.visibility === 'publish'}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-emerald-500"
+                />
+                <div>
+                  <p className="font-medium text-sm">Publish Immediately</p>
+                </div>
+              </label>
+              <label className="flex-1 flex items-center gap-3 p-3 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="draft"
+                  checked={formData.visibility === 'draft'}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-emerald-500"
+                />
+                <div>
+                  <p className="font-medium text-sm">Save as Draft</p>
+                </div>
+              </label>
             </div>
 
             {/* Submit */}

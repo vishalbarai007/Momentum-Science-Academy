@@ -34,10 +34,10 @@ const initialFormData: FormData = {
 
 export default function TeacherUploadPage() {
   const router = useRouter()
-  
+
   // State for all form inputs
   const [formData, setFormData] = useState<FormData>(initialFormData)
-  
+
   // State for process tracking
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
@@ -54,72 +54,72 @@ export default function TeacherUploadPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsUploading(true);
+    e.preventDefault();
+    setIsUploading(true);
 
-  // 1. Get Authentication Token
-  const token = localStorage.getItem("token");
-  if (!token) {
-    // Handle case where token is missing (user should be logged out or redirected)
-    console.error("Authentication token not found. Please log in again.");
-    setIsUploading(false);
-    // You might want to router.push("/login") here
-    return;
-  }
-
-  // 2. Prepare the Request Body (maps directly to the ResourceUploadRequest DTO)
-  const payload = {
-    title: formData.title,
-    description: formData.description,
-    resourceType: formData.resourceType,
-    subject: formData.subject,
-    targetClass: formData.classLevel,
-    // Set to null if 'Not Applicable' to match backend DTO expectation
-    examType: formData.examType === "Not Applicable" ? null : formData.examType,
-    fileLink: formData.fileLink,
-    visibility: formData.visibility, // "publish" or "draft"
-  };
-
-  try {
-    // 3. Make the API Call
-    const response = await fetch("http://localhost:8080/api/v1/resources/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // AUTHENTICATION: Pass the JWT token
-        "Authorization": `Bearer ${token}`, 
-      },
-      body: JSON.stringify(payload),
-    });
-
-    // 4. Handle Errors
-    if (!response.ok) {
-      const errorText = await response.text();
-      // In a real app, you would use a toast/notification here to show the user the errorText
-      console.error("Resource Upload Failed:", errorText);
-      throw new Error(errorText || "Upload failed with status " + response.status);
+    // 1. Get Authentication Token
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // Handle case where token is missing (user should be logged out or redirected)
+      console.error("Authentication token not found. Please log in again.");
+      setIsUploading(false);
+      // You might want to router.push("/login") here
+      return;
     }
 
-    // 5. Handle Success
-    // const data = await response.json(); // Uncomment if you need the response data
-    
-    setIsUploading(false);
-    setUploadSuccess(true);
-    setFormData(initialFormData); // Clear form state
+    // 2. Prepare the Request Body (maps directly to the ResourceUploadRequest DTO)
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      resourceType: formData.resourceType,
+      subject: formData.subject,
+      targetClass: formData.classLevel,
+      // Set to null if 'Not Applicable' to match backend DTO expectation
+      examType: formData.examType === "Not Applicable" ? null : formData.examType,
+      fileLink: formData.fileLink,
+      visibility: formData.visibility, // "publish" or "draft"
+    };
 
-    // Redirect after success
-    setTimeout(() => {
-      router.push("/teacher/resources");
-    }, 2000);
+    try {
+      // 3. Make the API Call
+      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // AUTHENTICATION: Pass the JWT token
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-  } catch (err) {
-    // 6. Handle Network/Catch Errors
-    console.error("API Call Error:", err);
-    // If you had an setError state, you would use it here: setError("An unexpected error occurred.");
-    setIsUploading(false);
-    // You may want to show a temporary error message to the user here.
-  }
-};
+      // 4. Handle Errors
+      if (!response.ok) {
+        const errorText = await response.text();
+        // In a real app, you would use a toast/notification here to show the user the errorText
+        console.error("Resource Upload Failed:", errorText);
+        throw new Error(errorText || "Upload failed with status " + response.status);
+      }
+
+      // 5. Handle Success
+      // const data = await response.json(); // Uncomment if you need the response data
+
+      setIsUploading(false);
+      setUploadSuccess(true);
+      setFormData(initialFormData); // Clear form state
+
+      // Redirect after success
+      setTimeout(() => {
+        router.push("/teacher/resources");
+      }, 2000);
+
+    } catch (err) {
+      // 6. Handle Network/Catch Errors
+      console.error("API Call Error:", err);
+      // If you had an setError state, you would use it here: setError("An unexpected error occurred.");
+      setIsUploading(false);
+      // You may want to show a temporary error message to the user here.
+    }
+  };
 
   if (uploadSuccess) {
     return (
@@ -234,7 +234,7 @@ export default function TeacherUploadPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2" htmlFor="examType">Exam Type</label>
-                <select 
+                <select
                   id="examType"
                   name="examType"
                   className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
@@ -265,7 +265,7 @@ export default function TeacherUploadPage() {
                 required
               />
             </div>
-            
+
             {/* Visibility */}
             <div className="space-y-3">
               <label className="flex items-center gap-3 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
@@ -283,13 +283,13 @@ export default function TeacherUploadPage() {
                 </div>
               </label>
               <label className="flex items-center gap-3 p-4 border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors">
-                <input 
-                  type="radio" 
-                  name="visibility" 
-                  value="draft" 
+                <input
+                  type="radio"
+                  name="visibility"
+                  value="draft"
                   checked={formData.visibility === 'draft'}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-emerald-500" 
+                  className="w-4 h-4 text-emerald-500"
                 />
                 <div>
                   <p className="font-medium">Save as Draft</p>

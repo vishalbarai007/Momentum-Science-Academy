@@ -29,25 +29,25 @@ export function NotificationBell() {
     const fetchCount = async () => {
       try {
         const token = localStorage.getItem("token")
-        if(!token) return;
-        
-        const res = await fetch("http://localhost:8080/api/notifications/unread-count", {
+        if (!token) return;
+
+        const res = await fetch("https://momentumscienceacademy.com/api/notifications/unread-count", {
           headers: { "Authorization": `Bearer ${token}` }
         })
         const data = await res.json()
-        
+
         if (data.count > unreadCount) {
-           // Fetch latest to show toast
-           const listRes = await fetch("http://localhost:8080/api/notifications", {
-             headers: { "Authorization": `Bearer ${token}` }
-           });
-           const listData = await listRes.json();
-           if (listData.length > 0) {
-             toast.info("New Notification", {
-               description: listData[0].message,
-               action: { label: "View", onClick: () => router.push(listData[0].redirectUrl) }
-             });
-           }
+          // Fetch latest to show toast
+          const listRes = await fetch("https://momentumscienceacademy.com/api/notifications", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const listData = await listRes.json();
+          if (listData.length > 0) {
+            toast.info("New Notification", {
+              description: listData[0].message,
+              action: { label: "View", onClick: () => router.push(listData[0].redirectUrl) }
+            });
+          }
         }
         setUnreadCount(data.count)
       } catch (e) {
@@ -55,15 +55,15 @@ export function NotificationBell() {
       }
     }
 
-    const interval = setInterval(fetchCount, 15000) 
-    fetchCount(); 
+    const interval = setInterval(fetchCount, 15000)
+    fetchCount();
     return () => clearInterval(interval)
   }, [unreadCount, router])
 
   // 2. Fetch List
   const fetchNotificationsList = async () => {
     const token = localStorage.getItem("token")
-    const res = await fetch("http://localhost:8080/api/notifications", {
+    const res = await fetch("https://momentumscienceacademy.com/api/notifications", {
       headers: { "Authorization": `Bearer ${token}` }
     })
     if (res.ok) setNotifications(await res.json())
@@ -72,7 +72,7 @@ export function NotificationBell() {
   // 3. Mark as Read
   const handleNotificationClick = async (id: number, url: string) => {
     const token = localStorage.getItem("token")
-    await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+    await fetch(`https://momentumscienceacademy.com/api/notifications/${id}/read`, {
       method: "PUT",
       headers: { "Authorization": `Bearer ${token}` }
     })
@@ -100,8 +100,8 @@ export function NotificationBell() {
           ) : (
             <div className="flex flex-col">
               {notifications.map((note) => (
-                <div 
-                  key={note.id} 
+                <div
+                  key={note.id}
                   onClick={() => handleNotificationClick(note.id, note.redirectUrl)}
                   className={`p-4 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors flex gap-3 ${!note.read ? 'bg-primary/5' : ''}`}
                 >

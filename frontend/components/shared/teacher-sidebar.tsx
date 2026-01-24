@@ -56,7 +56,7 @@ export function TeacherSidebar({ children }: TeacherSidebarProps) {
       if (!token) return
 
       try {
-        const res = await fetch("http://localhost:8080/api/auth/me", {
+        const res = await fetch("https://momentumscienceacademy.com/api/auth/me", {
           headers: { "Authorization": `Bearer ${token}` }
         })
 

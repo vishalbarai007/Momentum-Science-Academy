@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
-@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080", "https://momentumscienceacademy.com" })
 public class NotificationController {
 
     private final NotificationService notificationService;

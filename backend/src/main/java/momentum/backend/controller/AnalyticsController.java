@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/analytics")
-@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080", "https://momentumscienceacademy.com" })
 public class AnalyticsController {
 
     private final UsersRepository usersRepository;

@@ -47,7 +47,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
         const role = localStorage.getItem("userRole") // Get Role
         setUserRole(role)
 
-        const response = await fetch("http://localhost:8080/api/auth/me", {
+        const response = await fetch("https://momentumscienceacademy.com/api/auth/me", {
           headers: { "Authorization": `Bearer ${token}` }
         })
         if (response.ok) {
@@ -68,14 +68,14 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
         const token = localStorage.getItem("token")
         if (!token) return;
 
-        const countRes = await fetch("http://localhost:8080/api/notifications/unread-count", {
+        const countRes = await fetch("https://momentumscienceacademy.com/api/notifications/unread-count", {
           headers: { "Authorization": `Bearer ${token}` }
         })
         const countData = await countRes.json()
 
         // Toast only if count increased
         if (countData.count > unreadCount) {
-          const listRes = await fetch("http://localhost:8080/api/notifications", {
+          const listRes = await fetch("https://momentumscienceacademy.com/api/notifications", {
             headers: { "Authorization": `Bearer ${token}` }
           });
           const listData = await listRes.json();
@@ -97,15 +97,15 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
       }
     }
 
-    const interval = setInterval(fetchCount, 15000) 
-    fetchCount(); 
+    const interval = setInterval(fetchCount, 15000)
+    fetchCount();
     return () => clearInterval(interval)
   }, [unreadCount])
 
   // 3. Fetch Notifications List (When Bell is clicked)
   const fetchNotificationsList = async () => {
     const token = localStorage.getItem("token")
-    const res = await fetch("http://localhost:8080/api/notifications", {
+    const res = await fetch("https://momentumscienceacademy.com/api/notifications", {
       headers: { "Authorization": `Bearer ${token}` }
     })
     if (res.ok) {
@@ -116,7 +116,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
   // 4. Mark as Read Function
   const handleNotificationClick = async (id: number, url: string) => {
     const token = localStorage.getItem("token")
-    await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+    await fetch(`https://momentumscienceacademy.com/api/notifications/${id}/read`, {
       method: "PUT",
       headers: { "Authorization": `Bearer ${token}` }
     })
@@ -127,7 +127,7 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
   // --- NAVIGATION ITEMS CONFIGURATION ---
   const navItems = [
     { icon: Home, label: "Dashboard", href: "/admin/dashboard" },
-    
+
     // NEW: Conditionally render Manage Admins for Super Admin
     ...(userRole === "super_admin" ? [
       { icon: ShieldAlert, label: "Manage Admins", href: "/admin/manage-admins" }

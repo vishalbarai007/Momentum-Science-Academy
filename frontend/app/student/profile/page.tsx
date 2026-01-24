@@ -64,7 +64,7 @@ export default function StudentProfilePage() {
         const headers = { "Authorization": `Bearer ${token}` }
 
         // A. Fetch Profile
-        const profileRes = await fetch("http://localhost:8080/api/auth/me", { headers })
+        const profileRes = await fetch("https://momentumscienceacademy.com/api/auth/me", { headers })
         if (profileRes.ok) {
           const user = await profileRes.json()
           setStudentData({
@@ -81,26 +81,26 @@ export default function StudentProfilePage() {
         }
 
         // B. Fetch Performance Stats
-        const perfRes = await fetch("http://localhost:8080/api/v1/performance/stats", { headers })
+        const perfRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/stats", { headers })
         if (perfRes.ok) {
-            setPerformance(await perfRes.json())
+          setPerformance(await perfRes.json())
         }
 
         // C. Fetch Assignments (To generate Activity Log)
-        const assignRes = await fetch("http://localhost:8080/api/v1/assignments", { headers })
+        const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments", { headers })
         if (assignRes.ok) {
-            const assignments = await assignRes.json()
-            // Transform assignments into activity log
-            const logs = assignments
-                .filter((a: any) => ["submitted", "graded"].includes(a.status.toLowerCase()))
-                .sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
-                .slice(0, 5)
-                .map((a: any) => ({
-                    action: a.status === "Graded" ? "Graded" : "Submitted",
-                    item: a.title,
-                    time: new Date(a.dueDate).toLocaleDateString()
-                }))
-            setRecentActivity(logs)
+          const assignments = await assignRes.json()
+          // Transform assignments into activity log
+          const logs = assignments
+            .filter((a: any) => ["submitted", "graded"].includes(a.status.toLowerCase()))
+            .sort((a: any, b: any) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime())
+            .slice(0, 5)
+            .map((a: any) => ({
+              action: a.status === "Graded" ? "Graded" : "Submitted",
+              item: a.title,
+              time: new Date(a.dueDate).toLocaleDateString()
+            }))
+          setRecentActivity(logs)
         }
 
       } catch (error) {
@@ -115,29 +115,29 @@ export default function StudentProfilePage() {
 
   // --- Derived Stats using Real Data ---
   const stats = [
-    { 
-        label: "Total Tests", 
-        value: performance?.totalTests.toString() || "0", 
-        icon: Clock, 
-        color: "from-blue-500 to-cyan-500" 
+    {
+      label: "Total Tests",
+      value: performance?.totalTests.toString() || "0",
+      icon: Clock,
+      color: "from-blue-500 to-cyan-500"
     },
-    { 
-        label: "Avg. Score", 
-        value: performance?.averageScore || "0%", 
-        icon: Target, 
-        color: "from-purple-500 to-pink-500" 
+    {
+      label: "Avg. Score",
+      value: performance?.averageScore || "0%",
+      icon: Target,
+      color: "from-purple-500 to-pink-500"
     },
-    { 
-        label: "Improvement", 
-        value: performance?.improvement || "0%", 
-        icon: TrendingUp, 
-        color: "from-emerald-500 to-teal-500" 
+    {
+      label: "Improvement",
+      value: performance?.improvement || "0%",
+      icon: TrendingUp,
+      color: "from-emerald-500 to-teal-500"
     },
-    { 
-        label: "Best Rank", 
-        value: performance?.bestRank || "-", 
-        icon: Award, 
-        color: "from-orange-500 to-red-500" 
+    {
+      label: "Best Rank",
+      value: performance?.bestRank || "-",
+      icon: Award,
+      color: "from-orange-500 to-red-500"
     },
   ]
 
@@ -150,11 +150,11 @@ export default function StudentProfilePage() {
 
   if (loading) {
     return (
-        <StudentSidebar>
-            <div className="flex justify-center items-center h-[50vh]">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
-        </StudentSidebar>
+      <StudentSidebar>
+        <div className="flex justify-center items-center h-[50vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        </div>
+      </StudentSidebar>
     )
   }
 
@@ -265,21 +265,21 @@ export default function StudentProfilePage() {
             <Card className="mt-6 p-6 border-0 shadow-lg">
               <h3 className="font-bold mb-4">Overall Performance</h3>
               <div className="space-y-6">
-                 <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Average Score</span>
-                      <span className="text-sm text-emerald-600 font-bold">
-                        {performance?.averageScore || "0%"}
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
-                        style={{ width: performance?.averageScore || "0%" }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">Based on {performance?.totalTests || 0} graded assignments/tests.</p>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="font-medium">Average Score</span>
+                    <span className="text-sm text-emerald-600 font-bold">
+                      {performance?.averageScore || "0%"}
+                    </span>
                   </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
+                      style={{ width: performance?.averageScore || "0%" }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Based on {performance?.totalTests || 0} graded assignments/tests.</p>
+                </div>
               </div>
             </Card>
           </div>
@@ -309,19 +309,19 @@ export default function StudentProfilePage() {
           <h3 className="font-bold text-lg mb-4">Recent Activity</h3>
           <div className="space-y-4">
             {recentActivity.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No recent activity found.</div>
+              <div className="text-center py-8 text-muted-foreground">No recent activity found.</div>
             ) : (
-                recentActivity.map((activity, i) => (
+              recentActivity.map((activity, i) => (
                 <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    <div className="flex-1">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  <div className="flex-1">
                     <p className="font-medium text-sm">
-                        {activity.action} <span className="text-primary font-semibold">{activity.item}</span>
+                      {activity.action} <span className="text-primary font-semibold">{activity.item}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
+                  </div>
                 </div>
-                ))
+              ))
             )}
           </div>
         </Card>

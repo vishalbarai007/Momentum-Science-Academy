@@ -51,9 +51,9 @@ export default function AdminDashboard() {
       try {
         // Fetch Students, Teachers, and Leads in parallel for better performance
         const [studentRes, teacherRes, leadRes] = await Promise.all([
-          fetch("http://localhost:8080/api/auth/students", { headers }),
-          fetch("http://localhost:8080/api/auth/teachers", { headers }),
-          fetch("http://localhost:8080/api/leads", { headers })
+          fetch("https://momentumscienceacademy.com/api/auth/students", { headers }),
+          fetch("https://momentumscienceacademy.com/api/auth/teachers", { headers }),
+          fetch("https://momentumscienceacademy.com/api/leads", { headers })
         ])
 
         const students = await studentRes.json()
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
         }
 
         // 1. Use the same endpoint as AdminUsersPage
-        const response = await fetch("http://localhost:8080/api/auth/students", {
+        const response = await fetch("https://momentumscienceacademy.com/api/auth/students", {
           headers: {
             "Authorization": `Bearer ${token}`
           }
@@ -338,10 +338,10 @@ export default function AdminDashboard() {
                     <p className="font-medium text-sm">{lead.name}</p>
                     <span
                       className={`text-xs px-2 py-1 rounded-full capitalize ${lead.status === "new"
-                          ? "bg-blue-100 text-blue-700"
-                          : lead.status === "contacted"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-emerald-100 text-emerald-700"
+                        ? "bg-blue-100 text-blue-700"
+                        : lead.status === "contacted"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-emerald-100 text-emerald-700"
                         }`}
                     >
                       {lead.status}

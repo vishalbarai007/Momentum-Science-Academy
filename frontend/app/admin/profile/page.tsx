@@ -21,43 +21,43 @@ export default function AdminProfilePage() {
   })
 
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("token")
-      
-      // FIX 1: Use the correct backend endpoint path "/api/auth/me"
-      const response = await fetch("http://localhost:8080/api/auth/me", {
-        headers: { "Authorization": `Bearer ${token}` }
-      })
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token")
 
-      if (response.ok) {
-        const data = await response.json()
-        
-        // FIX 2: Map backend fields (fullName) to frontend state (name)
-        setProfile({
-          id: data.id,
-          name: data.fullName, // Backend returns fullName
-          email: data.email,
-          phone: data.phone || "Not Provided",
-          role: data.role,
-          joinDate: new Date(data.createdAt).toLocaleDateString()
+        // FIX 1: Use the correct backend endpoint path "/api/auth/me"
+        const response = await fetch("https://momentumscienceacademy.com/api/auth/me", {
+          headers: { "Authorization": `Bearer ${token}` }
         })
-      } else {
-        console.error("Failed to fetch profile: ", response.statusText)
+
+        if (response.ok) {
+          const data = await response.json()
+
+          // FIX 2: Map backend fields (fullName) to frontend state (name)
+          setProfile({
+            id: data.id,
+            name: data.fullName, // Backend returns fullName
+            email: data.email,
+            phone: data.phone || "Not Provided",
+            role: data.role,
+            joinDate: new Date(data.createdAt).toLocaleDateString()
+          })
+        } else {
+          console.error("Failed to fetch profile: ", response.statusText)
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error)
-    } finally {
-      setIsLoading(false)
     }
-  }
-  fetchProfile()
-}, [])
+    fetchProfile()
+  }, [])
 
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`http://localhost:8080/api/v1/admin/users/${profile.id}`, {
+      const response = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${profile.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

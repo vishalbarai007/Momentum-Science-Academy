@@ -13,7 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/leads")
-@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080"}) // Allow frontend access
+@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080", "https://momentumscienceacademy.com" })
 public class LeadController {
 
     private final LeadRepository leadRepository;

@@ -10,7 +10,7 @@ export interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
-  const res = await fetch("http://localhost:8080/api/auth/login", {
+  const res = await fetch("https://momentumscienceacademy.com/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -34,7 +34,7 @@ export interface LeadData {
 }
 
 export async function submitContactForm(data: LeadData) {
-  const res = await fetch("http://localhost:8080/api/leads/contact", {
+  const res = await fetch("https://momentumscienceacademy.com/api/leads/contact", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -44,7 +44,7 @@ export async function submitContactForm(data: LeadData) {
 }
 
 export async function submitEnrollment(data: LeadData) {
-  const res = await fetch("http://localhost:8080/api/leads/enroll", {
+  const res = await fetch("https://momentumscienceacademy.com/api/leads/enroll", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -55,9 +55,9 @@ export async function submitEnrollment(data: LeadData) {
 
 export async function getLeads() {
   const token = localStorage.getItem("token"); // Assuming you store JWT
-  const res = await fetch("http://localhost:8080/api/leads", {
-    headers: { 
-        "Authorization": `Bearer ${token}` 
+  const res = await fetch("https://momentumscienceacademy.com/api/leads", {
+    headers: {
+      "Authorization": `Bearer ${token}`
     },
   });
   if (!res.ok) throw new Error("Failed to fetch leads");
@@ -66,11 +66,11 @@ export async function getLeads() {
 
 export async function updateLeadStatus(id: number, status: string) {
   const token = localStorage.getItem("token");
-  const res = await fetch(`http://localhost:8080/api/leads/${id}/status`, {
+  const res = await fetch(`https://momentumscienceacademy.com/api/leads/${id}/status`, {
     method: "PUT",
-    headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
     },
     body: JSON.stringify({ status }),
   });
@@ -81,7 +81,7 @@ export async function updateLeadStatus(id: number, status: string) {
 
 // Add this to your api.ts file
 
-const PUBLIC_VAPID_KEY = "BFAV77TAOueW7pEucmzQLwMrrfKTfcjVSN4u_KVejTOHmwL7iRzb_jqPy2MF_0sZ54_q1u3MO5LRqZ5RDztEZtc"; 
+const PUBLIC_VAPID_KEY = "BFAV77TAOueW7pEucmzQLwMrrfKTfcjVSN4u_KVejTOHmwL7iRzb_jqPy2MF_0sZ54_q1u3MO5LRqZ5RDztEZtc";
 
 // Helper to convert key
 function urlBase64ToUint8Array(base64String: string) {
@@ -102,10 +102,10 @@ export async function subscribeToPushNotifications(token: string) {
     try {
       // 1. Register the Service Worker
       await navigator.serviceWorker.register('/sw.js');
-      
+
       // 2. [FIX] Wait for the Service Worker to be ACTIVE
-      const registration = await navigator.serviceWorker.ready; 
-      
+      const registration = await navigator.serviceWorker.ready;
+
       // 3. Attempt to subscribe
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -113,7 +113,7 @@ export async function subscribeToPushNotifications(token: string) {
       });
 
       // 4. Send subscription to backend
-      await fetch("http://localhost:8080/api/notifications/subscribe", {
+      await fetch("https://momentumscienceacademy.com/api/notifications/subscribe", {
         method: "POST",
         body: JSON.stringify(subscription),
         headers: {
@@ -121,7 +121,7 @@ export async function subscribeToPushNotifications(token: string) {
           "Authorization": `Bearer ${token}`
         }
       });
-      
+
       console.log("Push Notification Subscribed!");
     } catch (e) {
       console.error("Failed to subscribe to push", e);

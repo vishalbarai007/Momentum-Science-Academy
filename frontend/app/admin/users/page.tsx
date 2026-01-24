@@ -25,7 +25,7 @@ interface User {
   expertise?: string[]
   experience?: number
   qualifications?: string[]
-  accessTags?: string[] 
+  accessTags?: string[]
   status?: string
 }
 
@@ -33,28 +33,28 @@ export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<"students" | "teachers">("students")
   const [searchQuery, setSearchQuery] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
-  
+
   // Data State
   const [students, setStudents] = useState<User[]>([])
   const [teachers, setTeachers] = useState<User[]>([])
-  
+
   // Modals
   const [addModal, setAddModal] = useState(false)
   const [accessModal, setAccessModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null })
   const [editModal, setEditModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null })
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: number | null }>({ open: false, userId: null })
   const [viewModal, setViewModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null })
-  
+
   // Form States
   const [formData, setFormData] = useState({
-    fullName: "", email: "", phone: "", password: "", 
-    studentClass: "", program: "", experience: "", 
+    fullName: "", email: "", phone: "", password: "",
+    studentClass: "", program: "", experience: "",
     expertise: "", qualifications: "", accessTags: [] as string[]
   })
 
   // Advanced Student Form State
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
-  
+
   // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -69,8 +69,8 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       const [studentsRes, teachersRes] = await Promise.all([
-        fetch("http://localhost:8080/api/auth/students"),
-        fetch("http://localhost:8080/api/auth/teachers")
+        fetch("https://momentumscienceacademy.com/api/auth/students"),
+        fetch("https://momentumscienceacademy.com/api/auth/teachers")
       ])
 
       if (studentsRes.ok) setStudents(await studentsRes.json())
@@ -84,20 +84,20 @@ export default function AdminUsersPage() {
   // --- LOGIC: Auto-calculate Access Tags ---
   const calculateAccessTags = (cls: string, prog: string, subs: string[]) => {
     const tags = new Set<string>()
-    
+
     // Class Tags
     if (cls === "11 & 12") {
-        tags.add("11"); tags.add("12");
+      tags.add("11"); tags.add("12");
     } else if (cls) {
-        tags.add(cls);
+      tags.add(cls);
     }
 
     // Program Tags
     if (["9", "10"].includes(cls)) {
-        tags.add("Foundation"); 
+      tags.add("Foundation");
     } else if (prog) {
-        tags.add(prog);
-        if (prog === "JEE") { tags.add("JEE Main"); tags.add("JEE Advanced"); }
+      tags.add(prog);
+      if (prog === "JEE") { tags.add("JEE Main"); tags.add("JEE Advanced"); }
     }
 
     // Subject Tags
@@ -113,26 +113,26 @@ export default function AdminUsersPage() {
 
   const handleProgramChange = (val: string) => {
     setFormData(prev => ({ ...prev, program: val }))
-    
+
     // Auto-select subjects based on Exam
     if (val === "JEE") {
-        setSelectedSubjects(["Physics", "Chemistry", "Mathematics"])
+      setSelectedSubjects(["Physics", "Chemistry", "Mathematics"])
     } else if (val === "NEET") {
-        setSelectedSubjects(["Physics", "Chemistry", "Biology"])
+      setSelectedSubjects(["Physics", "Chemistry", "Biology"])
     } else {
-        // Reset for manual selection (MHT-CET / Board)
-        // For Board, we might want to default to English + PCMB to save clicks
-        if (val === "Board") {
-            setSelectedSubjects(["English", "Physics", "Chemistry", "Mathematics", "Biology"])
-        } else {
-            setSelectedSubjects([]) 
-        }
+      // Reset for manual selection (MHT-CET / Board)
+      // For Board, we might want to default to English + PCMB to save clicks
+      if (val === "Board") {
+        setSelectedSubjects(["English", "Physics", "Chemistry", "Mathematics", "Biology"])
+      } else {
+        setSelectedSubjects([])
+      }
     }
   }
 
   const toggleSubject = (subject: string) => {
-    setSelectedSubjects(prev => 
-        prev.includes(subject) ? prev.filter(s => s !== subject) : [...prev, subject]
+    setSelectedSubjects(prev =>
+      prev.includes(subject) ? prev.filter(s => s !== subject) : [...prev, subject]
     )
   }
 
@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
       const role = activeTab === "students" ? "student" : "teacher"
       let finalTags: string[] = [...formData.accessTags]
       if (role === "student") {
-         finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
+        finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
       }
 
       const payload = {
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
         })
       }
 
-      const res = await fetch("http://localhost:8080/api/auth/register", {
+      const res = await fetch("https://momentumscienceacademy.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -177,7 +177,7 @@ export default function AdminUsersPage() {
         setTimeout(() => setSuccessMessage(""), 3000)
         setAddModal(false)
         resetForm()
-        fetchUsers() 
+        fetchUsers()
       }
     } catch (err) {
       console.error(err)
@@ -190,9 +190,9 @@ export default function AdminUsersPage() {
   const handleEditClick = (user: User) => {
     setFormData({
       fullName: user.fullName || "",
-      email: user.email || "", 
+      email: user.email || "",
       phone: user.phone || "",
-      password: "", 
+      password: "",
       studentClass: user.studentClass || "",
       program: user.program || "",
       experience: user.experience?.toString() || "",
@@ -203,11 +203,11 @@ export default function AdminUsersPage() {
 
     // Populate Subjects from tags
     if (user.role === 'student' && user.accessTags) {
-        // Filter out class/exam tags to get just subjects
-        const subjects = user.accessTags.filter(t => 
-            !["9", "10", "11", "12", "JEE", "NEET", "MHT-CET", "Board", "Foundation", "JEE Main", "JEE Advanced"].includes(t)
-        )
-        setSelectedSubjects(subjects)
+      // Filter out class/exam tags to get just subjects
+      const subjects = user.accessTags.filter(t =>
+        !["9", "10", "11", "12", "JEE", "NEET", "MHT-CET", "Board", "Foundation", "JEE Main", "JEE Advanced"].includes(t)
+      )
+      setSelectedSubjects(subjects)
     }
 
     setEditModal({ open: true, user })
@@ -217,52 +217,52 @@ export default function AdminUsersPage() {
     if (!editModal.user) return
     setIsSubmitting(true)
     try {
-        const role = editModal.user.role 
-        let finalTags = editModal.user.accessTags
-        if (role === "student") {
-            finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
-        }
+      const role = editModal.user.role
+      let finalTags = editModal.user.accessTags
+      if (role === "student") {
+        finalTags = calculateAccessTags(formData.studentClass, formData.program, selectedSubjects)
+      }
 
-        const payload = {
-            fullName: formData.fullName,
-            email: formData.email, 
-            phone: formData.phone,
-            password: formData.password || null, 
-            ...(role === "student" ? {
-                studentClass: formData.studentClass,
-                program: formData.program,
-                accessTags: finalTags 
-            } : {
-                experience: parseInt(formData.experience) || 0,
-                expertise: formData.expertise ? [formData.expertise] : [],
-                qualifications: formData.qualifications ? [formData.qualifications] : []
-            })
-        }
-
-        const token = localStorage.getItem("token")
-        const res = await fetch(`http://localhost:8080/api/v1/admin/users/${editModal.user.id}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` 
-            },
-            body: JSON.stringify(payload)
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password || null,
+        ...(role === "student" ? {
+          studentClass: formData.studentClass,
+          program: formData.program,
+          accessTags: finalTags
+        } : {
+          experience: parseInt(formData.experience) || 0,
+          expertise: formData.expertise ? [formData.expertise] : [],
+          qualifications: formData.qualifications ? [formData.qualifications] : []
         })
+      }
 
-        if (res.ok) {
-            setSuccessMessage("User updated successfully!")
-            setTimeout(() => setSuccessMessage(""), 3000)
-            setEditModal({ open: false, user: null })
-            resetForm()
-            fetchUsers()
-        } else {
-            const err = await res.text()
-            alert("Failed to update user: " + err)
-        }
+      const token = localStorage.getItem("token")
+      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${editModal.user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (res.ok) {
+        setSuccessMessage("User updated successfully!")
+        setTimeout(() => setSuccessMessage(""), 3000)
+        setEditModal({ open: false, user: null })
+        resetForm()
+        fetchUsers()
+      } else {
+        const err = await res.text()
+        alert("Failed to update user: " + err)
+      }
     } catch (err) {
-        console.error(err)
+      console.error(err)
     } finally {
-        setIsSubmitting(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
     setIsDeleting(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`http://localhost:8080/api/v1/admin/users/${deleteModal.userId}`, {
+      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${deleteModal.userId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -292,10 +292,10 @@ export default function AdminUsersPage() {
   }
 
   const resetForm = () => {
-    setFormData({ 
-      fullName: "", email: "", phone: "", password: "", 
-      studentClass: "", program: "", experience: "", 
-      expertise: "", qualifications: "", accessTags: [] 
+    setFormData({
+      fullName: "", email: "", phone: "", password: "",
+      studentClass: "", program: "", experience: "",
+      expertise: "", qualifications: "", accessTags: []
     })
     setSelectedSubjects([])
   }
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
 
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`http://localhost:8080/api/v1/admin/users/${user.id}/access-tags`, {
+      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${user.id}/access-tags`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -324,7 +324,7 @@ export default function AdminUsersPage() {
   }
 
   const toggleTagAccess = (tag: string) => {
-    setSelectedTags(prev => 
+    setSelectedTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     )
   }
@@ -334,19 +334,19 @@ export default function AdminUsersPage() {
     setSavingAccess(true)
     try {
       const token = localStorage.getItem("token")
-      await fetch(`http://localhost:8080/api/v1/admin/users/${accessModal.user.id}/access-tags`, {
+      await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${accessModal.user.id}/access-tags`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(selectedTags)
       })
       setSuccessMessage("Permissions updated!")
       setTimeout(() => setSuccessMessage(""), 3000)
       setAccessModal({ open: false, user: null })
-      fetchUsers() 
-    } catch(err) {
+      fetchUsers()
+    } catch (err) {
       console.error(err)
     } finally {
       setSavingAccess(false)
@@ -354,8 +354,8 @@ export default function AdminUsersPage() {
   }
 
   const currentList = activeTab === "students" ? students : teachers
-  const filteredList = currentList.filter(user => 
-    user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredList = currentList.filter(user =>
+    user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -363,105 +363,105 @@ export default function AdminUsersPage() {
   const renderStudentForm = () => {
     const isHigherClass = ["11", "12", "11 & 12"].includes(formData.studentClass)
     const showSubjects = isHigherClass && formData.program
-    
+
     // Define available subjects based on exam/board
     // Scraped data for Maharashtra Board includes specific languages and vocational subjects
     let availableSubjects: string[] = []
 
     if (formData.program === "JEE") {
-        availableSubjects = ["Physics", "Chemistry", "Mathematics"]
+      availableSubjects = ["Physics", "Chemistry", "Mathematics"]
     } else if (formData.program === "NEET") {
-        availableSubjects = ["Physics", "Chemistry", "Biology"]
+      availableSubjects = ["Physics", "Chemistry", "Biology"]
     } else if (formData.program === "MHT-CET") {
-        availableSubjects = ["Physics", "Chemistry", "Mathematics", "Biology"]
+      availableSubjects = ["Physics", "Chemistry", "Mathematics", "Biology"]
     } else if (formData.program === "Board") {
-        availableSubjects = [
-            "English", "Hindi", "Marathi", "Physics", "Chemistry", "Mathematics", "Biology", 
-            "Geography", "Information Technology", "Computer Science", "Electronics", 
-            "Environmental Science", "Psychology"
-        ]
+      availableSubjects = [
+        "English", "Hindi", "Marathi", "Physics", "Chemistry", "Mathematics", "Biology",
+        "Geography", "Information Technology", "Computer Science", "Electronics",
+        "Environmental Science", "Psychology"
+      ]
     }
 
     const isAutoLocked = formData.program === "JEE" || formData.program === "NEET"
 
     return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label>Class / Grade</Label>
-                    <Select value={formData.studentClass} onValueChange={handleClassChange}>
-                        <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="9">Class 9 (Foundation)</SelectItem>
-                            <SelectItem value="10">Class 10 (Foundation)</SelectItem>
-                            <SelectItem value="11">Class 11</SelectItem>
-                            <SelectItem value="12">Class 12</SelectItem>
-                            <SelectItem value="11 & 12">Class 11 & 12 (Integrated)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Class / Grade</Label>
+            <Select value={formData.studentClass} onValueChange={handleClassChange}>
+              <SelectTrigger><SelectValue placeholder="Select Class" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="9">Class 9 (Foundation)</SelectItem>
+                <SelectItem value="10">Class 10 (Foundation)</SelectItem>
+                <SelectItem value="11">Class 11</SelectItem>
+                <SelectItem value="12">Class 12</SelectItem>
+                <SelectItem value="11 & 12">Class 11 & 12 (Integrated)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-                {isHigherClass && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                        <Label>Target Exam / Stream</Label>
-                        <Select value={formData.program} onValueChange={handleProgramChange}>
-                            <SelectTrigger><SelectValue placeholder="Select Exam" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="JEE">JEE (Mains & Adv)</SelectItem>
-                                <SelectItem value="NEET">NEET (Medical)</SelectItem>
-                                <SelectItem value="MHT-CET">MHT-CET (Engg/Pharm)</SelectItem>
-                                <SelectItem value="Board">Board / HSC (General Science)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
+          {isHigherClass && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+              <Label>Target Exam / Stream</Label>
+              <Select value={formData.program} onValueChange={handleProgramChange}>
+                <SelectTrigger><SelectValue placeholder="Select Exam" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="JEE">JEE (Mains & Adv)</SelectItem>
+                  <SelectItem value="NEET">NEET (Medical)</SelectItem>
+                  <SelectItem value="MHT-CET">MHT-CET (Engg/Pharm)</SelectItem>
+                  <SelectItem value="Board">Board / HSC (General Science)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        {/* Subject Selection (Only for 11/12) */}
+        {showSubjects && (
+          <div className="space-y-2 p-3 bg-muted/30 rounded-lg animate-in fade-in">
+            <div className="flex justify-between items-center mb-2">
+              <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
+                {formData.program} Subjects
+                {isAutoLocked && " (Fixed)"}
+              </Label>
+              {!isAutoLocked && (
+                <span className="text-[10px] text-muted-foreground">Select all that apply</span>
+              )}
             </div>
 
-            {/* Subject Selection (Only for 11/12) */}
-            {showSubjects && (
-                <div className="space-y-2 p-3 bg-muted/30 rounded-lg animate-in fade-in">
-                    <div className="flex justify-between items-center mb-2">
-                        <Label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
-                            {formData.program} Subjects 
-                            {isAutoLocked && " (Fixed)"}
-                        </Label>
-                        {!isAutoLocked && (
-                            <span className="text-[10px] text-muted-foreground">Select all that apply</span>
-                        )}
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                        {availableSubjects.map(sub => (
-                            <div 
-                                key={sub}
-                                onClick={() => {
-                                    if (isAutoLocked) return;
-                                    toggleSubject(sub)
-                                }}
-                                className={`
+            <div className="flex flex-wrap gap-2">
+              {availableSubjects.map(sub => (
+                <div
+                  key={sub}
+                  onClick={() => {
+                    if (isAutoLocked) return;
+                    toggleSubject(sub)
+                  }}
+                  className={`
                                     flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition-all
                                     ${selectedSubjects.includes(sub) ? 'bg-primary/10 border-primary text-primary font-medium' : 'bg-background border-input hover:bg-muted cursor-pointer'}
                                     ${isAutoLocked ? 'opacity-80 cursor-not-allowed' : ''}
                                 `}
-                            >
-                                <Checkbox 
-                                    checked={selectedSubjects.includes(sub)} 
-                                    disabled={isAutoLocked}
-                                    className="pointer-events-none"
-                                />
-                                {sub}
-                            </div>
-                        ))}
-                    </div>
+                >
+                  <Checkbox
+                    checked={selectedSubjects.includes(sub)}
+                    disabled={isAutoLocked}
+                    className="pointer-events-none"
+                  />
+                  {sub}
                 </div>
-            )}
-
-            {/* Preview Generated Tags */}
-            <div className="text-xs text-muted-foreground pt-2">
-                <span className="font-semibold">Generated Permissions: </span> 
-                {calculateAccessTags(formData.studentClass, formData.program, selectedSubjects).join(", ") || "No permissions generated yet."}
+              ))}
             </div>
+          </div>
+        )}
+
+        {/* Preview Generated Tags */}
+        <div className="text-xs text-muted-foreground pt-2">
+          <span className="font-semibold">Generated Permissions: </span>
+          {calculateAccessTags(formData.studentClass, formData.program, selectedSubjects).join(", ") || "No permissions generated yet."}
         </div>
+      </div>
     )
   }
 
@@ -552,7 +552,7 @@ export default function AdminUsersPage() {
                     <div className="flex gap-2">
                       {activeTab === "students" && (
                         <Button size="sm" variant="outline" onClick={() => handleManageAccess(user)} className="text-blue-600 border-blue-200 hover:bg-blue-50 h-8 px-2" title="Manage Specific Permissions">
-                            <Shield className="w-4 h-4" />
+                          <Shield className="w-4 h-4" />
                         </Button>
                       )}
                       <Button size="sm" variant="outline" onClick={() => setViewModal({ open: true, user })} className="h-8 px-2">
@@ -576,50 +576,50 @@ export default function AdminUsersPage() {
       {/* --- ADD MODAL --- */}
       <Dialog open={addModal} onOpenChange={setAddModal}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add New {activeTab === "students" ? "Student" : "Teacher"}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label>Full Name</Label>
-                    <Input placeholder="John Doe" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input placeholder="john@example.com" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input placeholder="+91 9876543210" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Temporary Password</Label>
-                    <Input placeholder="SecurePassword123" type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
-                  </div>
-                </div>
-                
-                {activeTab === "students" ? renderStudentForm() : (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Experience (Years)</Label>
-                          <Input placeholder="e.g. 5" value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
-                        </div>
-                        <div>
-                          <Label>Subject/Expertise</Label>
-                          <Input placeholder="Mathematics" value={formData.expertise} onChange={e => setFormData({...formData, expertise: e.target.value})} />
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Qualifications</Label>
-                          <Input placeholder="M.Sc Physics, B.Ed" value={formData.qualifications} onChange={e => setFormData({...formData, qualifications: e.target.value})} />
-                        </div>
-                    </div>
-                )}
-                
-                <Button className="w-full mt-6" onClick={handleAddUser} disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <><UserPlus className="w-4 h-4 mr-2" /> Create Account</>}
-                </Button>
+          <DialogHeader>
+            <DialogTitle>Add New {activeTab === "students" ? "Student" : "Teacher"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label>Full Name</Label>
+                <Input placeholder="John Doe" value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input placeholder="john@example.com" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input placeholder="+91 9876543210" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+              </div>
+              <div className="col-span-2">
+                <Label>Temporary Password</Label>
+                <Input placeholder="SecurePassword123" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+              </div>
             </div>
+
+            {activeTab === "students" ? renderStudentForm() : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Experience (Years)</Label>
+                  <Input placeholder="e.g. 5" value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Subject/Expertise</Label>
+                  <Input placeholder="Mathematics" value={formData.expertise} onChange={e => setFormData({ ...formData, expertise: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label>Qualifications</Label>
+                  <Input placeholder="M.Sc Physics, B.Ed" value={formData.qualifications} onChange={e => setFormData({ ...formData, qualifications: e.target.value })} />
+                </div>
+              </div>
+            )}
+
+            <Button className="w-full mt-6" onClick={handleAddUser} disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <><UserPlus className="w-4 h-4 mr-2" /> Create Account</>}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -628,57 +628,57 @@ export default function AdminUsersPage() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit User: {editModal.user?.fullName}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label>Full Name</Label>
-                    <Input value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label className="flex items-center gap-2"><Mail className="w-3 h-3" /> Email</Label>
-                    <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                  </div>
-                  <div>
-                    <Label>Phone</Label>
-                    <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                  </div>
-                </div>
-
-                {/* Password Section */}
-                <div className="p-3 border rounded-md bg-muted/20">
-                    <Label className="flex items-center gap-2 mb-2">
-                        <Lock className="w-3 h-3" /> Change Password
-                    </Label>
-                    <Input 
-                        type="password" 
-                        placeholder="Enter new password to reset..." 
-                        value={formData.password} 
-                        onChange={e => setFormData({...formData, password: e.target.value})} 
-                        className="bg-white"
-                    />
-                    <p className="text-[10px] text-muted-foreground mt-1 ml-1">Leave blank to keep current password.</p>
-                </div>
-                
-                {editModal.user?.role === "student" ? renderStudentForm() : (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Experience (Years)</Label>
-                          <Input value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
-                        </div>
-                        <div>
-                          <Label>Subject</Label>
-                          <Input value={formData.expertise} onChange={e => setFormData({...formData, expertise: e.target.value})} />
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Qualifications</Label>
-                          <Input value={formData.qualifications} onChange={e => setFormData({...formData, qualifications: e.target.value})} />
-                        </div>
-                    </div>
-                )}
-                
-                <Button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700" onClick={handleUpdateUser} disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
-                </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label>Full Name</Label>
+                <Input value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
+              </div>
+              <div>
+                <Label className="flex items-center gap-2"><Mail className="w-3 h-3" /> Email</Label>
+                <Input value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+              </div>
             </div>
+
+            {/* Password Section */}
+            <div className="p-3 border rounded-md bg-muted/20">
+              <Label className="flex items-center gap-2 mb-2">
+                <Lock className="w-3 h-3" /> Change Password
+              </Label>
+              <Input
+                type="password"
+                placeholder="Enter new password to reset..."
+                value={formData.password}
+                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                className="bg-white"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1 ml-1">Leave blank to keep current password.</p>
+            </div>
+
+            {editModal.user?.role === "student" ? renderStudentForm() : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Experience (Years)</Label>
+                  <Input value={formData.experience} onChange={e => setFormData({ ...formData, experience: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Subject</Label>
+                  <Input value={formData.expertise} onChange={e => setFormData({ ...formData, expertise: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label>Qualifications</Label>
+                  <Input value={formData.qualifications} onChange={e => setFormData({ ...formData, qualifications: e.target.value })} />
+                </div>
+              </div>
+            )}
+
+            <Button className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700" onClick={handleUpdateUser} disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <><Save className="w-4 h-4 mr-2" /> Save Changes</>}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -712,7 +712,7 @@ export default function AdminUsersPage() {
                   <p className="text-muted-foreground">Phone</p>
                   <p className="font-medium">{viewModal.user.phone}</p>
                 </div>
-                
+
                 {viewModal.user.role === 'student' ? (
                   <>
                     <div>
@@ -724,13 +724,13 @@ export default function AdminUsersPage() {
                       <p className="font-medium">{viewModal.user.program}</p>
                     </div>
                     <div className="col-span-2">
-                        <p className="text-muted-foreground mb-1">Access Permissions</p>
-                        <div className="flex flex-wrap gap-1">
-                            {viewModal.user.accessTags?.map(tag => (
-                                <Badge key={tag} variant="secondary">{tag}</Badge>
-                            ))}
-                            {(!viewModal.user.accessTags || viewModal.user.accessTags.length === 0) && <span className="italic text-gray-400">No specific access tags</span>}
-                        </div>
+                      <p className="text-muted-foreground mb-1">Access Permissions</p>
+                      <div className="flex flex-wrap gap-1">
+                        {viewModal.user.accessTags?.map(tag => (
+                          <Badge key={tag} variant="secondary">{tag}</Badge>
+                        ))}
+                        {(!viewModal.user.accessTags || viewModal.user.accessTags.length === 0) && <span className="italic text-gray-400">No specific access tags</span>}
+                      </div>
                     </div>
                   </>
                 ) : (
@@ -783,55 +783,55 @@ export default function AdminUsersPage() {
       {/* --- MANAGE ACCESS MODAL (Manual Override) --- */}
       <Dialog open={accessModal.open} onOpenChange={(open) => setAccessModal({ ...accessModal, open })}>
         <DialogContent className="max-w-xl">
-            <DialogHeader>
-                <DialogTitle>Manage Access: {accessModal.user?.fullName}</DialogTitle>
-                <p className="text-sm text-muted-foreground">
-                    Current Access: <span className="font-medium text-emerald-600">
-                      {selectedTags.length > 0 ? selectedTags.join(", ") : "None"}
-                    </span>
-                </p>
-            </DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Manage Access: {accessModal.user?.fullName}</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Current Access: <span className="font-medium text-emerald-600">
+                {selectedTags.length > 0 ? selectedTags.join(", ") : "None"}
+              </span>
+            </p>
+          </DialogHeader>
 
-            {loadingAccess ? (
-                <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
-            ) : (
-                <ScrollArea className="max-h-[60vh] pr-4">
-                    <div className="space-y-6">
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                            Note: These settings override the automated permissions. Use only for exceptions.
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Manual Selection</h3>
-                            <div className="grid grid-cols-3 gap-2">
-                                {["9", "10", "11", "12", "JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation", "Board", "Physics", "Chemistry", "Mathematics", "Biology", "English", "Hindi", "Marathi", "Geography", "Information Technology", "Computer Science", "Electronics"].map((tag) => {
-                                    const isSelected = selectedTags.includes(tag)
-                                    return (
-                                        <div 
-                                            key={tag}
-                                            onClick={() => toggleTagAccess(tag)}
-                                            className={`
+          {loadingAccess ? (
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
+          ) : (
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-6">
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                  Note: These settings override the automated permissions. Use only for exceptions.
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Manual Selection</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["9", "10", "11", "12", "JEE Main", "JEE Advanced", "NEET", "MHT-CET", "Foundation", "Board", "Physics", "Chemistry", "Mathematics", "Biology", "English", "Hindi", "Marathi", "Geography", "Information Technology", "Computer Science", "Electronics"].map((tag) => {
+                      const isSelected = selectedTags.includes(tag)
+                      return (
+                        <div
+                          key={tag}
+                          onClick={() => toggleTagAccess(tag)}
+                          className={`
                                                 flex items-center space-x-2 p-2 rounded-md border cursor-pointer text-sm transition-all
                                                 ${isSelected ? 'bg-primary/10 border-primary text-primary font-medium' : 'hover:bg-muted border-border'}
                                             `}
-                                        >
-                                            <Checkbox checked={isSelected} className="pointer-events-none" />
-                                            <span>{tag}</span>
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                        >
+                          <Checkbox checked={isSelected} className="pointer-events-none" />
+                          <span>{tag}</span>
                         </div>
-                    </div>
-                </ScrollArea>
-            )}
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
 
-            <DialogFooter>
-                <Button variant="outline" onClick={() => setAccessModal({ open: false, user: null })}>Cancel</Button>
-                <Button onClick={saveAccessPermissions} disabled={savingAccess}>
-                    {savingAccess && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Save Changes
-                </Button>
-            </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAccessModal({ open: false, user: null })}>Cancel</Button>
+            <Button onClick={saveAccessPermissions} disabled={savingAccess}>
+              {savingAccess && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

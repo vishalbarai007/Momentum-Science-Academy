@@ -52,13 +52,13 @@ interface Resource {
 export default function AdminResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
-  
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState<string>("all")
   const [filterSubject, setFilterSubject] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
-  
+
   // Modal States
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [viewDialogOpen, setViewDialogOpen] = useState(false)
@@ -74,7 +74,7 @@ export default function AdminResourcesPage() {
     try {
       const token = localStorage.getItem("token")
       // Use the generic GET endpoint which returns all resources for Admins
-      const response = await fetch("http://localhost:8080/api/v1/resources", {
+      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources", {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -82,7 +82,7 @@ export default function AdminResourcesPage() {
 
       if (response.ok) {
         const data = await response.json()
-        
+
         // Map backend data to frontend interface
         const mappedData: Resource[] = data.map((item: any) => ({
           id: item.id,
@@ -98,7 +98,7 @@ export default function AdminResourcesPage() {
           fileSize: "N/A", // Backend usually doesn't store size unless explicitly added
           fileUrl: item.fileUrl
         }))
-        
+
         // Sort by newest first
         setResources(mappedData.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()))
       }
@@ -152,7 +152,7 @@ export default function AdminResourcesPage() {
 
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`http://localhost:8080/api/v1/resources/${selectedResource.id}`, {
+      const res = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${selectedResource.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -172,9 +172,9 @@ export default function AdminResourcesPage() {
 
   const handleDownload = (resource: Resource) => {
     if (resource.fileUrl) {
-        window.open(resource.fileUrl, "_blank")
+      window.open(resource.fileUrl, "_blank")
     } else {
-        alert("No file link available")
+      alert("No file link available")
     }
   }
 
@@ -190,15 +190,15 @@ export default function AdminResourcesPage() {
     const matchesSearch =
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase())
-    
+
     // Note: Backend stores "Notes", Frontend filter uses "Notes"
     const matchesType = filterType === "all" || resource.type === filterType
     const matchesSubject = filterSubject === "all" || resource.subject === filterSubject
-    
+
     // Status mapping: "active" filter -> "Published" status
-    const matchesStatus = filterStatus === "all" || 
-        (filterStatus === "active" && resource.status === "Published") ||
-        (filterStatus === "archived" && resource.status === "Draft")
+    const matchesStatus = filterStatus === "all" ||
+      (filterStatus === "active" && resource.status === "Published") ||
+      (filterStatus === "archived" && resource.status === "Draft")
 
     return matchesSearch && matchesType && matchesSubject && matchesStatus
   })
@@ -298,90 +298,90 @@ export default function AdminResourcesPage() {
         {/* Resources Table */}
         <div className="bg-card rounded-xl border border-border overflow-hidden min-h-[300px]">
           {loading ? (
-             <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-                <Loader2 className="w-10 h-10 animate-spin mb-2 text-primary" />
-                <p>Loading resources...</p>
-             </div>
+            <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+              <Loader2 className="w-10 h-10 animate-spin mb-2 text-primary" />
+              <p>Loading resources...</p>
+            </div>
           ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Resource</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="hidden md:table-cell">Subject</TableHead>
-                <TableHead className="hidden md:table-cell">Class</TableHead>
-                <TableHead className="hidden lg:table-cell">Uploaded By</TableHead>
-                <TableHead className="hidden lg:table-cell">Downloads</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredResources.map((resource) => (
-                <TableRow key={resource.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                        {getTypeIcon(resource.type)}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Resource</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="hidden md:table-cell">Subject</TableHead>
+                  <TableHead className="hidden md:table-cell">Class</TableHead>
+                  <TableHead className="hidden lg:table-cell">Uploaded By</TableHead>
+                  <TableHead className="hidden lg:table-cell">Downloads</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredResources.map((resource) => (
+                  <TableRow key={resource.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                          {getTypeIcon(resource.type)}
+                        </div>
+                        <div>
+                          <p className="font-medium line-clamp-1">{resource.title}</p>
+                          <p className="text-xs text-muted-foreground">{resource.uploadedAt}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium line-clamp-1">{resource.title}</p>
-                        <p className="text-xs text-muted-foreground">{resource.uploadedAt}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={getTypeBadgeColor(resource.type)}>
-                      {resource.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{resource.subject}</TableCell>
-                  <TableCell className="hidden md:table-cell">{resource.class}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{resource.uploadedBy}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{resource.downloads}</TableCell>
-                  <TableCell>
-                    <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"}>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={getTypeBadgeColor(resource.type)}>
+                        {resource.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{resource.subject}</TableCell>
+                    <TableCell className="hidden md:table-cell">{resource.class}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{resource.uploadedBy}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{resource.downloads}</TableCell>
+                    <TableCell>
+                      <Badge variant={resource.status === "Published" ? "default" : "secondary"} className={resource.status === "Published" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"}>
                         {resource.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setSelectedResource(resource)
-                            setViewDialogOpen(true)
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDownload(resource)}>
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedResource(resource)
+                              setViewDialogOpen(true)
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownload(resource)}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => {
-                                setSelectedResource(resource)
-                                setDeleteDialogOpen(true)
+                              setSelectedResource(resource)
+                              setDeleteDialogOpen(true)
                             }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
 

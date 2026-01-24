@@ -11,7 +11,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/admin")
-@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080", "https://momentumscienceacademy.com" })
 public class AdminController {
 
     private final UsersRepository usersRepository;
@@ -89,27 +89,85 @@ public class AdminController {
         private Set<String> accessTags; // <--- NEW FIELD
 
         // Getters
-        public String getFullName() { return fullName; }
-        public String getEmail() { return email; }
-        public String getPhone() { return phone; }
-        public String getPassword() { return password; }
-        public String getStudentClass() { return studentClass; }
-        public String getProgram() { return program; }
-        public Integer getExperience() { return experience; }
-        public List<String> getExpertise() { return expertise; }
-        public List<String> getQualifications() { return qualifications; }
-        public Set<String> getAccessTags() { return accessTags; } // <--- NEW GETTER
+        public String getFullName() {
+            return fullName;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getStudentClass() {
+            return studentClass;
+        }
+
+        public String getProgram() {
+            return program;
+        }
+
+        public Integer getExperience() {
+            return experience;
+        }
+
+        public List<String> getExpertise() {
+            return expertise;
+        }
+
+        public List<String> getQualifications() {
+            return qualifications;
+        }
+
+        public Set<String> getAccessTags() {
+            return accessTags;
+        } // <--- NEW GETTER
 
         // Setters
-        public void setFullName(String fullName) { this.fullName = fullName; }
-        public void setEmail(String email) { this.email = email; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public void setPassword(String password) { this.password = password; }
-        public void setStudentClass(String studentClass) { this.studentClass = studentClass; }
-        public void setProgram(String program) { this.program = program; }
-        public void setExperience(Integer experience) { this.experience = experience; }
-        public void setExpertise(List<String> expertise) { this.expertise = expertise; }
-        public void setQualifications(List<String> qualifications) { this.qualifications = qualifications; }
-        public void setAccessTags(Set<String> accessTags) { this.accessTags = accessTags; } // <--- NEW SETTER
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public void setStudentClass(String studentClass) {
+            this.studentClass = studentClass;
+        }
+
+        public void setProgram(String program) {
+            this.program = program;
+        }
+
+        public void setExperience(Integer experience) {
+            this.experience = experience;
+        }
+
+        public void setExpertise(List<String> expertise) {
+            this.expertise = expertise;
+        }
+
+        public void setQualifications(List<String> qualifications) {
+            this.qualifications = qualifications;
+        }
+
+        public void setAccessTags(Set<String> accessTags) {
+            this.accessTags = accessTags;
+        } // <--- NEW SETTER
     }
 }
