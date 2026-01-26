@@ -1,0 +1,74 @@
+# ==========================================
+#  MOMENTUM ACADEMY MASTER GITIGNORE
+# ==========================================
+
+# --- Node.js / Next.js (Frontend) ---
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Java / Maven (Backend) ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+bin/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+.apt_generated
+.factorypath
+.springBeans
+.sts4-cache
+
+# --- Environment & Secrets (CRITICAL) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# --- IDEs & Editors ---
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# Others
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- Logs & Debugging ---
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+debug.log
+logs/
+*.log
+
+# --- Temporary & Coverage ---
+tmp/
+temp/
+coverage/
+.cache/

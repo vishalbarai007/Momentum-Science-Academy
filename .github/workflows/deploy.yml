@@ -1,0 +1,39 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]  # Trigger on push to main branch
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. Navigate to the project directory
+            # MAKE SURE THIS PATH MATCHES WHERE YOU CLONED THE REPO ON VPS
+            cd momentum-science-academy 
+
+            # 2. Pull the latest changes from GitHub
+            echo "Pulling latest code..."
+            git pull origin main
+
+            # 3. Rebuild and restart containers
+            # This rebuilds only changed services (backend or frontend)
+            echo "Rebuilding Docker containers..."
+            docker compose up -d --build
+
+            # 4. Clean up unused images (Optional but recommended for VPS space)
+            echo "Cleaning up old images..."
+            docker image prune -f
