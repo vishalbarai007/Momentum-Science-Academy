@@ -46,9 +46,10 @@ public class SecurityConfig {
                                 // Authorization rules
                                 .authorizeHttpRequests(auth -> auth
 
-                                                // 🔓 Public Endpoints
+                                        // 🔓 Public Endpoints
                                                 .requestMatchers(
                                                                 "/api/auth/**",
+                                                        "/auth/**",
                                                                 "/api/leads/contact",
                                                                 "/api/leads/enroll",
                                                                 "/ws/**",
