@@ -51,9 +51,9 @@ export default function AdminDashboard() {
       try {
         // Fetch Students, Teachers, and Leads in parallel for better performance
         const [studentRes, teacherRes, leadRes] = await Promise.all([
-          fetch("https://momentumscienceacademy.com/api/auth/students", { headers }),
-          fetch("https://momentumscienceacademy.com/api/auth/teachers", { headers }),
-          fetch("https://momentumscienceacademy.com/api/leads", { headers })
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/students`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/teachers`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads`, { headers })
         ])
 
         const students = await studentRes.json()
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
         }
 
         // 1. Use the same endpoint as AdminUsersPage
-        const response = await fetch("https://momentumscienceacademy.com/api/auth/students", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/students`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }

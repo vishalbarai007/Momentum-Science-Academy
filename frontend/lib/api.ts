@@ -10,7 +10,7 @@ export interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
-  const res = await fetch("https://momentumscienceacademy.com/api/auth/login", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -34,7 +34,7 @@ export interface LeadData {
 }
 
 export async function submitContactForm(data: LeadData) {
-  const res = await fetch("https://momentumscienceacademy.com/api/leads/contact", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/contact`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -44,7 +44,7 @@ export async function submitContactForm(data: LeadData) {
 }
 
 export async function submitEnrollment(data: LeadData) {
-  const res = await fetch("https://momentumscienceacademy.com/api/leads/enroll", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/enroll`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export async function submitEnrollment(data: LeadData) {
 
 export async function getLeads() {
   const token = localStorage.getItem("token"); // Assuming you store JWT
-  const res = await fetch("https://momentumscienceacademy.com/api/leads", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads`, {
     headers: {
       "Authorization": `Bearer ${token}`
     },
@@ -66,7 +66,7 @@ export async function getLeads() {
 
 export async function updateLeadStatus(id: number, status: string) {
   const token = localStorage.getItem("token");
-  const res = await fetch(`https://momentumscienceacademy.com/api/leads/${id}/status`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/${id}/status`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export async function subscribeToPushNotifications(token: string) {
       });
 
       // 4. Send subscription to backend
-      await fetch("https://momentumscienceacademy.com/api/notifications/subscribe", {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/subscribe`, {
         method: "POST",
         body: JSON.stringify(subscription),
         headers: {

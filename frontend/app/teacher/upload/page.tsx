@@ -82,7 +82,7 @@ export default function TeacherUploadPage() {
 
     try {
       // 3. Make the API Call
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources/upload`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

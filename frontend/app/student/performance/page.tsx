@@ -50,13 +50,13 @@ export default function StudentPerformancePage() {
         if (!token) return
 
         // Fetch Stats
-        const statsRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/stats", {
+        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/performance/stats`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
         if (statsRes.ok) setStats(await statsRes.json())
 
         // Fetch Results
-        const resRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/results", {
+        const resRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/performance/results`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
         if (resRes.ok) {
@@ -79,7 +79,7 @@ export default function StudentPerformancePage() {
     setLoadingLeaderboard(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/performance/leaderboard/${testId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/performance/leaderboard/${testId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) setLeaderboard(await res.json())

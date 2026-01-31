@@ -44,7 +44,7 @@ export default function ManageAdminsPage() {
   const fetchAdmins = async () => {
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/super-admin/admins", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/super-admin/admins`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) setAdmins(await res.json())
@@ -61,8 +61,8 @@ export default function ManageAdminsPage() {
 
     try {
       const url = editingAdmin
-        ? `https://momentumscienceacademy.com/api/v1/super-admin/admins/${editingAdmin.id}`
-        : "https://momentumscienceacademy.com/api/v1/super-admin/create-admin"
+        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/super-admin/admins/${editingAdmin.id}`
+        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/super-admin/create-admin`
 
       const method = editingAdmin ? "PUT" : "POST"
 
@@ -93,7 +93,7 @@ export default function ManageAdminsPage() {
 
     const token = localStorage.getItem("token")
     try {
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/super-admin/admins/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/super-admin/admins/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })

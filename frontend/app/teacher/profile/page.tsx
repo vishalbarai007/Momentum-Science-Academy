@@ -61,7 +61,7 @@ export default function TeacherProfilePage() {
         const headers = { "Authorization": `Bearer ${token}` }
 
         // 1. Fetch Teacher Profile
-        const profileRes = await fetch("https://momentumscienceacademy.com/api/auth/me", { headers })
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, { headers })
         if (profileRes.ok) {
           const user = await profileRes.json()
           setTeacherData({
@@ -77,7 +77,7 @@ export default function TeacherProfilePage() {
         }
 
         // 2. Fetch Created Assignments to generate Stats
-        const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments/created", { headers })
+        const assignRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/created`, { headers })
         if (assignRes.ok) {
           const assignments = await assignRes.json()
 

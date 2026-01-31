@@ -42,7 +42,7 @@ export default function StudentDoubtsPage() {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts/my-doubts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/my-doubts`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
 

@@ -52,7 +52,7 @@ export default function TeacherFeedbackPage() {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/doubts/incoming", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/incoming`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -82,7 +82,7 @@ export default function TeacherFeedbackPage() {
 
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/doubts/${replyModal.doubt.id}/reply`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/${replyModal.doubt.id}/reply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

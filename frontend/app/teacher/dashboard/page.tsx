@@ -61,21 +61,21 @@ export default function TeacherDashboard() {
                 const headers = { "Authorization": `Bearer ${token}` }
 
                 // 1. Fetch Teacher Info
-                const meRes = await fetch("https://momentumscienceacademy.com/api/auth/me", { headers })
+                const meRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, { headers })
                 if (meRes.ok) {
                     const user = await meRes.json()
                     setUserName(user.fullName || "Instructor")
                 }
 
                 // 2. Fetch Assignments
-                const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments/created", { headers })
+                const assignRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/created`, { headers })
                 let assignments = []
                 if (assignRes.ok) {
                     assignments = await assignRes.json()
                 }
 
                 // 3. Fetch Doubts
-                const doubtsRes = await fetch("https://momentumscienceacademy.com/api/v1/doubts/incoming", { headers })
+                const doubtsRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/incoming`, { headers })
                 let doubts = []
                 if (doubtsRes.ok) {
                     doubts = await doubtsRes.json()

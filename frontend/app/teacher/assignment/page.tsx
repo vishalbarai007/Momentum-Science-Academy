@@ -76,7 +76,7 @@ export default function TeacherAssignmentUploadPage() {
 
     try {
       // UPDATED: Pointing to the new Assignment Controller Endpoint
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/assignments/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/upload`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

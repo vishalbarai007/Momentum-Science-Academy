@@ -83,7 +83,7 @@ export default function StudentResourcesPage() {
       if (!token) { setLoading(false); return }
 
       try {
-        const response = await fetch("https://momentumscienceacademy.com/api/v1/resources", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
         if (response.ok) {
@@ -115,7 +115,7 @@ export default function StudentResourcesPage() {
     setLoadingDoubts(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts/my-doubts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/my-doubts`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -145,7 +145,7 @@ export default function StudentResourcesPage() {
         return
       }
 
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

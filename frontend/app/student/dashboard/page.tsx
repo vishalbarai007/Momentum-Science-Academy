@@ -59,6 +59,7 @@ export default function StudentDashboard() {
 
   // --- State Data ---
   const [student, setStudent] = useState<Student | null>(null)
+  const [userName, setUserName] = useState("Instructor")
   const [performance, setPerformance] = useState<PerformanceStats | null>(null)
   const [recentResources, setRecentResources] = useState<Resource[]>([])
 
@@ -78,16 +79,22 @@ export default function StudentDashboard() {
       try {
         const headers = { "Authorization": `Bearer ${token}` }
 
+        const meRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, { headers })
+        if (meRes.ok) {
+          const user = await meRes.json()
+          setUserName(user.fullName || "Student")
+        }
+
         // 1. Fetch Student Profile (Local fallback + API)
         const storedUser = localStorage.getItem("user")
         if (storedUser) setStudent(JSON.parse(storedUser))
 
         // 2. Fetch Performance Stats
-        const perfRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/stats", { headers })
+        const perfRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/performance/stats`, { headers })
         if (perfRes.ok) setPerformance(await perfRes.json())
 
         // 3. Fetch Assignments (Calculate Pending & Deadlines)
-        const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments", { headers })
+        const assignRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments`, { headers })
         if (assignRes.ok) {
           const allAssignments: Assignment[] = await assignRes.json()
 
@@ -105,7 +112,7 @@ export default function StudentDashboard() {
         }
 
         // 4. Fetch Resources
-        const resourcesRes = await fetch("https://momentumscienceacademy.com/api/v1/resources", { headers })
+        const resourcesRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources`, { headers })
         if (resourcesRes.ok) {
           const data = await resourcesRes.json()
           const sorted = data.sort((a: any, b: any) =>
@@ -189,7 +196,7 @@ export default function StudentDashboard() {
             <div className="h-8 w-64 bg-muted animate-pulse rounded mb-2"></div>
           ) : (
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              Welcome back, {student?.fullName || "Student"}!
+              Welcome back, {userName || "Student"}!
             </h1>
           )}
           <p className="text-muted-foreground text-lg">

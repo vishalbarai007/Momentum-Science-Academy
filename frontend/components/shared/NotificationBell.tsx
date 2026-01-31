@@ -31,14 +31,14 @@ export function NotificationBell() {
         const token = localStorage.getItem("token")
         if (!token) return;
 
-        const res = await fetch("https://momentumscienceacademy.com/api/notifications/unread-count", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/unread-count`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
         const data = await res.json()
 
         if (data.count > unreadCount) {
           // Fetch latest to show toast
-          const listRes = await fetch("https://momentumscienceacademy.com/api/notifications", {
+          const listRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           const listData = await listRes.json();
@@ -63,7 +63,7 @@ export function NotificationBell() {
   // 2. Fetch List
   const fetchNotificationsList = async () => {
     const token = localStorage.getItem("token")
-    const res = await fetch("https://momentumscienceacademy.com/api/notifications", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
     if (res.ok) setNotifications(await res.json())
@@ -72,7 +72,7 @@ export function NotificationBell() {
   // 3. Mark as Read
   const handleNotificationClick = async (id: number, url: string) => {
     const token = localStorage.getItem("token")
-    await fetch(`https://momentumscienceacademy.com/api/notifications/${id}/read`, {
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/${id}/read`, {
       method: "PUT",
       headers: { "Authorization": `Bearer ${token}` }
     })

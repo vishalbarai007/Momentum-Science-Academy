@@ -137,7 +137,7 @@ export default function TeacherResourcesPage() {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources/my-uploads", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources/my-uploads`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -169,7 +169,7 @@ export default function TeacherResourcesPage() {
     try {
       const token = localStorage.getItem("token")
       if (!token) return
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/doubts/incoming", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/incoming`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (response.ok) {
@@ -218,7 +218,7 @@ export default function TeacherResourcesPage() {
     setReplyingId(doubtId)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/doubts/${doubtId}/reply`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/${doubtId}/reply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -270,7 +270,7 @@ export default function TeacherResourcesPage() {
         visibility: editForm.visibility
       }
 
-      const response = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${editModal.resource.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources/${editModal.resource.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -295,7 +295,7 @@ export default function TeacherResourcesPage() {
   const handleDelete = async (id: number) => {
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })

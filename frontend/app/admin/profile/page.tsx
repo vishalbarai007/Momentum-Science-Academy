@@ -26,7 +26,7 @@ export default function AdminProfilePage() {
         const token = localStorage.getItem("token")
 
         // FIX 1: Use the correct backend endpoint path "/api/auth/me"
-        const response = await fetch("https://momentumscienceacademy.com/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
 
@@ -57,7 +57,7 @@ export default function AdminProfilePage() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem("token")
-      const response = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${profile.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/users/${profile.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

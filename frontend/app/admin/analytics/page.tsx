@@ -70,7 +70,7 @@ export default function AdminAnalyticsPage() {
             const token = localStorage.getItem("token")
 
             // 1. Fetch Backend Data (DB Leads + System Stats)
-            const res = await fetch("https://momentumscienceacademy.com/api/v1/analytics/dashboard", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/analytics/dashboard`, {
                 headers: { "Authorization": `Bearer ${token}` }
             })
 

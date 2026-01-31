@@ -75,7 +75,7 @@ export default function StudentAssignmentsPage() {
     try {
       const token = localStorage.getItem("token")
       if (!token) return
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/assignments", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -104,7 +104,7 @@ export default function StudentAssignmentsPage() {
     setLoadingDoubts(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts/my-doubts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/my-doubts`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -124,7 +124,7 @@ export default function StudentAssignmentsPage() {
     setIsSendingDoubt(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ export default function StudentAssignmentsPage() {
     setIsSubmitting(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/${submitModal.assignment.id}/submit`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/${submitModal.assignment.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ fileUrl: submissionLink })
@@ -189,7 +189,7 @@ export default function StudentAssignmentsPage() {
     setIsRevoking(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/${revokeModal.assignment.id}/submit`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/${revokeModal.assignment.id}/submit`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })

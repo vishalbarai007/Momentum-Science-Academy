@@ -69,8 +69,8 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       const [studentsRes, teachersRes] = await Promise.all([
-        fetch("https://momentumscienceacademy.com/api/auth/students"),
-        fetch("https://momentumscienceacademy.com/api/auth/teachers")
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/students`),
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/teachers`)
       ])
 
       if (studentsRes.ok) setStudents(await studentsRes.json())
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
         })
       }
 
-      const res = await fetch("https://momentumscienceacademy.com/api/auth/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
       }
 
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${editModal.user.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/users/${editModal.user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
     setIsDeleting(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${deleteModal.userId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/users/${deleteModal.userId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
 
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${user.id}/access-tags`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/users/${user.id}/access-tags`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -334,7 +334,7 @@ export default function AdminUsersPage() {
     setSavingAccess(true)
     try {
       const token = localStorage.getItem("token")
-      await fetch(`https://momentumscienceacademy.com/api/v1/admin/users/${accessModal.user.id}/access-tags`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/users/${accessModal.user.id}/access-tags`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

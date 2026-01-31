@@ -42,7 +42,7 @@ export function StudentSidebar({ children }: StudentSidebarProps) {
       if (!token) return
 
       try {
-        const response = await fetch("https://momentumscienceacademy.com/api/auth/me", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
 

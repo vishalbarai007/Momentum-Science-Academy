@@ -64,7 +64,7 @@ export default function StudentProfilePage() {
         const headers = { "Authorization": `Bearer ${token}` }
 
         // A. Fetch Profile
-        const profileRes = await fetch("https://momentumscienceacademy.com/api/auth/me", { headers })
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, { headers })
         if (profileRes.ok) {
           const user = await profileRes.json()
           setStudentData({
@@ -81,13 +81,13 @@ export default function StudentProfilePage() {
         }
 
         // B. Fetch Performance Stats
-        const perfRes = await fetch("https://momentumscienceacademy.com/api/v1/performance/stats", { headers })
+        const perfRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/performance/stats`, { headers })
         if (perfRes.ok) {
           setPerformance(await perfRes.json())
         }
 
         // C. Fetch Assignments (To generate Activity Log)
-        const assignRes = await fetch("https://momentumscienceacademy.com/api/v1/assignments", { headers })
+        const assignRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments`, { headers })
         if (assignRes.ok) {
           const assignments = await assignRes.json()
           // Transform assignments into activity log

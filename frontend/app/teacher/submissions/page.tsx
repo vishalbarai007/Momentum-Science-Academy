@@ -124,7 +124,7 @@ export default function TeacherAssignmentsPage() {
       const token = localStorage.getItem("token")
       if (!token) return
 
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/assignments/created", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/created`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
 
@@ -143,7 +143,7 @@ export default function TeacherAssignmentsPage() {
     try {
       const token = localStorage.getItem("token")
       if (!token) return
-      const res = await fetch("https://momentumscienceacademy.com/api/v1/doubts/incoming", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/incoming`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -228,7 +228,7 @@ export default function TeacherAssignmentsPage() {
     setLoadingSubmissions(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/${assignmentId}/submissions`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/${assignmentId}/submissions`, {
         headers: { "Authorization": `Bearer ${token}` }
       })
       if (res.ok) {
@@ -263,7 +263,7 @@ export default function TeacherAssignmentsPage() {
     setReplyingId(doubtId)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/doubts/${doubtId}/reply`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/doubts/${doubtId}/reply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -296,7 +296,7 @@ export default function TeacherAssignmentsPage() {
     setIsDeleting(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/${selectedAssignment.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/${selectedAssignment.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
@@ -339,7 +339,7 @@ export default function TeacherAssignmentsPage() {
     }
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/${selectedAssignment.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/${selectedAssignment.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -365,7 +365,7 @@ export default function TeacherAssignmentsPage() {
     setIsSaving(true)
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/assignments/submissions/${gradeData.id}/grade`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/assignments/submissions/${gradeData.id}/grade`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

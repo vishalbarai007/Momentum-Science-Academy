@@ -74,7 +74,7 @@ export default function AdminResourcesPage() {
     try {
       const token = localStorage.getItem("token")
       // Use the generic GET endpoint which returns all resources for Admins
-      const response = await fetch("https://momentumscienceacademy.com/api/v1/resources", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -152,7 +152,7 @@ export default function AdminResourcesPage() {
 
     try {
       const token = localStorage.getItem("token")
-      const res = await fetch(`https://momentumscienceacademy.com/api/v1/resources/${selectedResource.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/resources/${selectedResource.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       })
