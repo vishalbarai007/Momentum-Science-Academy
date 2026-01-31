@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Updated to latest stable version
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -22,7 +22,10 @@ jobs:
           port: 22
           script: |
             # 1. Navigate to the project directory
-            # MAKE SURE THIS PATH MATCHES WHERE YOU CLONED THE REPO ON VPS
+            # If the folder doesn't exist, it clones it; otherwise, it enters it.
+            if [ ! -d "momentum-science-academy" ]; then
+              git clone https://github.com/vishalbarai007/Momentum-Science-Academy.git momentum-science-academy
+            fi
             cd momentum-science-academy 
 
             # 2. Pull the latest changes from GitHub
@@ -30,10 +33,16 @@ jobs:
             git pull origin main
 
             # 3. Rebuild and restart containers
-            # This rebuilds only changed services (backend or frontend)
+            # Rebuilds changed services and ensures the network is up
             echo "Rebuilding Docker containers..."
             docker compose up -d --build
 
-            # 4. Clean up unused images (Optional but recommended for VPS space)
+            # 4. Clean up unused images to save VPS disk space
             echo "Cleaning up old images..."
             docker image prune -f
+
+      - name: Notify Search Engines (IndexNow)
+        # This step runs on the GitHub runner after the SSH deployment is successful
+        run: |
+          echo "Notifying Bing/IndexNow about sitemap update..."
+          curl -k "https://www.bing.com/indexnow?url=https://momentumscienceacademy.com/sitemap.xml&key=${{ secrets.INDEXNOW_KEY }}"

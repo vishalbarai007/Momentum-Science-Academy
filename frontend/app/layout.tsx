@@ -27,18 +27,19 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://momentum-science-academy.vercel.app'),
+  metadataBase: new URL('https://momentumscienceacademy.com'),
   title: {
-    default: "Momentum Science Academy - JEE, NEET & ICSE Coaching",
+    default: "Momentum Science Academy | JEE, NEET, CET Coaching Vasai",
     template: "%s | Momentum Science Academy"
   },
   description: "Top-rated coaching institute in Vasai East for JEE, NEET, MHT-CET, and Std 9-10. Proven track record with IIT & AIIMS selections.",
-  keywords: ["JEE coaching", "NEET preparation", "Science Academy Vasai", "MHT-CET classes", "ICSE tuition"],
+  keywords: ["JEE coaching", "NEET preparation", "Science Academy Vasai", "MHT-CET classes", "ICSE tuition", "Science coaching", "Engineering entrance", "Medical entrance", "Board exam prep",
+    "Momentum Science Academy", "Best coaching Vasai", "IIT JEE", "AIIMS preparation", "10th science coaching", "Foundation courses", "Competitive exam training"],
   authors: [{ name: "Momentum Science Academy" }],
   openGraph: {
     title: "Momentum Science Academy - Engineering & Medical Entrance Coaching",
     description: "Join the league of toppers. Expert faculty and personalized coaching for JEE, NEET, and Boards.",
-    url: 'https://momentum-science-academy.vercel.app/',
+    url: 'https://momentumscienceacademy.com/',
     siteName: 'Momentum Science Academy',
     locale: 'en_IN',
     type: 'website',
@@ -50,6 +51,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
+  },
+  alternates: {
+    canonical: "https://momentumscienceacademy.com"
   },
 
 }

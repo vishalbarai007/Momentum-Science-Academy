@@ -24,7 +24,7 @@ const Page = () => {
                 </p>
 
                 <p className="mb-6">
-                    By accessing or using our website <strong>https://momentum-science-academy.vercel.app/</strong>,
+                    By accessing or using our website <strong>https://momentumscienceacademy.com</strong>,
                     you agree to this Privacy Policy. If you do not agree, please do not
                     use our Services.
                 </p>

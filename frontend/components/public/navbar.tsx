@@ -54,7 +54,7 @@ export function Navbar() {
           <a href="/" onClick={() => handleLinkClick("/")} className="flex items-center gap-3 group cursor-pointer relative">
             <div className="relative">
               <div className="relative rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <Image src="/Logo/logo1.png" alt="Momentum Logo" width={50} height={50} className="rounded-full" />
+                <Image src="/Logo/logo1.png" alt="Momentum Logo" width={50} height={50} className="rounded-full" priority/>
               </div>
             </div>
 

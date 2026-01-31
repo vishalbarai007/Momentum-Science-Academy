@@ -40,7 +40,7 @@ const rankerData: rankerItem[] = [
     exam: "NEET",
     rank: "",
     score: "626/720",
-    year: "2020",
+    year: "2025",
     category: "NEET",
     image: "/Rankers/abhinav-neet.png",
     description: "Achieved 626/720 in NEET 2020, demonstrating strong academic performance.",

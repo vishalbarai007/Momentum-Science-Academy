@@ -1,6 +1,7 @@
 import { Quote } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Card } from '../ui/card'
+import Image from 'next/image'
 
 const Testimonials = () => {
     const [activeTestimonial, setActiveTestimonial] = useState(0)
@@ -8,28 +9,28 @@ const Testimonials = () => {
 
     const testimonials = [
         {
-            name: "Aditi Sharma",
-            achievement: "NEET 2024 - 635/720",
-            image: "/indian-female-student-portrait-smiling.jpg",
+            name: "Abhinav Thakur",
+            achievement: "NEET 2025 - 626/720",
+            image: "/Rankers/abhinav-neet.png",
             quote:
                 "Momentum's systematic approach and dedicated faculty helped me achieve my dream of becoming a doctor. The personalized attention made all the difference.",
-            college: "AIIMS Delhi",
+            college: "JJ Hospital, Mumbai",
         },
         {
-            name: "Rohan Patel",
-            achievement: "JEE Advanced - AIR 329",
-            image: "/indian-male-student-portrait-professional.jpg",
+            name: "Pragati Sahani",
+            achievement: "NEET 2025 - 485/720",
+            image: "/Rankers/pragati-neet.png",
             quote:
-                "The problem-solving techniques and regular mock tests at Momentum prepared me perfectly for JEE. Forever grateful to my mentors here.",
-            college: "IIT Bombay",
+                "The supportive environment at Momentum boosted my confidence and understanding of complex topics. Their focus on concept clarity was key to my success.",
+            college: "JJ Hospital, Mumbai",
         },
         {
-            name: "Priya Singh",
-            achievement: "ICSE 2024 - 99.60% (AIR-2)",
-            image: "/indian-teenage-girl-student.png",
+            name: "Raj Vishwakarma",
+            achievement: "MHT-CET 2023 - 99.24 Percentile",
+            image: "/Rankers/raj-cet.png",
             quote:
                 "From struggling with concepts to becoming a topper - Momentum transformed my academic journey. The teachers here truly care about every student.",
-            college: "St. Xavier's College",
+            college: "Thadomal Shahani Engineering College",
         },
     ]
 

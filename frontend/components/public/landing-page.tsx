@@ -79,7 +79,7 @@ export function LandingPage() {
                   Start Your Journey
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <Link href="/programs">
+                {/* <Link href="/programs">
                   <Button
                     size="lg"
                     variant="outline"
@@ -87,7 +87,7 @@ export function LandingPage() {
                   >
                     Explore Programs
                   </Button>
-                </Link>
+                </Link> */}
               </div>
 
               {/* Quick stats */}
@@ -118,8 +118,9 @@ export function LandingPage() {
 
                   <Image
                     src={Hero}
-                    alt="Students at Momentum Academy"
+                    alt="Students studying for JEE and NEET exams at Momentum Science Academy classroom"
                     className="w-full rounded-xl mb-6"
+                    priority
                   />
 
                   <div className="grid grid-cols-4 gap-4">
@@ -143,11 +144,11 @@ export function LandingPage() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        {/* <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
           <div className="w-8 h-12 rounded-full border-2 border-primary/30 flex items-start justify-center p-2">
             <div className="w-1.5 h-3 bg-primary rounded-full animate-pulse" />
           </div>
-        </div>
+        </div> */}
       </section>
 
       {/* Stats Section */}
@@ -202,6 +203,7 @@ export function LandingPage() {
                 src={whychooseus}
                 alt="Momentum Academy Classroom"
                 className="rounded-2xl shadow-2xl"
+                priority
               />
               <Card className="absolute -bottom-8 -left-8 p-6 shadow-xl border-0 bg-card/95 backdrop-blur">
                 <div className="flex items-center gap-4">
@@ -268,7 +270,7 @@ export function LandingPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: MapPin, title: "Visit Us", desc: "Rashmi Divya Complex 6, Vasai East", link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
+                  { icon: MapPin, title: "Visit Us", desc: "Rashmi Villa 6, Vasai East", link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
                   { icon: Phone, title: "Call Us", desc: "+91 98237 88328", link: "tel:+919823788328" },
                   { icon: Mail, title: "Email Us", desc: "momentumscienceacademy", link: "mailto:momentumscienceacademy@gmail.com" },
                   { icon: Clock, title: "Timings", desc: "Mon-Sat: 9AM - 9PM", link: "#" },
