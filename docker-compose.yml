@@ -1,0 +1,49 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # 1. Enter project folder
+            cd momentum-science-academy || git clone https://github.com/vishalbarai007/Momentum-Science-Academy.git momentum-science-academy && cd momentum-science-academy
+            
+            # 2. Update Code
+            git pull origin main
+
+            # 3. Create/Update the .env file dynamically from GitHub Secrets
+            # This keeps secrets out of Git but available to Docker
+            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" > .env
+            echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+            echo "APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}" >> .env
+            echo "VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}" >> .env
+            echo "VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}" >> .env
+            echo "VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}" >> .env
+            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env
+            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "GOOGLE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}" >> .env
+            echo "GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}" >> .env
+            # Handle the multiline key carefully
+            echo "GOOGLE_PRIVATE_KEY=\"${{ secrets.GOOGLE_PRIVATE_KEY }}\"" >> .env
+
+            # 4. Rebuild and restart
+            docker compose up -d --build
+            
+            # 5. Cleanup
+            docker image prune -f
