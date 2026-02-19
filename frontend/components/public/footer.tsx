@@ -107,7 +107,7 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 mt-0.5 text-accent" />
                 <span className="text-primary-foreground/80 text-sm">
-                  Rashmi Villa Complex 6
+                  Rashmi Villa Complex 6,
                   <br />
                   Near Agarwal Circle, next to Galaxy Hotel
                   <br />
