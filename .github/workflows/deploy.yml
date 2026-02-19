@@ -21,14 +21,17 @@ jobs:
           port: 22
           script: |
             # 1. Enter project folder or clone it
-            cd momentum-science-academy || git clone https://github.com/vishalbarai007/Momentum-Science-Academy.git momentum-science-academy && cd momentum-science-academy
+            if [ ! -d "momentum-science-academy" ]; then
+              git clone https://github.com/vishalbarai007/Momentum-Science-Academy.git momentum-science-academy
+            fi
+            cd momentum-science-academy
             
             # 2. Update Code
             git pull origin main
 
-            # 3. Create/Update the .env file from GitHub Secrets
-            # This 'cat' command safely writes all secrets into the .env file on your VPS
-            cat <<EOF > .env
+            # 3. Create/Update the .env file
+            # We use cat << 'EOF' (with quotes) to prevent the shell from evaluating variables like $
+            cat << 'EOF' > .env
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
             APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}
@@ -42,7 +45,7 @@ jobs:
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
             GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}
-            GOOGLE_PRIVATE_KEY="${{ secrets.GOOGLE_PRIVATE_KEY }}"
+            GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
             EOF
 
             # 4. Rebuild and restart
