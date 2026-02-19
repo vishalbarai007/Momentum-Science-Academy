@@ -14,7 +14,7 @@ services:
       - momentum-network
 
   backend:
-    build: ./backend
+    image: ghcr.io/vishalbarai007/momentum-backend:latest
     container_name: momentum-backend
     restart: always
     ports:
@@ -40,7 +40,7 @@ services:
       - momentum-network
 
   frontend:
-    build: ./frontend
+    image: ghcr.io/vishalbarai007/momentum-frontend:latest
     container_name: momentum-frontend
     restart: always
     ports:

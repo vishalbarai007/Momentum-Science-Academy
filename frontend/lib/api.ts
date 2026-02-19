@@ -10,7 +10,7 @@ export interface LoginResponse {
 }
 
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -34,7 +34,7 @@ export interface LeadData {
 }
 
 export async function submitContactForm(data: LeadData) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/contact`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads/contact`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -44,7 +44,7 @@ export async function submitContactForm(data: LeadData) {
 }
 
 export async function submitEnrollment(data: LeadData) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/enroll`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads/enroll`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -55,7 +55,7 @@ export async function submitEnrollment(data: LeadData) {
 
 export async function getLeads() {
   const token = localStorage.getItem("token"); // Assuming you store JWT
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads`, {
     headers: {
       "Authorization": `Bearer ${token}`
     },
@@ -66,7 +66,7 @@ export async function getLeads() {
 
 export async function updateLeadStatus(id: number, status: string) {
   const token = localStorage.getItem("token");
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/leads/${id}/status`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leads/${id}/status`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -78,10 +78,6 @@ export async function updateLeadStatus(id: number, status: string) {
   return res.json();
 }
 
-
-// Add this to your api.ts file
-
-const PUBLIC_VAPID_KEY = "BFAV77TAOueW7pEucmzQLwMrrfKTfcjVSN4u_KVejTOHmwL7iRzb_jqPy2MF_0sZ54_q1u3MO5LRqZ5RDztEZtc";
 
 // Helper to convert key
 function urlBase64ToUint8Array(base64String: string) {
@@ -106,14 +102,19 @@ export async function subscribeToPushNotifications(token: string) {
       // 2. [FIX] Wait for the Service Worker to be ACTIVE
       const registration = await navigator.serviceWorker.ready;
 
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) {
+        throw new Error("VAPID public key is not defined in environment variables");
+      }
+
       // 3. Attempt to subscribe
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
 
       // 4. Send subscription to backend
-      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/notifications/subscribe`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/subscribe`, {
         method: "POST",
         body: JSON.stringify(subscription),
         headers: {
