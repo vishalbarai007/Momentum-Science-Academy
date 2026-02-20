@@ -63,14 +63,20 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
           script: |
+            set -e
+            
             # 1. Create and enter project folder
             mkdir -p momentum-science-academy
             cd momentum-science-academy
             
-            # 2. Download the latest docker-compose.yml directly from the repository
+            # 2. Setup Nginx directories and download config
+            mkdir -p nginx/conf.d
+            curl -o nginx/conf.d/default.conf https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/nginx/conf.d/default.conf
+            
+            # 3. Download the latest docker-compose.yml
             curl -O https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/docker-compose.yml
 
-            # 3. Create/Update the .env file
+            # 4. Create/Update the .env file
             cat << 'EOF' > .env
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
@@ -88,15 +94,15 @@ jobs:
             GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
             EOF
 
-            # 4. Pull the latest compiled images from GitHub Container Registry
+            # 5. Pull the latest compiled images from GitHub Container Registry
             docker pull ${{ env.BACKEND_IMAGE }}:latest
             docker pull ${{ env.FRONTEND_IMAGE }}:latest
 
-            # 5. Restart containers with the new images (no build flag)
+            # 6. Restart containers with the new images
             docker compose down || true
             docker compose up -d
             
-            # 6. Cleanup old unused images
+            # 7. Cleanup old unused images
             docker image prune -f
 
       - name: Notify Search Engines (IndexNow)

@@ -17,8 +17,7 @@ services:
     image: ghcr.io/vishalbarai007/momentum-backend:latest
     container_name: momentum-backend
     restart: always
-    ports:
-      - "8080:8080"
+    # Ports removed: Now accessible only via Nginx internally on 8080
     deploy:
       resources:
         limits:
@@ -43,8 +42,7 @@ services:
     image: ghcr.io/vishalbarai007/momentum-frontend:latest
     container_name: momentum-frontend
     restart: always
-    ports:
-      - "3000:3000"
+    # Ports removed: Now accessible only via Nginx internally on 3000
     deploy:
       resources:
         limits:
@@ -61,6 +59,22 @@ services:
       GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
       GOOGLE_SHEET_ID: ${GOOGLE_SHEET_ID}
     depends_on:
+      - backend
+    networks:
+      - momentum-network
+
+  nginx:
+    image: nginx:latest
+    container_name: momentum-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - frontend
       - backend
     networks:
       - momentum-network
