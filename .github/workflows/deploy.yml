@@ -3,6 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -42,6 +43,9 @@ jobs:
         with:
           context: ./frontend
           push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
@@ -89,6 +93,7 @@ jobs:
             docker pull ${{ env.FRONTEND_IMAGE }}:latest
 
             # 5. Restart containers with the new images (no build flag)
+            docker compose down || true
             docker compose up -d
             
             # 6. Cleanup old unused images
