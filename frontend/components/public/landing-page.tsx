@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import dynamic from "next/dynamic"
+import { Footer2 } from "./footer2"
 
 
 const StatsSection = dynamic(() => import('@/components/home/StatsSection'), { ssr: false })
@@ -268,7 +269,7 @@ export function LandingPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid lg:grid-cols-2 md:grid-cols-1 sm:grid-cols-1 gap-4">
                 {[
                   { icon: MapPin, title: "Visit Us", desc: "Rashmi Villa 6, Vasai East", link: "https://maps.app.goo.gl/DgU3Za7P7pxjF8oZA" },
                   { icon: Phone, title: "Call Us", desc: "+91 98237 88328", link: "tel:+919823788328" },
@@ -361,6 +362,7 @@ export function LandingPage() {
       )}
 
       <Footer />
+      {/* <Footer2 /> */}
     </div>
   )
 }

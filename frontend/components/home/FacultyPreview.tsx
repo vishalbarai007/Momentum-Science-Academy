@@ -14,7 +14,7 @@ const FacultyPreview = () => {
             specialization: "JEE Advanced, Problem Solving",
             toppers: 5,
             students: "2500+",
-            image: "/Faculty/RP-Singh.jpeg",
+            image: "/Faculty/rp.png",
         },
         {
             name: "Prof. P.V. Shukla",
