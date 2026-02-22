@@ -6,39 +6,39 @@ import Image from "next/image"
 
 const testimonials = [
   {
-    name: "Aryan Mehta",
-    score: "AIR 329 – JEE Advanced",
+    name: "Lakshin Nagpal",
+    score: "99.8 Percentile ",
     program: "JEE Main & Advanced",
     review:
       "Momentum's structured approach and dedicated faculty completely transformed my preparation. The small batch size meant I always got personal attention when I needed it most.",
     rating: 5,
-    initials: "raj-cet",
+    initials: "lakshin-jee",
     color: "from-violet-500 to-purple-600",
   },
   {
-    name: "Sneha Patil",
-    score: "645/720 – NEET",
+    name: "Pragati Sahani",
+    score: "485/720 – NEET",
     program: "NEET Preparation",
     review:
       "The doubt-clearing sessions at Momentum were a game changer. Teachers never made you feel rushed, and the mock test series was exactly like the real exam. I couldn't have done it without them.",
     rating: 5,
-    initials: "ritwik-cet",
+    initials: "pragati-neet",
     color: "from-emerald-500 to-teal-600",
   },
   {
-    name: "Rahul Sharma",
-    score: "99.4 Percentile – MHT-CET",
+    name: "Raj Vishwakarma",
+    score: "99.24 Percentile – MHT-CET",
     program: "MHT-CET Prep",
     review:
       "The quality of study material and the way concepts were broken down made even the hardest topics easy to grasp. Momentum is genuinely invested in every student's success.",
     rating: 5,
-    initials: "vasu-neet",
+    initials: "raj-cet",
     color: "from-amber-500 to-orange-600",
   },
   {
-    name: "Karan Desai",
-    score: "IIT Bombay – CSE",
-    program: "JEE Main & Advanced",
+    name: "Vishal Barai",
+    score: "98.23 percentile – MHT-CET",
+    program: "MHT-CET Prep",
     review:
       "Three years at Momentum built my analytical thinking from the ground up. The teachers treat you like family and push you to be better every single day.",
     rating: 5,

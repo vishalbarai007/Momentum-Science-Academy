@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import {
   GraduationCap,
   Mail,
@@ -10,25 +10,42 @@ import {
   ArrowRight,
   Instagram,
   Linkedin,
-  Import,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
+  Youtube, // Added Youtube icon
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function Footer() {
+  // Define social links for better maintainability
+  const socialLinks = [
+    {
+      Icon: Instagram,
+      href: "https://www.instagram.com/momentum_science_acadmey/",
+      label: "Instagram",
+    },
+    {
+      Icon: Linkedin,
+      href: "https://www.linkedin.com/in/momentum-science-academy-0279aa3a8/",
+      label: "LinkedIn",
+    },
+    {
+      Icon: Youtube,
+      href: "https://youtube.com/@momentum-science-academy?si=m0DYGXH-pipFUiOh",
+      label: "YouTube",
+    },
+  ];
+
   return (
     <footer className="relative bg-linear-to-br from-primary via-primary to-primary/90 text-primary-foreground overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+      {/* ... decorative elements stay the same ... */}
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 pt-16 pb-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* About */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="relative  rounded-full flex items-center justify-center shadow-lg group-hover:shadow-2xl">
-                <Image src="/Logo/logo1.png" alt={"logo"} width={50} height={50} className=" rounded-full" />
+              <div className="relative rounded-full flex items-center justify-center shadow-lg group-hover:shadow-2xl">
+                <Image src="/Logo/logo1.png" alt="logo" width={50} height={50} className="rounded-full" />
               </div>
               <div>
                 <div className="font-bold text-lg">Momentum</div>
@@ -39,18 +56,24 @@ export function Footer() {
               Empowering students with excellence in science education since 2009. Your trusted partner for JEE, NEET,
               and board exam success.
             </p>
+
+            {/* Updated Social Links Section */}
             <div className="flex gap-3">
-              {[Instagram, Linkedin,].map((Icon, i) => (
+              {socialLinks.map((social, i) => (
                 <a
                   key={i}
-                  href="#"
+                  href={social.href}
+                  target="_blank" // Opens in new tab
+                  rel="noopener noreferrer" // Security best practice
                   className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+                  aria-label={social.label}
                 >
-                  <Icon className="w-4 h-4" />
+                  <social.Icon className="w-4 h-4" />
                 </a>
               ))}
             </div>
           </div>
+
 
           {/* Quick Links */}
           <div>

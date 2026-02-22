@@ -5,7 +5,6 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     "name": "Momentum Science Academy",
-    "url": "https://momentumscienceacademy.com",
     "logo": "https://momentumscienceacademy.com/Logo/logo1.png",
     "description": "Premier coaching for 8th, 9th, 10th, JEE, NEET, MHT-CET, and 11th-12th Science in Vasai Virar East.",
     "address": {
@@ -16,11 +15,25 @@ export default function StructuredData() {
       "postalCode": "401208",
       "addressCountry": "IN"
     },
+    // "geo": {
+    //   "@type": "GeoCoordinates",
+    //   "latitude": "19.3900", 
+    //   "longitude": "72.8400"
+    // },
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-98237-88328",
       "contactType": "admissions"
     },
+    "url": "https://momentumscienceacademy.com",
+    "telephone": "+919823788328",
+    "openingHours": "Mo-Sa 09:00-21:00",
+    "image": "https://momentumscienceacademy.com/Logo/logo1.png",
+    "sameAs": [
+      "https://www.facebook.com/momentumscienceacademy",
+      "https://www.instagram.com/momentumscienceacademy",
+      "https://www.linkedin.com/in/momentum-science-academy-0279aa3a8/"
+    ],
     "hasCourse": [
       {
         "@type": "Course",
@@ -36,7 +49,7 @@ export default function StructuredData() {
         "@type": "Course",
         "name": "MHT-CET Crash Course",
         "description": "Focused preparation for Maharashtra state engineering entrance."
-      }
+      },
       {
         "@type": "Course",
         "name": "10th Std SSC ",
