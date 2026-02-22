@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Instagram, Linkedin, MessageCircle, Sparkles, School, User, AtSign, PhoneCall, BookOpen, MessageSquare } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle, Instagram, Linkedin, MessageCircle, Sparkles, School, User, AtSign, PhoneCall, BookOpen, MessageSquare, Youtube } from "lucide-react"
 import { Navbar } from "@/components/public/navbar"
 import { submitContactForm } from "@/lib/api"
 import { appendLeadToSheet } from "@/app/actions/sheets"
@@ -100,8 +100,10 @@ export default function ContactPage() {
   ]
 
   const socialLinks = [
-    { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/momentum_science_acadmey/", colorClass: "text-pink-600 bg-pink-100 dark:bg-pink-900/20" },
-    { icon: Linkedin, label: "LinkedIn", href: "#", colorClass: "text-blue-600 bg-blue-100 dark:bg-blue-900/20" },
+    { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/momentumscienceacademy", colorClass: "text-pink-600 bg-pink-100 dark:bg-pink-900/20" },
+    { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/momentum-science-academy-0279aa3a8/", colorClass: "text-blue-600 bg-blue-100 dark:bg-blue-900/20" },
+    { icon: Youtube, label: "Youtube", href: "https://youtube.com/@momentum-science-academy?si=m0DYGXH-pipFUiOh", colorClass: "text-red-600 bg-red-100 dark:bg-red-900/20" },
+
   ]
 
   return (
@@ -162,7 +164,7 @@ export default function ContactPage() {
                 {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-accent/5 to-primary/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-                
+
                 {submitted ? (
                   <div className="text-center py-16 relative animate-scale-in">
                     <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-2xl animate-bounce">
@@ -170,8 +172,8 @@ export default function ContactPage() {
                     </div>
                     <h2 className="text-3xl font-bold mb-3 text-foreground">Message Sent Successfully!</h2>
                     <p className="text-muted-foreground mb-8 text-lg">Thank you for reaching out. We'll get back to you within 24 hours.</p>
-                    <Button 
-                      onClick={() => setSubmitted(false)} 
+                    <Button
+                      onClick={() => setSubmitted(false)}
                       className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground px-8 py-6 rounded-xl font-semibold shadow-lg transition-all hover:scale-105"
                     >
                       Send Another Message
@@ -207,13 +209,11 @@ export default function ContactPage() {
                               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                               onFocus={() => setFocusedField('name')}
                               onBlur={() => setFocusedField(null)}
-                              className={`h-12 bg-background pl-4 transition-all duration-300 ${
-                                focusedField === 'name' ? 'ring-2 ring-primary/50 border-primary' : ''
-                              }`}
+                              className={`h-12 bg-background pl-4 transition-all duration-300 ${focusedField === 'name' ? 'ring-2 ring-primary/50 border-primary' : ''
+                                }`}
                             />
-                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                              focusedField === 'name' ? 'opacity-100' : 'opacity-0'
-                            }`} />
+                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'name' ? 'opacity-100' : 'opacity-0'
+                              }`} />
                           </div>
                         </div>
 
@@ -232,13 +232,11 @@ export default function ContactPage() {
                               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                               onFocus={() => setFocusedField('email')}
                               onBlur={() => setFocusedField(null)}
-                              className={`h-12 bg-background pl-4 transition-all duration-300 ${
-                                focusedField === 'email' ? 'ring-2 ring-primary/50 border-primary' : ''
-                              }`}
+                              className={`h-12 bg-background pl-4 transition-all duration-300 ${focusedField === 'email' ? 'ring-2 ring-primary/50 border-primary' : ''
+                                }`}
                             />
-                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                              focusedField === 'email' ? 'opacity-100' : 'opacity-0'
-                            }`} />
+                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'email' ? 'opacity-100' : 'opacity-0'
+                              }`} />
                           </div>
                         </div>
                       </div>
@@ -259,13 +257,11 @@ export default function ContactPage() {
                               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                               onFocus={() => setFocusedField('phone')}
                               onBlur={() => setFocusedField(null)}
-                              className={`h-12 bg-background pl-4 transition-all duration-300 ${
-                                focusedField === 'phone' ? 'ring-2 ring-primary/50 border-primary' : ''
-                              }`}
+                              className={`h-12 bg-background pl-4 transition-all duration-300 ${focusedField === 'phone' ? 'ring-2 ring-primary/50 border-primary' : ''
+                                }`}
                             />
-                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                              focusedField === 'phone' ? 'opacity-100' : 'opacity-0'
-                            }`} />
+                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'phone' ? 'opacity-100' : 'opacity-0'
+                              }`} />
                           </div>
                         </div>
 
@@ -282,17 +278,15 @@ export default function ContactPage() {
                               onChange={(e) => setFormData({ ...formData, school: e.target.value })}
                               onFocus={() => setFocusedField('school')}
                               onBlur={() => setFocusedField(null)}
-                              className={`w-full h-12 px-4 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 bg-background text-foreground transition-all duration-300 ${
-                                focusedField === 'school' ? 'ring-2 ring-primary/50 border-primary' : ''
-                              }`}
+                              className={`w-full h-12 px-4 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 bg-background text-foreground transition-all duration-300 ${focusedField === 'school' ? 'ring-2 ring-primary/50 border-primary' : ''
+                                }`}
                             >
                               {SCHOOL_OPTIONS.map((school) => (
                                 <option key={school} value={school}>{school}</option>
                               ))}
                             </select>
-                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                              focusedField === 'school' ? 'opacity-100' : 'opacity-0'
-                            }`} />
+                            <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'school' ? 'opacity-100' : 'opacity-0'
+                              }`} />
                           </div>
                         </div>
                       </div>
@@ -309,9 +303,8 @@ export default function ContactPage() {
                             onChange={(e) => setFormData({ ...formData, program: e.target.value })}
                             onFocus={() => setFocusedField('program')}
                             onBlur={() => setFocusedField(null)}
-                            className={`w-full h-12 px-4 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 bg-background text-foreground transition-all duration-300 ${
-                              focusedField === 'program' ? 'ring-2 ring-primary/50 border-primary' : ''
-                            }`}
+                            className={`w-full h-12 px-4 border border-input rounded-lg focus:ring-2 focus:ring-primary/50 bg-background text-foreground transition-all duration-300 ${focusedField === 'program' ? 'ring-2 ring-primary/50 border-primary' : ''
+                              }`}
                           >
                             <option value="">Select a program</option>
                             <option value="9th-10th">9th-10th Foundation</option>
@@ -319,9 +312,8 @@ export default function ContactPage() {
                             <option value="neet">NEET Preparation</option>
                             <option value="mht-cet">MHT-CET</option>
                           </select>
-                          <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                            focusedField === 'program' ? 'opacity-100' : 'opacity-0'
-                          }`} />
+                          <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'program' ? 'opacity-100' : 'opacity-0'
+                            }`} />
                         </div>
                       </div>
 
@@ -340,13 +332,11 @@ export default function ContactPage() {
                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                             onFocus={() => setFocusedField('message')}
                             onBlur={() => setFocusedField(null)}
-                            className={`bg-background resize-none transition-all duration-300 ${
-                              focusedField === 'message' ? 'ring-2 ring-primary/50 border-primary' : ''
-                            }`}
+                            className={`bg-background resize-none transition-all duration-300 ${focusedField === 'message' ? 'ring-2 ring-primary/50 border-primary' : ''
+                              }`}
                           />
-                          <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${
-                            focusedField === 'message' ? 'opacity-100' : 'opacity-0'
-                          }`} />
+                          <div className={`absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-lg blur-sm transition-opacity duration-300 ${focusedField === 'message' ? 'opacity-100' : 'opacity-0'
+                            }`} />
                         </div>
                       </div>
 
