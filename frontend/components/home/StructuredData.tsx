@@ -15,11 +15,11 @@ export default function StructuredData() {
       "postalCode": "401208",
       "addressCountry": "IN"
     },
-    // "geo": {
-    //   "@type": "GeoCoordinates",
-    //   "latitude": "19.3900", 
-    //   "longitude": "72.8400"
-    // },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "19.404938",
+      "longitude": "72.829092"
+    },
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+91-98237-88328",

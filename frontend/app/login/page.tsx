@@ -17,7 +17,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialRole = searchParams.get("role") as UserRole
-  
+
   // State for Role Selection (Super Admin selects "Administrator" card)
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole)
   const [showPassword, setShowPassword] = useState(false)
@@ -75,11 +75,11 @@ function LoginForm() {
       // If user selected "admin" card, allow both "admin" and "super_admin" roles
       if (selectedRole === "admin") {
         if (data.role !== "admin" && data.role !== "super_admin") {
-            throw new Error("Access Denied: You are not an administrator.")
+          throw new Error("Access Denied: You are not an administrator.")
         }
       } else if (data.role !== selectedRole) {
-         // Strict check for Student/Teacher
-         throw new Error(`Access Denied: Your account is not a ${selectedRole}.`)
+        // Strict check for Student/Teacher
+        throw new Error(`Access Denied: Your account is not a ${selectedRole}.`)
       }
 
       // 3. Save Session Data
@@ -101,9 +101,9 @@ function LoginForm() {
       } else {
         const roleConfig = roles.find((r) => r.id === data.role)
         if (roleConfig) {
-            router.push(roleConfig.redirect)
+          router.push(roleConfig.redirect)
         } else {
-            router.push("/dashboard")
+          router.push("/dashboard")
         }
       }
 
@@ -270,11 +270,12 @@ function LoginForm() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full py-6 bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 transition-all font-medium text-base shadow-lg hover:shadow-xl"
+                  disabled={isLoading} // <-- CRITICAL: Prevents multiple clicks
+                  className="w-full py-6 bg-linear-to-r from-primary to-secondary text-primary-foreground hover:opacity-90 transition-all font-medium text-base shadow-lg hover:shadow-xl"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
+                      {/* Your existing spinner */}
                       <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Signing in...
                     </span>
