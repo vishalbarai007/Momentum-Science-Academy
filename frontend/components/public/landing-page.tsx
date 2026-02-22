@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import dynamic from "next/dynamic"
-import { Footer2 } from "./footer2"
+// import { Footer2 } from "./footer2"
 
 
 const StatsSection = dynamic(() => import('@/components/home/StatsSection'), { ssr: false })
