@@ -21,5 +21,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByStudent(User student);
 
     // 2. To calculate rank and leaderboard for a specific test
+    // 2. To calculate rank and leaderboard for a specific test
     List<Submission> findByAssignment(Assignment assignment);
+
+    void deleteByStudent(User student);
+
+    void deleteByAssignment(Assignment assignment);
 }

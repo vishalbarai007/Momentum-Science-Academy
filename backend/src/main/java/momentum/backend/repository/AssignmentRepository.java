@@ -15,4 +15,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
      * Used for the Teacher Dashboard.
      */
     List<Assignment> findByTeacher(User teacher);
+
+    void deleteByTeacher(User teacher);
 }

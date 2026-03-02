@@ -11,4 +11,8 @@ public interface DoubtRepository extends JpaRepository<Doubt, Long> {
 
     // For Teachers: See doubts assigned to me
     List<Doubt> findByTeacherOrderByCreatedAtDesc(User teacher);
+
+    void deleteByStudent(User student);
+
+    void deleteByTeacher(User teacher);
 }
