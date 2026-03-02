@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AdminSidebar } from "@/components/shared/admin-sidebar"
 import { Input } from "@/components/ui/input"
-import { UserPlus, Search, Edit, Trash2, Eye, CheckCircle, GraduationCap, Users, Shield, Loader2, Save, Lock, Mail } from "lucide-react"
+import { UserPlus, Search, Edit, Trash2, Eye, CheckCircle, GraduationCap, Users, Shield, Loader2, Save, Lock, Mail, EyeOff } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -54,6 +54,9 @@ export default function AdminUsersPage() {
 
   // Advanced Student Form State
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+
+  // Password Visibility State
+  const [showPassword, setShowPassword] = useState(false)
 
   // Loading States
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -595,7 +598,22 @@ export default function AdminUsersPage() {
               </div>
               <div className="col-span-2">
                 <Label>Temporary Password</Label>
-                <Input placeholder="SecurePassword123" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                <div className="relative">
+                  <Input
+                    placeholder="SecurePassword123"
+                    type={showPassword ? "text" : "password"} // Switches type based on state
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    className="pr-10" // Adds padding so text doesn't go under the icon
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
