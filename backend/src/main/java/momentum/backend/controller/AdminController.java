@@ -11,7 +11,8 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/admin")
-@CrossOrigin(origins = {"http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080", "https://momentumscienceacademy.com" })
+@CrossOrigin(origins = { "http://localhost:3000", "http://172.31.44.212:8080", "http://localhost:8080",
+        "https://momentumscienceacademy.com" })
 public class AdminController {
 
     private final UsersRepository usersRepository;
@@ -66,11 +67,7 @@ public class AdminController {
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-        if (!usersRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        usersRepository.deleteById(id);
+        userService.deleteUser(id);
         return ResponseEntity.ok("{\"message\": \"User deleted successfully\"}");
     }
 

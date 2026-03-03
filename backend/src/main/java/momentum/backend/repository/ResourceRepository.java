@@ -18,4 +18,6 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
     // Find by type
     List<Resource> findByType(Resource.ResourceType type);
+
+    void deleteByUploadedBy(User uploadedBy);
 }

@@ -16,14 +16,35 @@ public class UserService {
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
+    // --- Repositories for Cascading Delete ---
+    private final momentum.backend.repository.AssignmentRepository assignmentRepository;
+    private final momentum.backend.repository.DoubtRepository doubtRepository;
+    private final momentum.backend.repository.NotificationRepository notificationRepository;
+    private final momentum.backend.repository.PushSubscriptionRepository pushSubscriptionRepository;
+    private final momentum.backend.repository.ResourceRepository resourceRepository;
+    private final momentum.backend.repository.SubmissionRepository submissionRepository;
+    // -----------------------------------------
+
+    public UserService(UsersRepository usersRepository, PasswordEncoder passwordEncoder,
+            momentum.backend.repository.AssignmentRepository assignmentRepository,
+            momentum.backend.repository.DoubtRepository doubtRepository,
+            momentum.backend.repository.NotificationRepository notificationRepository,
+            momentum.backend.repository.PushSubscriptionRepository pushSubscriptionRepository,
+            momentum.backend.repository.ResourceRepository resourceRepository,
+            momentum.backend.repository.SubmissionRepository submissionRepository) {
         this.usersRepository = usersRepository;
         this.passwordEncoder = passwordEncoder;
+        this.assignmentRepository = assignmentRepository;
+        this.doubtRepository = doubtRepository;
+        this.notificationRepository = notificationRepository;
+        this.pushSubscriptionRepository = pushSubscriptionRepository;
+        this.resourceRepository = resourceRepository;
+        this.submissionRepository = submissionRepository;
     }
 
     public User register(String email, String rawPassword, String fullName, User.Role role, String phone,
-                         String studentClass, String program, Set<String> accessTags,
-                         List<String> expertise, Integer experience) {
+            String studentClass, String program, Set<String> accessTags,
+            List<String> expertise, Integer experience) {
 
         if (usersRepository.findByEmail(email) != null) {
             throw new RuntimeException("Email already registered!");
@@ -32,8 +53,10 @@ public class UserService {
         // Default Access Tags logic
         if (role == User.Role.student && (accessTags == null || accessTags.isEmpty())) {
             accessTags = new HashSet<>();
-            if (studentClass != null && !studentClass.isEmpty()) accessTags.add(studentClass);
-            if (program != null && !program.isEmpty()) accessTags.add(program);
+            if (studentClass != null && !studentClass.isEmpty())
+                accessTags.add(studentClass);
+            if (program != null && !program.isEmpty())
+                accessTags.add(program);
         }
 
         User user = new User();
@@ -93,9 +116,9 @@ public class UserService {
 
     // --- UPDATE METHOD (Includes Access Tags) ---
     public User updateUser(Long userId, String fullName, String email, String phone,
-                           String newPassword, String studentClass, String program,
-                           Integer experience, List<String> expertise, List<String> qualifications,
-                           Set<String> accessTags) {
+            String newPassword, String studentClass, String program,
+            Integer experience, List<String> expertise, List<String> qualifications,
+            Set<String> accessTags) {
 
         User user = usersRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -114,17 +137,24 @@ public class UserService {
         }
 
         // 3. Update Basic Info
-        if (fullName != null) user.setFullName(fullName);
-        if (phone != null) user.setPhone(phone);
+        if (fullName != null)
+            user.setFullName(fullName);
+        if (phone != null)
+            user.setPhone(phone);
 
         // 4. Update Role Specifics
         if (user.getRole() == User.Role.student) {
-            if (studentClass != null) user.setStudentClass(studentClass);
-            if (program != null) user.setProgram(program);
+            if (studentClass != null)
+                user.setStudentClass(studentClass);
+            if (program != null)
+                user.setProgram(program);
         } else if (user.getRole() == User.Role.teacher) {
-            if (experience != null) user.setExperience(experience);
-            if (expertise != null) user.setExpertise(expertise);
-            if (qualifications != null) user.setQualifications(qualifications);
+            if (experience != null)
+                user.setExperience(experience);
+            if (expertise != null)
+                user.setExpertise(expertise);
+            if (qualifications != null)
+                user.setQualifications(qualifications);
         }
 
         // 5. Update Access Tags
@@ -146,5 +176,43 @@ public class UserService {
     public String getNameByEmail(String email) {
         User user = usersRepository.findByEmail(email);
         return user != null ? user.getFullName() : null;
+    }
+
+    // --- SAFE DELETE METHOD ---
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteUser(Long userId) {
+        User user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 1. Delete Notifications (as recipient)
+        notificationRepository.deleteByRecipient(user);
+
+        // 2. Delete Push Subscriptions
+        pushSubscriptionRepository.deleteByUser(user);
+
+        // 3. Delete Doubts
+        // - As student: delete their doubts
+        doubtRepository.deleteByStudent(user);
+        // - As teacher: delete doubts assigned to them
+        doubtRepository.deleteByTeacher(user);
+
+        // 4. Delete Submissions (as student)
+        submissionRepository.deleteByStudent(user);
+
+        // 5. Delete Resources (uploaded by them)
+        resourceRepository.deleteByUploadedBy(user);
+
+        // 6. Handle Assignments (if Teacher)
+        // - Fetch all assignments created by this teacher
+        List<momentum.backend.model.Assignment> teacherAssignments = assignmentRepository.findByTeacher(user);
+        for (momentum.backend.model.Assignment assignment : teacherAssignments) {
+            // Delete submissions for this assignment first
+            submissionRepository.deleteByAssignment(assignment);
+        }
+        // - Now delete the assignments themselves
+        assignmentRepository.deleteByTeacher(user);
+
+        // 7. Finally, delete the User
+        usersRepository.delete(user);
     }
 }
