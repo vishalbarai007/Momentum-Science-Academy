@@ -44,6 +44,10 @@ export default function AdminUsersPage() {
   const [editModal, setEditModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null })
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: number | null }>({ open: false, userId: null })
   const [viewModal, setViewModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null })
+  const [classFilter, setClassFilter] = useState("all")
+  const [programFilter, setProgramFilter] = useState("all")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+
 
   // Form States
   const [formData, setFormData] = useState({
@@ -498,9 +502,75 @@ export default function AdminUsersPage() {
         </Button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-        <Input placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {/* Search Bar - Reduced width on desktop */}
+        <div className="relative flex-1 md:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-10"
+          />
+        </div>
+
+        {/* Filters - Only visible for students */}
+        {activeTab === "students" && (
+          <div className="flex flex-wrap gap-2">
+            <Select value={classFilter} onValueChange={setClassFilter}>
+              <SelectTrigger className="w-[130px] h-10">
+                <SelectValue placeholder="All Standards" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Standards</SelectItem>
+                <SelectItem value="11">11th Std</SelectItem>
+                <SelectItem value="12">12th Std</SelectItem>
+                <SelectItem value="11 & 12">11th & 12th</SelectItem>
+                <SelectItem value="9">9th (Found.)</SelectItem>
+                <SelectItem value="10">10th (Found.)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={programFilter} onValueChange={setProgramFilter}>
+              <SelectTrigger className="w-[130px] h-10">
+                <SelectValue placeholder="All Exams" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Exams</SelectItem>
+                <SelectItem value="JEE">JEE</SelectItem>
+                <SelectItem value="NEET">NEET</SelectItem>
+                <SelectItem value="MHT-CET">MHT-CET</SelectItem>
+                <SelectItem value="Board">Boards</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Sort Toggle */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          className="h-10 w-10 shrink-0"
+          title={`Sort ${sortOrder === "asc" ? "Z-A" : "A-Z"}`}
+        >
+          <div className="flex flex-col items-center justify-center -space-y-1">
+            <span className={`text-[10px] font-bold ${sortOrder === "asc" ? "text-primary" : "text-muted-foreground"}`}>A</span>
+            <span className={`text-[10px] font-bold ${sortOrder === "desc" ? "text-primary" : "text-muted-foreground"}`}>Z</span>
+          </div>
+        </Button>
+
+        {/* Reset Button */}
+        {(classFilter !== "all" || programFilter !== "all" || searchQuery !== "") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setClassFilter("all"); setProgramFilter("all"); setSearchQuery(""); }}
+            className="text-xs text-muted-foreground h-10"
+          >
+            Clear Filters
+          </Button>
+        )}
       </div>
 
       {/* User Table */}
