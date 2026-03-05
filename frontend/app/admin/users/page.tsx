@@ -360,11 +360,38 @@ export default function AdminUsersPage() {
     }
   }
 
-  const currentList = activeTab === "students" ? students : teachers
-  const filteredList = currentList.filter(user =>
-    user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const currentList = activeTab === "students" ? students : teachers;
+
+  const filteredList = currentList
+    .filter((user) => {
+      // 1. Search Logic
+      const matchesSearch =
+        user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // 2. Filter Logic (Only apply if we are on the students tab)
+      if (activeTab === "students") {
+        const matchesClass = classFilter === "all" || user.studentClass === classFilter;
+
+        // Use .includes so it works if a student has multiple programs (e.g., "JEE, Board")
+        const matchesProgram =
+          programFilter === "all" ||
+          (user.program && user.program.includes(programFilter));
+
+        return matchesSearch && matchesClass && matchesProgram;
+      }
+
+      // For Teachers, just return the search result
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      // 3. Sorting Logic (Alphabetical by Full Name)
+      if (sortOrder === "asc") {
+        return a.fullName.localeCompare(b.fullName);
+      } else {
+        return b.fullName.localeCompare(a.fullName);
+      }
+    });
 
   // --- UI HELPER: Student Form Content ---
   const renderStudentForm = () => {
