@@ -65,22 +65,20 @@ jobs:
           script: |
             set -e
             
-            # 1. Login to GitHub Container Registry on the VPS 
-            # (CRITICAL: This prevents the 'denied' error)
+            # 1. Login to GitHub Container Registry on the VPS
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 2. Create and enter project folder
-            mkdir -p momentum-science-academy
-            cd momentum-science-academy
+            # 2. Sync the repository using the PascalCase URL (Replaces unreliable curl)
+            if [ ! -d "Momentum-Science-Academy" ]; then
+              git clone https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+            fi
+            cd Momentum-Science-Academy
             
-            # 3. Setup Nginx directories and download config
-            mkdir -p nginx/conf.d
-            curl -sLo nginx/conf.d/default.conf https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/nginx/conf.d/default.conf
-            
-            # 4. Download the latest docker-compose.yml
-            curl -sLO https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/docker-compose.yml
+            # Reset any local changes and pull fresh from the main branch
+            git fetch origin main
+            git reset --hard origin/main
 
-            # 5. Create/Update the .env file
+            # 3. Create/Update the .env file from GitHub Secrets
             cat << 'EOF' > .env
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
@@ -98,15 +96,12 @@ jobs:
             GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
             EOF
 
-            # 6. Pull the latest compiled images
-            docker pull ghcr.io/vishalbarai007/momentum-backend:latest
-            docker pull ghcr.io/vishalbarai007/momentum-frontend:latest
-
-            # 7. Restart containers
+            # 4. Pull the latest compiled images and Restart
+            docker compose pull
             docker compose down || true
             docker compose up -d
             
-            # 8. Cleanup
+            # 5. Cleanup
             docker image prune -f
 
       - name: Notify Search Engines (IndexNow)
