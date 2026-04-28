@@ -45,7 +45,6 @@ jobs:
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-            NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
@@ -66,18 +65,22 @@ jobs:
           script: |
             set -e
             
-            # 1. Create and enter project folder
+            # 1. Login to GitHub Container Registry on the VPS 
+            # (CRITICAL: This prevents the 'denied' error)
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # 2. Create and enter project folder
             mkdir -p momentum-science-academy
             cd momentum-science-academy
             
-            # 2. Setup Nginx directories and download config
+            # 3. Setup Nginx directories and download config
             mkdir -p nginx/conf.d
-            curl -o nginx/conf.d/default.conf https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/nginx/conf.d/default.conf
+            curl -sLo nginx/conf.d/default.conf https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/nginx/conf.d/default.conf
             
-            # 3. Download the latest docker-compose.yml
-            curl -O https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/docker-compose.yml
+            # 4. Download the latest docker-compose.yml
+            curl -sLO https://raw.githubusercontent.com/vishalbarai007/Momentum-Science-Academy/main/docker-compose.yml
 
-            # 4. Create/Update the .env file
+            # 5. Create/Update the .env file
             cat << 'EOF' > .env
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
@@ -95,15 +98,15 @@ jobs:
             GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
             EOF
 
-            # 5. Pull the latest compiled images from GitHub Container Registry
-            docker pull ${{ env.BACKEND_IMAGE }}:latest
-            docker pull ${{ env.FRONTEND_IMAGE }}:latest
+            # 6. Pull the latest compiled images
+            docker pull ghcr.io/vishalbarai007/momentum-backend:latest
+            docker pull ghcr.io/vishalbarai007/momentum-frontend:latest
 
-            # 6. Restart containers with the new images
+            # 7. Restart containers
             docker compose down || true
             docker compose up -d
             
-            # 7. Cleanup old unused images
+            # 8. Cleanup
             docker image prune -f
 
       - name: Notify Search Engines (IndexNow)

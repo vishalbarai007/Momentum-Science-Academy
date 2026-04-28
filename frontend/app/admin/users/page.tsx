@@ -256,6 +256,39 @@ export default function AdminUsersPage() {
         body: JSON.stringify(payload)
       })
 
+      const currentList = activeTab === "students" ? students : teachers;
+
+      const filteredList = currentList
+        .filter((user) => {
+          // 1. Search Logic
+          const matchesSearch =
+            user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+          // 2. Filter Logic (Applies only when on the Students tab)
+          if (activeTab === "students") {
+            const matchesClass = classFilter === "all" || user.studentClass === classFilter;
+
+            // Use .includes() because 'user.program' might contain multiple values (e.g., "JEE, Board")
+            const matchesProgram =
+              programFilter === "all" ||
+              (user.program && user.program.toLowerCase().includes(programFilter.toLowerCase()));
+
+            return matchesSearch && matchesClass && matchesProgram;
+          }
+
+          // For Teachers, we only care about the search query
+          return matchesSearch;
+        })
+        .sort((a, b) => {
+          // 3. Sorting Logic (Alphabetical)
+          if (sortOrder === "asc") {
+            return a.fullName.localeCompare(b.fullName);
+          } else {
+            return b.fullName.localeCompare(a.fullName);
+          }
+        });
+
       if (res.ok) {
         setSuccessMessage("User updated successfully!")
         setTimeout(() => setSuccessMessage(""), 3000)

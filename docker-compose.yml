@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -17,7 +15,6 @@ services:
     image: ghcr.io/vishalbarai007/momentum-backend:latest
     container_name: momentum-backend
     restart: always
-    # Ports removed: Now accessible only via Nginx internally on 8080
     deploy:
       resources:
         limits:
@@ -42,7 +39,6 @@ services:
     image: ghcr.io/vishalbarai007/momentum-frontend:latest
     container_name: momentum-frontend
     restart: always
-    # Ports removed: Now accessible only via Nginx internally on 3000
     deploy:
       resources:
         limits:
