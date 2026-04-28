@@ -65,24 +65,24 @@ jobs:
           script: |
             set -e
             
-            # 1. Login to GitHub Container Registry on the VPS
+            # 1. Port Cleanup: Stop standalone Nginx to free up port 80/443
+            sudo systemctl stop nginx || true
+
+            # 2. Login to GitHub Container Registry
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 2. Sync the repository using the GH_PAT for authentication
-            # We use the token directly in the URL to bypass 403 errors
+            # 3. Sync the Private Repository
             if [ ! -d "Momentum-Science-Academy" ]; then
               git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
             fi
             cd Momentum-Science-Academy
             
-            # Update the remote URL to ensure it always uses the latest token
+            # Update token and reset local files
             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
-            
-            # Fetch and reset to clear any corrupted 404 files
             git fetch origin main
             git reset --hard origin/main
 
-            # 3. Create/Update the .env file from GitHub Secrets
+            # 4. Create/Update .env file
             cat << 'EOF' > .env
             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
@@ -100,12 +100,12 @@ jobs:
             GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
             EOF
 
-            # 4. Pull the latest compiled images and Restart
+            # 5. Pull and Restart Containers
             docker compose pull
             docker compose down || true
             docker compose up -d
             
-            # 5. Cleanup
+            # 6. Cleanup
             docker image prune -f
 
       - name: Notify Search Engines (IndexNow)
