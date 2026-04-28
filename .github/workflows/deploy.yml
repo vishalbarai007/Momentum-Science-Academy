@@ -68,13 +68,17 @@ jobs:
             # 1. Login to GitHub Container Registry on the VPS
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 2. Sync the repository using the PascalCase URL (Replaces unreliable curl)
+            # 2. Sync the repository using the GH_PAT for authentication
+            # We use the token directly in the URL to bypass 403 errors
             if [ ! -d "Momentum-Science-Academy" ]; then
-              git clone https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+              git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
             fi
             cd Momentum-Science-Academy
             
-            # Reset any local changes and pull fresh from the main branch
+            # Update the remote URL to ensure it always uses the latest token
+            git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+            
+            # Fetch and reset to clear any corrupted 404 files
             git fetch origin main
             git reset --hard origin/main
 
