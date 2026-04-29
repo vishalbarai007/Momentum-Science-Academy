@@ -379,6 +379,7 @@ export default function ContactPage() {
               </Card>
             </div>
 
+
             {/* Sidebar */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="p-6 border-0 shadow-xl bg-card relative overflow-hidden group">
