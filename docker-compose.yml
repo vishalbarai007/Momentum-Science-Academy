@@ -1,3 +1,90 @@
+# services:
+#   db:
+#     image: mysql:8.0
+#     container_name: momentum-db
+#     restart: always
+#     environment:
+#       MYSQL_DATABASE: ${MYSQL_DATABASE}
+#       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#     volumes:
+#       - mysql_data:/var/lib/mysql
+#     networks:
+#       - momentum-network
+
+#   backend:
+#     image: ghcr.io/vishalbarai007/momentum-backend:latest
+#     container_name: momentum-backend
+#     restart: always
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: '0.60'
+#           memory: 1G
+#     environment:
+#       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#       APP_JWT_SECRET: ${APP_JWT_SECRET}
+#       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+#       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+#       VAPID_SUBJECT: ${VAPID_SUBJECT}
+#       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+#       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+#     depends_on:
+#       - db
+#     networks:
+#       - momentum-network
+
+#   frontend:
+#     image: ghcr.io/vishalbarai007/momentum-frontend:latest
+#     container_name: momentum-frontend
+#     restart: always
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: '0.80'
+#           memory: 1G
+#     environment:
+#       HOSTNAME: "0.0.0.0"
+#       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+#       NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+#       NEXTAUTH_URL: ${NEXTAUTH_URL}
+#       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+#       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST}
+#       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+#       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+#       GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
+#       GOOGLE_PRIVATE_KEY: ${GOOGLE_PRIVATE_KEY}
+#       GOOGLE_SHEET_ID: ${GOOGLE_SHEET_ID}
+#     depends_on:
+#       - backend
+#     networks:
+#       - momentum-network
+
+#   nginx:
+#     image: nginx:latest
+#     container_name: momentum-nginx
+#     restart: always
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     volumes:
+#       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+#       - /etc/letsencrypt:/etc/letsencrypt:ro
+#     depends_on:
+#       - frontend
+#       - backend
+#     networks:
+#       - momentum-network
+
+# volumes:
+#   mysql_data:
+
+# networks:
+#   momentum-network:
+#     driver: bridge
+
+
 services:
   db:
     image: mysql:8.0
@@ -49,6 +136,9 @@ services:
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST}
+      NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY}
+      HOSTNAME: "0.0.0.0"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}

@@ -48,16 +48,16 @@ public class SecurityConfig {
 
                                         // 🔓 Public Endpoints
                                                 .requestMatchers(
-                                                                "/api/auth/login",
-                                                        "/api/auth/register",
-                                                        "/api/auth/students",
-                                                        "/api/auth/teachers",
-                                                                "/api/leads/contact",
-                                                                "/api/leads/enroll",
+                                                                "/auth/login",
+                                                        "/auth/register",
+                                                        "/auth/students",
+                                                        "/auth/teachers",
+                                                                "/leads/contact",
+                                                                "/leads/enroll",
                                                                 "/ws/**",
                                                                 "/error")
                                                 .permitAll()
-                                        .requestMatchers("/api/auth/me").authenticated()
+                                        .requestMatchers("/auth/me").authenticated()
 
 
                                         // 👑 Super Admin

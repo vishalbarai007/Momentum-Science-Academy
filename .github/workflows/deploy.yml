@@ -1,3 +1,118 @@
+# name: Deploy to VPS
+
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch:
+
+# env:
+#   REGISTRY: ghcr.io
+#   FRONTEND_IMAGE: ghcr.io/vishalbarai007/momentum-frontend
+#   BACKEND_IMAGE: ghcr.io/vishalbarai007/momentum-backend
+
+# jobs:
+#   build-and-push:
+#     name: Build and Push Docker Images
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
+#       packages: write
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Log in to the Container registry
+#         uses: docker/login-action@v3
+#         with:
+#           registry: ${{ env.REGISTRY }}
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+
+#       - name: Build and push Backend
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: ./backend
+#           push: true
+#           tags: |
+#             ${{ env.BACKEND_IMAGE }}:latest
+#             ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+
+#       - name: Build and push Frontend
+#         uses: docker/build-push-action@v5
+#         with:
+#           context: ./frontend
+#           push: true
+#           build-args: |
+#             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+#             NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+#           tags: |
+#             ${{ env.FRONTEND_IMAGE }}:latest
+#             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+#   deploy:
+#     name: Deploy to Hostinger VPS
+#     needs: build-and-push
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Deploy via SSH
+#         uses: appleboy/ssh-action@v1.0.3
+#         with:
+#           host: ${{ secrets.VPS_HOST }}
+#           username: ${{ secrets.VPS_USER }}
+#           key: ${{ secrets.VPS_SSH_KEY }}
+#           port: 22
+#           script: |
+#             set -e
+            
+#             # 1. Port Cleanup: Stop standalone Nginx to free up port 80/443
+#             sudo systemctl stop nginx || true
+
+#             # 2. Login to GitHub Container Registry
+#             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+#             # 3. Sync the Private Repository
+#             if [ ! -d "Momentum-Science-Academy" ]; then
+#               git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+#             fi
+#             cd Momentum-Science-Academy
+            
+#             # Update token and reset local files
+#             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+#             git fetch origin main
+#             git reset --hard origin/main
+
+#             # 4. Create/Update .env file
+#             cat << 'EOF' > .env
+#             MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+#             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+#             APP_JWT_SECRET=${{ secrets.APP_JWT_SECRET }}
+#             VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+#             VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
+#             VAPID_SUBJECT=${{ secrets.VAPID_SUBJECT }}
+#             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+#             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+#             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+#             AUTH_TRUST_HOST=true
+#             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+#             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+#             GOOGLE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+#             GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}
+#             GOOGLE_PRIVATE_KEY=${{ secrets.GOOGLE_PRIVATE_KEY }}
+#             EOF
+
+#             # 5. Pull and Restart Containers
+#             docker compose pull
+#             docker compose down || true
+#             docker compose up -d
+            
+#             # 6. Cleanup
+#             docker image prune -f
+
+#       - name: Notify Search Engines (IndexNow)
+#         run: |
+#           curl -k "https://www.bing.com/indexnow?url=https://momentumscienceacademy.com/sitemap.xml&key=${{ secrets.INDEXNOW_KEY }}"
+
 name: Deploy to VPS
 
 on:
@@ -46,6 +161,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
@@ -65,7 +181,7 @@ jobs:
           script: |
             set -e
             
-            # 1. Port Cleanup: Stop standalone Nginx to free up port 80/443
+            # 1. Port Cleanup
             sudo systemctl stop nginx || true
 
             # 2. Login to GitHub Container Registry
@@ -77,7 +193,6 @@ jobs:
             fi
             cd Momentum-Science-Academy
             
-            # Update token and reset local files
             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
             git fetch origin main
             git reset --hard origin/main
@@ -93,6 +208,8 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            AUTH_TRUST_HOST=true
+            NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_SERVICE_ACCOUNT_EMAIL=${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
