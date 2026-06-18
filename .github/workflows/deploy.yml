@@ -64,7 +64,7 @@
 #           port: 22
 #           script: |
 #             set -e
-            
+
 #             # 1. Port Cleanup: Stop standalone Nginx to free up port 80/443
 #             sudo systemctl stop nginx || true
 
@@ -76,7 +76,7 @@
 #               git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
 #             fi
 #             cd Momentum-Science-Academy
-            
+
 #             # Update token and reset local files
 #             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
 #             git fetch origin main
@@ -105,19 +105,18 @@
 #             docker compose pull
 #             docker compose down || true
 #             docker compose up -d
-            
+
 #             # 6. Cleanup
 #             docker image prune -f
 
 #       - name: Notify Search Engines (IndexNow)
 #         run: |
 #           curl -k "https://www.bing.com/indexnow?url=https://momentumscienceacademy.com/sitemap.xml&key=${{ secrets.INDEXNOW_KEY }}"
-
 name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -182,20 +181,20 @@ jobs:
           port: 22
           script: |
             set -e
-            
+
             # 1. Port Cleanup
             sudo systemctl stop nginx || true
 
             # 2. Login to GitHub Container Registry
-            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u vishalbarai007 --password-stdin
 
             # 3. Sync the Private Repository
             if [ ! -d "Momentum-Science-Academy" ]; then
-              git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+              git clone https://${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
             fi
             cd Momentum-Science-Academy
-            
-            git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
+
+            git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/vishalbarai007/Momentum-Science-Academy.git
             git fetch origin main
             git reset --hard origin/main
 
@@ -223,7 +222,7 @@ jobs:
             docker compose pull
             docker compose down || true
             docker compose up -d
-            
+
             # 6. Cleanup
             docker image prune -f
 
