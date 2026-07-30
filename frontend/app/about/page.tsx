@@ -81,7 +81,6 @@ export default function AboutPage() {
     },
   ]
 
-  
   const values = [
     {
       icon: Target,
