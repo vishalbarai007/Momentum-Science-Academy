@@ -219,12 +219,12 @@ jobs:
             EOF
 
             # 5. Pull and Restart Containers
-           
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u vishalbarai007 --password-stdin
+            docker logout ghcr.io
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose down || true
             docker compose up -d
-            
+
             # 6. Cleanup
             docker image prune -f
 
